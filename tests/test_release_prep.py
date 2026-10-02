@@ -44,3 +44,15 @@ def test_a_corrupt_pdf_is_skipped_not_fatal(tmp_path):
     pages = c.ingest()
     assert len(pages) == 1 and pages[0].source_ref.endswith("good.md")  # the good page still lands
     assert len(c.skipped) == 1 and "broken.pdf" in c.skipped[0]
+
+
+def test_new_users_default_to_the_provider_they_have_a_key_for(monkeypatch):
+    from mm.config.user import LLMConfig
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    assert LLMConfig().provider == "openai"            # one OpenAI key: just works
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "   # optional")
+    assert LLMConfig().provider == "openai"            # compose's empty-with-comment value isn't a key
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test")
+    assert LLMConfig().provider == "anthropic"
+    assert LLMConfig(provider="ollama", model="llama3").provider == "ollama"  # explicit choice wins
