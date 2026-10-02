@@ -75,9 +75,14 @@ def run_wizard() -> None:
     for i, p in enumerate(llm_providers, 1):
         typer.echo(f"  {i}. {p}")
     # Default to a provider the user already has a key for: one OpenAI key should just work.
-    if os.environ.get("ANTHROPIC_API_KEY"):
+    def _has_key(name: str) -> bool:
+        # Compose turns an empty `KEY=   # comment` line into the value "# comment".
+        value = (os.environ.get(name) or "").strip()
+        return bool(value) and not value.startswith("#")
+
+    if _has_key("ANTHROPIC_API_KEY"):
         default_llm = "1"
-    elif os.environ.get("OPENAI_API_KEY"):
+    elif _has_key("OPENAI_API_KEY"):
         default_llm = "2"
     else:
         default_llm = "3" if _ollama_available() else "1"
