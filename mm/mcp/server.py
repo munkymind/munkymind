@@ -1,4 +1,4 @@
-"""MCP server for Monkey Mind OSS.
+"""MCP server for Munkymind.
 
 Exposes 5 tools:
   - query_context
@@ -32,7 +32,7 @@ from mcp.server.mcpserver import MCPServer
 # Server init
 # ------------------------------------------------------------------ #
 
-mcp = MCPServer("monkey-mind")
+mcp = MCPServer("munkymind")
 
 # ------------------------------------------------------------------ #
 # Store factory  (reads env on first call, cached per process)
@@ -344,7 +344,7 @@ def build_http_app(host: str, oauth_metadata, protected_resource=None):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Monkey Mind MCP server")
+    parser = argparse.ArgumentParser(description="Munkymind MCP server")
     parser.add_argument(
         "--transport",
         choices=["stdio", "http"],

@@ -7,7 +7,9 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
-## [0.2.0] — 2026-09-25
+## [0.2.0] — 2026-10
+
+**Monkey Mind is now Munkymind.** New home: [munkymind.dev](https://munkymind.dev) and `github.com/munkymind/munkymind` (old links redirect). The CLI is `munkymind`; `monkey-mind` still works as an alias, and an existing `~/.monkey-mind` data folder is picked up automatically.
 
 ### Added
 - Remote MCP connectors for **claude.ai** and **ChatGPT**: OAuth 2.1 Authorization Code + PKCE (S256) with Dynamic Client Registration (#32)

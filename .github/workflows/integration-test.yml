@@ -60,11 +60,11 @@ jobs:
       - name: Create integration test user
         id: create-user
         run: |
-          KEY=$(docker compose exec -T api monkey-mind user create integration-test 2>&1 \
+          KEY=$(docker compose exec -T api munkymind user create integration-test 2>&1 \
             | grep -oP 'mm_sk_[A-Za-z0-9]+')
           if [ -z "$KEY" ]; then
             echo "❌ Failed to extract API key from user create output."
-            docker compose exec -T api monkey-mind user create integration-test 2>&1 || true
+            docker compose exec -T api munkymind user create integration-test 2>&1 || true
             exit 1
           fi
           echo "MM_API_KEY=$KEY" >> "$GITHUB_ENV"

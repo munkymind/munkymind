@@ -1,25 +1,25 @@
 <!-- OpenGraph / social card meta for GitHub link previews -->
 <!--
-  og:title: Monkey Mind — Your AI tools forget you. This fixes that.
+  og:title: Munkymind — Your AI tools forget you. This fixes that.
   og:description: Open-source, self-hosted personal context library. Give Claude, Cursor, and ChatGPT a persistent memory of who you are, what you've built, and what matters to you.
-  og:image: https://raw.githubusercontent.com/jungleboyz/monkey-mind-oss/main/assets/logo-512.png
-  og:url: https://github.com/jungleboyz/monkey-mind-oss
+  og:image: https://raw.githubusercontent.com/munkymind/munkymind/main/assets/logo-512.png
+  og:url: https://github.com/munkymind/munkymind
   twitter:card: summary_large_image
 -->
 
 <p align="center">
-  <img src="assets/logo-256.png" alt="Monkey Mind" width="120" height="120"/>
+  <img src="assets/logo-256.png" alt="Munkymind" width="120" height="120"/>
 </p>
 
-<h1 align="center">Monkey Mind</h1>
+<h1 align="center">Munkymind</h1>
 
 <p align="center">
   <strong>Your AI tools forget you. This fixes that.</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/jungleboyz/monkey-mind-oss/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-7c3aed?style=flat-square" alt="License"/></a>
-  <a href="https://github.com/jungleboyz/monkey-mind-oss/actions"><img src="https://img.shields.io/github/actions/workflow/status/jungleboyz/monkey-mind-oss/ci.yml?style=flat-square&color=7c3aed" alt="CI"/></a>
+  <a href="https://github.com/munkymind/munkymind/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-7c3aed?style=flat-square" alt="License"/></a>
+  <a href="https://github.com/munkymind/munkymind/actions"><img src="https://img.shields.io/github/actions/workflow/status/munkymind/munkymind/ci.yml?style=flat-square&color=7c3aed" alt="CI"/></a>
   <img src="https://img.shields.io/badge/python-3.11%2B-7c3aed?style=flat-square" alt="Python 3.11+"/>
   <img src="https://img.shields.io/badge/self--hosted-yes-7c3aed?style=flat-square" alt="Self-hosted"/>
 </p>
@@ -28,10 +28,10 @@
 
 Every conversation, Claude forgets you. Every new Cursor session, you re-explain the project. Every ChatGPT window, you paste the same stale context blob and hope for the best.
 
-**Monkey Mind is a persistent, structured memory for your AI tools** — self-hosted, open source, works with any LLM. It ingests your notes, GitHub repos, and documents, then serves that context to Claude, Cursor, or any MCP-compatible tool. Cross-domain synthesis. Source provenance. Staleness detection. No cloud dependency. Your data never leaves your machine.
+**Munkymind is a persistent, structured memory for your AI tools** — self-hosted, open source, works with any LLM. It ingests your notes, GitHub repos, and documents, then serves that context to Claude, Cursor, or any MCP-compatible tool. Cross-domain synthesis. Source provenance. Staleness detection. No cloud dependency. Your data never leaves your machine.
 
 ```bash
-# What your AI can answer once Monkey Mind is running:
+# What your AI can answer once Munkymind is running:
 "What should I focus on this week?"
 "What are my most active projects right now?"
 "What did I decide about the authentication approach?"
@@ -48,8 +48,8 @@ Cross-domain answers. Traced to sources. No hallucination.
 
 ```bash
 # 1. Clone and configure
-git clone https://github.com/jungleboyz/monkey-mind-oss.git
-cd monkey-mind-oss
+git clone https://github.com/munkymind/munkymind.git
+cd munkymind
 cp .env.example .env
 # Edit .env — add OPENAI_API_KEY (and ANTHROPIC_API_KEY only if you want Claude for answers)
 
@@ -60,14 +60,14 @@ mkdir -p notes && cp -r ~/path/to/your/notes/* notes/
 docker compose up -d
 
 # 4. Run the setup wizard (creates your user, connects /notes, ingests, test-queries)
-docker compose exec api monkey-mind setup
+docker compose exec api munkymind setup
 #    - username: pick one
 #    - API key prompts: press Enter (Docker already has them from .env)
 #    - "Where is your context?": 1 (local files), path: /notes
 #    - SAVE the mm_sk_... API key it prints — it is shown once
 
 # 5. Ask a question
-docker compose exec api monkey-mind query --user yourname "What should I focus on this week?"
+docker compose exec api munkymind query --user yourname "What should I focus on this week?"
 
 # ...or over the REST API
 curl -X POST http://localhost:8000/query \
@@ -76,7 +76,7 @@ curl -X POST http://localhost:8000/query \
   -d '{"query": "What should I focus on this week?"}'
 ```
 
-Added more notes later? `docker compose exec api monkey-mind ingest --connector files --user yourname`
+Added more notes later? `docker compose exec api munkymind ingest --connector files --user yourname`
 
 That's it. Full setup guide: **[docs/quickstart.md](docs/quickstart.md)**
 
@@ -84,7 +84,7 @@ That's it. Full setup guide: **[docs/quickstart.md](docs/quickstart.md)**
 
 ## Why it works
 
-| The problem | What Monkey Mind does |
+| The problem | What Munkymind does |
 |------------|----------------------|
 | AI tools forget you every conversation | Persists your context across all tools, forever |
 | Context scattered across notes, repos, files | One structured library, multiple sources |
@@ -156,9 +156,9 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "monkey-mind": {
+    "munkymind": {
       "command": "docker",
-      "args": ["compose", "-f", "/path/to/monkey-mind-oss/docker-compose.yml",
+      "args": ["compose", "-f", "/path/to/munkymind/docker-compose.yml",
                "exec", "-T", "mcp", "python", "-m", "mm.mcp.server"],
       "env": {
         "USER_ID": "yourname"
@@ -178,7 +178,7 @@ Then ask Claude: *"What should I focus on this week?"* — and it will draw from
 
 ### Remote connectors (Claude web/mobile, ChatGPT) — OAuth
 
-For hosted deployments (e.g. Railway), Monkey Mind's MCP server supports OAuth 2.1 Authorization Code + PKCE (S256) with Dynamic Client Registration (RFC 7591), so it works as a standard remote connector for **claude.ai** and **ChatGPT** — no manual config file editing needed.
+For hosted deployments (e.g. Railway), Munkymind's MCP server supports OAuth 2.1 Authorization Code + PKCE (S256) with Dynamic Client Registration (RFC 7591), so it works as a standard remote connector for **claude.ai** and **ChatGPT** — no manual config file editing needed.
 
 claude.ai and ChatGPT can only reach a **public HTTPS** address, so a laptop install needs one first:
 
@@ -205,17 +205,17 @@ Backward-compatible: the legacy OAuth Client Credentials grant and direct `X-API
 ## CLI reference
 
 ```bash
-monkey-mind setup                                   # Interactive setup wizard (start here)
-monkey-mind query --user <name> "<question>"        # Ask your context library
-monkey-mind ingest --connector files --user <name>  # Re-ingest after adding notes
-monkey-mind ingest --connector github --user <name> # Ingest from GitHub connector
-monkey-mind eval --api-key mm_sk_...                # Run quality eval suite (9 scenarios)
-monkey-mind user create <name>                      # Create a user + API key only (no connector)
-monkey-mind user rotate-key <name>                  # Issue a new API key
-monkey-mind domain add <id> <label> --user <name>   # Add a domain
-monkey-mind domain rename <id> <label> --user <name>
-monkey-mind domain remove <id> --user <name>
-monkey-mind user delete <name> --confirm            # Delete all user data
+munkymind setup                                   # Interactive setup wizard (start here)
+munkymind query --user <name> "<question>"        # Ask your context library
+munkymind ingest --connector files --user <name>  # Re-ingest after adding notes
+munkymind ingest --connector github --user <name> # Ingest from GitHub connector
+munkymind eval --api-key mm_sk_...                # Run quality eval suite (9 scenarios)
+munkymind user create <name>                      # Create a user + API key only (no connector)
+munkymind user rotate-key <name>                  # Issue a new API key
+munkymind domain add <id> <label> --user <name>   # Add a domain
+munkymind domain rename <id> <label> --user <name>
+munkymind domain remove <id> --user <name>
+munkymind user delete <name> --confirm            # Delete all user data
 ```
 
 ---
@@ -242,8 +242,8 @@ Apache 2.0. Contributions welcome.
 **Best first contribution:** Build a connector. The interface is clean and documented — 200 lines, one class to implement.
 
 ```bash
-git clone https://github.com/jungleboyz/monkey-mind-oss.git
-cd monkey-mind-oss
+git clone https://github.com/munkymind/munkymind.git
+cd munkymind
 pip install -e ".[dev]"
 python -m pytest tests/ -v
 ```
@@ -259,7 +259,7 @@ See [docs/connector-dev-guide.md](docs/connector-dev-guide.md) to get started.
 ---
 
 <p align="center">
-  <img src="assets/logo-128.png" alt="Monkey Mind" width="48" height="48"/>
+  <img src="assets/logo-128.png" alt="Munkymind" width="48" height="48"/>
   <br/>
   <sub>Context is the moat.</sub>
 </p>

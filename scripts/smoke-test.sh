@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/smoke-test.sh — MMV2-T4: Full stack smoke test for Monkey Mind OSS
+# scripts/smoke-test.sh — MMV2-T4: Full stack smoke test for Munkymind
 #
 # Exercises the full path:
 #   Docker build → compose up → health → user create → connector config → ingest → query → assert
@@ -73,9 +73,9 @@ fi
 
 # ── Step 3: Create user + generate API key ─────────────────────────────────
 step "3. Create user + API key"
-# Run the monkey-mind CLI inside the container
+# Run the munkymind CLI inside the container
 CREATE_OUT=$(docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" exec -T api \
-  monkey-mind user create smoke-user 2>&1)
+  munkymind user create smoke-user 2>&1)
 
 info "user create output: $CREATE_OUT"
 
@@ -103,11 +103,11 @@ step "4. Configure files connector + seed test content"
 # Write a test markdown fixture into the container
 docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" exec -T api \
   bash -c 'mkdir -p /tmp/smoke-fixtures && cat > /tmp/smoke-fixtures/health-note.md << '"'"'EOF'"'"'
-# Monkey Mind Smoke Test Document
+# Munkymind Smoke Test Document
 
 ## Health Section
 
-The smoke test verifies that Monkey Mind can ingest and retrieve content correctly.
+The smoke test verifies that Munkymind can ingest and retrieve content correctly.
 This document contains keywords like "longevity", "fitness", and "biohacking" so
 the query assertion can confirm the right content was returned.
 
@@ -139,7 +139,7 @@ green "Connector configured with test fixtures"
 # ── Step 5: Ingest ─────────────────────────────────────────────────────────
 step "5. Ingest via files connector"
 INGEST_OUT=$(docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" exec -T api \
-  monkey-mind ingest --connector files --user smoke-user 2>&1)
+  munkymind ingest --connector files --user smoke-user 2>&1)
 
 info "ingest output: $INGEST_OUT"
 
@@ -209,7 +209,7 @@ fi
 # ── Summary ───────────────────────────────────────────────────────────────
 echo
 echo "══════════════════════════════════════════"
-echo "  Monkey Mind OSS Smoke Test — Complete"
+echo "  Munkymind Smoke Test — Complete"
 echo "  Passed: $PASS  Failed: $FAIL"
 echo "══════════════════════════════════════════"
 

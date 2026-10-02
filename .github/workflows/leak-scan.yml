@@ -1,6 +1,6 @@
 name: Leak Scan
 
-# Odin's launch check L4: the public repo must contain no personal Monkey Mind content.
+# Odin's launch check L4: the public repo must contain no personal Munkymind content.
 # The protected terms are stored only as salted hashes (.github/leak-hashes.txt).
 on:
   push:

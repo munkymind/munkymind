@@ -1,4 +1,4 @@
-"""FastAPI REST server for Monkey Mind."""
+"""FastAPI REST server for Munkymind."""
 from __future__ import annotations
 
 import datetime
@@ -19,7 +19,7 @@ from mm.config.env import load_data_root_env
 from mm.core.store import UserStore
 
 app = FastAPI(
-    title="Monkey Mind",
+    title="Munkymind",
     description="Personal context library API",
     version=__version__,
 )

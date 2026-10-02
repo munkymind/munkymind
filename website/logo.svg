@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0d0d1a"/>
+    </radialGradient>
+    <radialGradient id="brainGrad" cx="45%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="50%" stop-color="#6d28d9"/>
+      <stop offset="100%" stop-color="#4c1d95"/>
+    </radialGradient>
+    <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Dark background circle -->
+  <circle cx="256" cy="256" r="256" fill="url(#bgGrad)"/>
+
+  <!-- Outer glow ring -->
+  <circle cx="256" cy="256" r="220" fill="none" stroke="#7c3aed" stroke-width="1.5" opacity="0.3"/>
+  <circle cx="256" cy="256" r="240" fill="none" stroke="#6d28d9" stroke-width="0.8" opacity="0.15"/>
+
+  <!-- Neural network background nodes + connections (subtle) -->
+  <!-- Outer constellation nodes -->
+  <g opacity="0.25" stroke="#a78bfa" stroke-width="1" fill="none">
+    <line x1="256" y1="60" x2="160" y2="140"/>
+    <line x1="256" y1="60" x2="356" y2="140"/>
+    <line x1="100" y1="200" x2="160" y2="140"/>
+    <line x1="412" y1="200" x2="356" y2="140"/>
+    <line x1="100" y1="200" x2="130" y2="310"/>
+    <line x1="412" y1="200" x2="382" y2="310"/>
+    <line x1="130" y1="310" x2="200" y2="400"/>
+    <line x1="382" y1="310" x2="312" y2="400"/>
+    <line x1="200" y1="400" x2="312" y2="400"/>
+    <line x1="160" y1="140" x2="356" y2="140"/>
+  </g>
+  <!-- Outer node dots -->
+  <g fill="#6d28d9" opacity="0.4">
+    <circle cx="256" cy="60" r="3"/>
+    <circle cx="160" cy="140" r="2.5"/>
+    <circle cx="356" cy="140" r="2.5"/>
+    <circle cx="100" cy="200" r="2.5"/>
+    <circle cx="412" cy="200" r="2.5"/>
+    <circle cx="130" cy="310" r="2.5"/>
+    <circle cx="382" cy="310" r="2.5"/>
+    <circle cx="200" cy="400" r="2.5"/>
+    <circle cx="312" cy="400" r="2.5"/>
+  </g>
+
+  <!-- Central brain shape — two hemispheres -->
+  <!-- Left hemisphere -->
+  <path d="M256 148
+    C230 148 208 156 194 172
+    C178 190 172 212 174 234
+    C170 240 166 250 168 264
+    C166 278 170 294 178 306
+    C188 320 202 328 218 332
+    C230 336 244 336 256 334
+    L256 148Z"
+    fill="url(#brainGrad)" filter="url(#glow)"/>
+
+  <!-- Right hemisphere -->
+  <path d="M256 148
+    C282 148 304 156 318 172
+    C334 190 340 212 338 234
+    C342 240 346 250 344 264
+    C346 278 342 294 334 306
+    C324 320 310 328 294 332
+    C282 336 268 336 256 334
+    L256 148Z"
+    fill="url(#brainGrad)" filter="url(#glow)"/>
+
+  <!-- Brain stem / base -->
+  <path d="M230 334 Q256 348 282 334 L278 362 Q256 372 234 362 Z"
+    fill="#5b21b6" opacity="0.8"/>
+
+  <!-- Brain highlight / top lobe detail -->
+  <path d="M210 178 Q230 162 256 160 Q282 162 302 178"
+    fill="none" stroke="#c4b5fd" stroke-width="2" opacity="0.5"/>
+
+  <!-- Brain fissure (corpus callosum line) -->
+  <line x1="256" y1="155" x2="256" y2="334" stroke="#1a1a2e" stroke-width="3" opacity="0.6"/>
+
+  <!-- Left hemisphere gyri (folds) -->
+  <g fill="none" stroke="#c4b5fd" stroke-width="1.8" opacity="0.45" stroke-linecap="round">
+    <path d="M194 200 Q210 192 222 202 Q234 212 224 224"/>
+    <path d="M182 240 Q196 230 210 240 Q224 250 216 264"/>
+    <path d="M186 278 Q202 268 216 278 Q228 288 220 300"/>
+    <path d="M206 316 Q220 308 232 318"/>
+    <path d="M198 218 Q208 226 204 238"/>
+  </g>
+
+  <!-- Right hemisphere gyri (folds) -->
+  <g fill="none" stroke="#c4b5fd" stroke-width="1.8" opacity="0.45" stroke-linecap="round">
+    <path d="M318 200 Q302 192 290 202 Q278 212 288 224"/>
+    <path d="M330 240 Q316 230 302 240 Q288 250 296 264"/>
+    <path d="M326 278 Q310 268 296 278 Q284 288 292 300"/>
+    <path d="M306 316 Q292 308 280 318"/>
+    <path d="M314 218 Q304 226 308 238"/>
+  </g>
+
+  <!-- Neural spark nodes ON the brain — the "AI memory" visual metaphor -->
+  <!-- These are active memory nodes, glowing bright -->
+  <g filter="url(#softGlow)">
+    <!-- Left hemisphere active nodes -->
+    <circle cx="214" cy="210" r="5" fill="#f0abfc" opacity="0.9"/>
+    <circle cx="196" cy="258" r="4" fill="#e879f9" opacity="0.85"/>
+    <circle cx="210" cy="295" r="4.5" fill="#c084fc" opacity="0.9"/>
+    <circle cx="232" cy="240" r="3.5" fill="#a78bfa" opacity="0.8"/>
+
+    <!-- Right hemisphere active nodes -->
+    <circle cx="298" cy="210" r="5" fill="#f0abfc" opacity="0.9"/>
+    <circle cx="316" cy="258" r="4" fill="#e879f9" opacity="0.85"/>
+    <circle cx="302" cy="295" r="4.5" fill="#c084fc" opacity="0.9"/>
+    <circle cx="280" cy="240" r="3.5" fill="#a78bfa" opacity="0.8"/>
+
+    <!-- Center bridge node -->
+    <circle cx="256" cy="245" r="6" fill="#f0abfc" opacity="0.95"/>
+  </g>
+
+  <!-- Synaptic connections between active nodes -->
+  <g stroke="#c084fc" stroke-width="1.2" opacity="0.6" fill="none">
+    <line x1="214" y1="210" x2="232" y2="240"/>
+    <line x1="196" y1="258" x2="232" y2="240"/>
+    <line x1="210" y1="295" x2="232" y2="240"/>
+    <line x1="232" y1="240" x2="256" y2="245"/>
+    <line x1="280" y1="240" x2="256" y2="245"/>
+    <line x1="298" y1="210" x2="280" y2="240"/>
+    <line x1="316" y1="258" x2="280" y2="240"/>
+    <line x1="302" y1="295" x2="280" y2="240"/>
+  </g>
+
+  <!-- Monkey ears — two rounded bumps on the sides of the brain -->
+  <ellipse cx="174" cy="235" rx="22" ry="26" fill="#6d28d9" opacity="0.7"/>
+  <ellipse cx="338" cy="235" rx="22" ry="26" fill="#6d28d9" opacity="0.7"/>
+  <!-- Ear inner -->
+  <ellipse cx="174" cy="235" rx="13" ry="16" fill="#4c1d95" opacity="0.6"/>
+  <ellipse cx="338" cy="235" rx="13" ry="16" fill="#4c1d95" opacity="0.6"/>
+
+  <!-- Small sparkle accents in corners -->
+  <g fill="#f0abfc" opacity="0.6">
+    <polygon points="90,90 94,82 98,90 94,98" transform="scale(0.7) translate(40,40)"/>
+    <polygon points="440,380 444,372 448,380 444,388" transform="scale(0.6) translate(100,-20)"/>
+  </g>
+
+  <!-- "M" lettermark subtle in the brain center, very faint -->
+  <text x="256" y="268" text-anchor="middle" font-family="'Georgia', serif" font-size="28" font-weight="bold"
+        fill="#f0abfc" opacity="0.12" letter-spacing="2">M</text>
+</svg>

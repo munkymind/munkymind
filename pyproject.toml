@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "monkey-mind"
+name = "munkymind"
 version = "0.2.0"
-description = "Your AI tools forget you every conversation. Monkey Mind remembers everything, across every tool, forever."
+description = "Your AI tools forget you every conversation. Munkymind remembers everything, across every tool, forever."
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
@@ -44,9 +44,10 @@ dev = [
 ]
 
 [project.scripts]
-monkey-mind = "mm.cli.main:app"
+munkymind = "mm.cli.main:app"
+monkey-mind = "mm.cli.main:app"  # old name, kept so existing installs and scripts keep working
 
-[project.entry-points."monkey_mind.connectors"]
+[project.entry-points."munkymind.connectors"]
 files = "mm.connectors.files:FilesConnector"
 github = "mm.connectors.github:GitHubConnector"
 

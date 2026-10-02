@@ -10,11 +10,11 @@ Have these ready before step 1. Path A (Docker, recommended) needs only the firs
 
 | You need | Why | How to get it |
 |---|---|---|
-| **A Mac, Windows or Linux machine** with ~4 GB free RAM and ~3 GB free disk | Runs the Monkey Mind containers | Windows: use Docker Desktop with WSL 2 (Docker's installer sets it up) |
-| **Docker Desktop** (Mac/Windows) or **Docker Engine + Compose v2** (Linux) | Runs Monkey Mind | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/). Check with `docker compose version` |
+| **A Mac, Windows or Linux machine** with ~4 GB free RAM and ~3 GB free disk | Runs the Munkymind containers | Windows: use Docker Desktop with WSL 2 (Docker's installer sets it up) |
+| **Docker Desktop** (Mac/Windows) or **Docker Engine + Compose v2** (Linux) | Runs Munkymind | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/). Check with `docker compose version` |
 | **git** | Downloads the code | [git-scm.com/downloads](https://git-scm.com/downloads). Check with `git --version` |
 | **One API key: OpenAI** | Turns your notes into searchable vectors and writes answers | [platform.openai.com/api-keys](https://platform.openai.com/api-keys). Add a few dollars of credit; typical personal use costs cents |
-| A folder of **your notes** (markdown, text or PDF) | What Monkey Mind learns from | Start small, e.g. 20–50 files, and add more later |
+| A folder of **your notes** (markdown, text or PDF) | What Munkymind learns from | Start small, e.g. 20–50 files, and add more later |
 
 **Optional, depending on how you want to use it:**
 
@@ -35,8 +35,8 @@ Never paste your API keys into a chat or commit them; they go only in `.env` or 
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/jungleboyz/monkey-mind-oss.git
-cd monkey-mind-oss
+git clone https://github.com/munkymind/munkymind.git
+cd munkymind
 cp .env.example .env
 ```
 
@@ -73,7 +73,7 @@ Domains (health, professional, strategic, projects, temporal, personal) are dete
 ### 4. Run the setup wizard
 
 ```bash
-docker compose exec api monkey-mind setup
+docker compose exec api munkymind setup
 ```
 
 Answer the prompts:
@@ -89,13 +89,13 @@ Answer the prompts:
 The wizard creates your user, prints your API key (**save it — shown once**), ingests `/notes`, and runs a test query. You should see `🎉 Your context library is ready!`
 
 > The wizard needs an interactive terminal. `docker compose exec` gives you one; don't add `-T`.
-> `monkey-mind user create` only creates a user and key — it does **not** configure a connector, so `ingest` will say "No connector 'files' configured". Use `setup`.
+> `munkymind user create` only creates a user and key — it does **not** configure a connector, so `ingest` will say "No connector 'files' configured". Use `setup`.
 
 ### 5. Query your context
 
 From the CLI:
 ```bash
-docker compose exec api monkey-mind query --user myname "What should I focus on this week?"
+docker compose exec api munkymind query --user myname "What should I focus on this week?"
 ```
 
 Or over REST (note the header is `X-API-Key`, not `Authorization: Bearer`):
@@ -108,7 +108,7 @@ curl -X POST http://localhost:8000/query \
 
 Added or edited notes? Re-ingest (existing pages are updated, not duplicated):
 ```bash
-docker compose exec api monkey-mind ingest --connector files --user myname
+docker compose exec api munkymind ingest --connector files --user myname
 ```
 
 ### 6. Connect to Claude Desktop (MCP)
@@ -118,9 +118,9 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 ```json
 {
   "mcpServers": {
-    "monkey-mind": {
+    "munkymind": {
       "command": "docker",
-      "args": ["compose", "-f", "/path/to/monkey-mind-oss/docker-compose.yml",
+      "args": ["compose", "-f", "/path/to/munkymind/docker-compose.yml",
                "exec", "-T", "mcp", "python", "-m", "mm.mcp.server"],
       "env": {
         "USER_ID": "myname"
@@ -138,7 +138,7 @@ Or for local install (Path B), use the simpler config from the README.
 
 ### 7. Connect claude.ai or ChatGPT (remote connector)
 
-Claude Desktop (step 6) talks to Monkey Mind locally. **claude.ai and ChatGPT** connect over the internet, so they need a public HTTPS address for the MCP container (port 8001).
+Claude Desktop (step 6) talks to Munkymind locally. **claude.ai and ChatGPT** connect over the internet, so they need a public HTTPS address for the MCP container (port 8001).
 
 **Quick test (free, no account):** a Cloudflare quick tunnel.
 
@@ -149,8 +149,8 @@ cloudflared tunnel --url http://localhost:8001
 ```
 
 1. In claude.ai (Settings → Connectors → Add custom connector) or ChatGPT (Settings → Connectors), enter **`https://<your-tunnel>.trycloudflare.com/mcp`**.
-2. A Monkey Mind login page opens. Paste the `mm_sk_...` API key the setup wizard printed.
-3. Ask: *"Use Monkey Mind: what am I working on?"*
+2. A Munkymind login page opens. Paste the `mm_sk_...` API key the setup wizard printed.
+3. Ask: *"Use Munkymind: what am I working on?"*
 
 The tunnel URL changes every time you restart it (re-add the connector), and it only works while your machine is on. For an always-on connector, deploy to Railway (`railway.toml` is included) or any HTTPS host. If your host rewrites the address, set `MCP_BASE_URL=https://your-host` in `.env` and run `docker compose up -d mcp`.
 
@@ -163,15 +163,15 @@ The tunnel URL changes every time you restart it (re-add the connector), and it 
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/jungleboyz/monkey-mind-oss.git
-cd monkey-mind-oss
+git clone https://github.com/munkymind/munkymind.git
+cd munkymind
 pip install -e ".[dev]"
 ```
 
 ### 2. Run the setup wizard
 
 ```bash
-monkey-mind setup
+munkymind setup
 ```
 
 The wizard walks you through:
@@ -184,24 +184,24 @@ The wizard walks you through:
 
 Target: **working context library in under 30 minutes.**
 
-Keys you enter in the wizard are saved to `~/.monkey-mind/.env` and loaded automatically by the CLI and API server.
+Keys you enter in the wizard are saved to `~/.munkymind/.env` and loaded automatically by the CLI and API server.
 
 Query from the CLI straight away:
 ```bash
-monkey-mind query --user myname "What should I focus on this week?"
+munkymind query --user myname "What should I focus on this week?"
 ```
 
 ### 3. Start the API server
 
 ```bash
-export DATA_ROOT=~/.monkey-mind
+export DATA_ROOT=~/.munkymind
 uvicorn mm.api.server:app --host 0.0.0.0 --port 8000
 ```
 
 ### 4. Start the MCP server (separate terminal)
 
 ```bash
-export DATA_ROOT=~/.monkey-mind
+export DATA_ROOT=~/.munkymind
 export USER_ID=myname
 python -m mm.mcp.server  # stdio mode for Claude Desktop
 ```
@@ -213,8 +213,8 @@ python -m mm.mcp.server  # stdio mode for Claude Desktop
 Check the quality of your context library:
 
 ```bash
-monkey-mind eval --api-url http://localhost:8000 --api-key mm_sk_ABC123...
-# Docker: docker compose exec api monkey-mind eval --api-key mm_sk_ABC123...
+munkymind eval --api-url http://localhost:8000 --api-key mm_sk_ABC123...
+# Docker: docker compose exec api munkymind eval --api-key mm_sk_ABC123...
 ```
 
 The key can also come from the `MM_API_KEY` environment variable. Cross-domain scenarios (S2, S8) need notes in at least two domains.
@@ -236,7 +236,7 @@ Score: 9/9 ✅
 
 For CI / JSON output:
 ```bash
-monkey-mind eval --api-url http://localhost:8000 --api-key mm_sk_... --output json
+munkymind eval --api-url http://localhost:8000 --api-key mm_sk_... --output json
 ```
 
 ---
@@ -244,9 +244,9 @@ monkey-mind eval --api-url http://localhost:8000 --api-key mm_sk_... --output js
 ## Managing Domains
 
 ```bash
-monkey-mind domain add finances "Finances" --user myname     # Add new domain
-monkey-mind domain rename health "Wellbeing" --user myname   # Rename existing
-monkey-mind domain remove projects --user myname             # Remove domain
+munkymind domain add finances "Finances" --user myname     # Add new domain
+munkymind domain rename health "Wellbeing" --user myname   # Rename existing
+munkymind domain remove projects --user myname             # Remove domain
 ```
 
 ---
@@ -261,10 +261,10 @@ monkey-mind domain remove projects --user myname             # Remove domain
 
 
 **"Collection not found" on first query**
-→ You haven't ingested any content yet. Run `monkey-mind ingest --connector files --user myname`.
+→ You haven't ingested any content yet. Run `munkymind ingest --connector files --user myname`.
 
 **"No connector 'files' configured for user"**
-→ The user was made with `user create`, which doesn't set up connectors. Run `monkey-mind setup` with the same username and choose to reconfigure.
+→ The user was made with `user create`, which doesn't set up connectors. Run `munkymind setup` with the same username and choose to reconfigure.
 
 **"Path does not exist" in Docker**
 → Inside the container your notes are at `/notes`, not your host path. Check `MM_NOTES_DIR` in `.env` and restart with `docker compose up -d`.
@@ -273,7 +273,7 @@ monkey-mind domain remove projects --user myname             # Remove domain
 → Usually a missing or placeholder LLM key. Check `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` in `.env`, then `docker compose up -d` to reload.
 
 **401 Unauthorized**
-→ Check your API key and that you're sending it as `X-API-Key`. Keys are shown once at creation. Rotate with `monkey-mind user rotate-key myname`.
+→ Check your API key and that you're sending it as `X-API-Key`. Keys are shown once at creation. Rotate with `munkymind user rotate-key myname`.
 
 **Slow embeddings**
 → `text-embedding-3-small` is fast. If using Ollama, ensure the model is pulled: `ollama pull nomic-embed-text`.

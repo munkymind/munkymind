@@ -1,4 +1,4 @@
-title = "Monkey Mind gitleaks config"
+title = "Munkymind gitleaks config"
 
 [allowlist]
 description = "Ignore third-party dependencies in .venv"

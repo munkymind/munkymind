@@ -1,4 +1,4 @@
-# Monkey Mind Integration Test — Large Document Fixture
+# Munkymind Integration Test — Large Document Fixture
 
 This document is intentionally large (>10KB) to exercise the chunker's splitting logic.
 It covers a broad technical topic so that embedding models receive meaningful text.
