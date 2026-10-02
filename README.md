@@ -42,6 +42,8 @@ Cross-domain answers. Traced to sources. No hallucination.
 
 ---
 
+**Stay in the loop:** optional release emails at [munkymind.dev](https://munkymind.dev/#updates). Not needed to use Munkymind.
+
 ## Quickstart
 
 **Prerequisites:** Docker + Docker Compose and **one API key**: an OpenAI key covers both embeddings and answers. (Prefer Claude for answers? Add an Anthropic key too. Want it fully local? Use Ollama and no key.) About 10–15 minutes. Full checklist: [Before you start](docs/quickstart.md#before-you-start-about-10-minutes-of-setup).

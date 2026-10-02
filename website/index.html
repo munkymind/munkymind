@@ -51,6 +51,11 @@
         overflow-x: auto; font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin: 8px 0 0; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; }
   .note { color: var(--muted); font-size: 15px; }
+  .subscribe { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .subscribe input[type=email] { flex: 1 1 240px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line);
+         background: var(--card); color: var(--text); font-size: 16px; }
+  .subscribe button { padding: 12px 20px; border-radius: 10px; border: 0; background: var(--accent); color: #fff;
+         font-weight: 600; font-size: 16px; cursor: pointer; }
   footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
   footer a { color: var(--muted); }
   @media (max-width: 560px) { nav a.hide-sm { display: none; } }
@@ -116,6 +121,35 @@ docker compose up -d</code></pre></li>
   <section id="status">
     <h2>Early days</h2>
     <p>Munkymind is at v0.2.0 and we're looking for early testers. Install it, try it with your real notes, and <a href="https://github.com/munkymind/munkymind/issues">tell us</a> how long it took and where you got stuck.</p>
+  </section>
+
+  <section id="updates">
+    <h2>Stay in the loop</h2>
+    <p>Get an email when there's something new: releases and major features only. Optional, and unsubscribe any time. You don't need it to use Munkymind.</p>
+    <form class="subscribe" id="subscribe" action="https://ripin.ai/waitlist" method="post">
+      <label for="sub-email" style="position:absolute;left:-9999px">Email address</label>
+      <input type="email" name="email" id="sub-email" placeholder="you@example.com" required autocomplete="email" maxlength="254">
+      <input type="hidden" name="list" value="munkymind">
+      <!-- honeypot: real visitors never see or fill this -->
+      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+      <button type="submit">Keep me posted</button>
+    </form>
+    <p class="note" id="sub-msg" role="status">We only use your address for Munkymind updates. Unsubscribe any time.</p>
+    <script>
+      document.getElementById("subscribe").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.target, msg = document.getElementById("sub-msg"), btn = form.querySelector("button");
+        btn.disabled = true;
+        try {
+          const r = await fetch(form.action, { method: "POST", body: new FormData(form) });
+          const d = await r.json().catch(() => ({}));
+          if (r.ok && d.ok) { form.reset(); msg.textContent = "Thanks, you're on the list. We'll email when there's something new."; }
+          else if (r.status === 429) { msg.textContent = "Too many tries. Please wait a minute and try again."; }
+          else { msg.textContent = d.error || "Something went wrong. Please try again."; }
+        } catch { msg.textContent = "Couldn't reach the server. Please try again later."; }
+        btn.disabled = false;
+      });
+    </script>
   </section>
 
   <footer>
