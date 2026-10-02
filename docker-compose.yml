@@ -38,6 +38,9 @@ services:
       - ANTHROPIC_API_KEY
       - MM_LLM_PROVIDER=${MM_LLM_PROVIDER:-anthropic}
       - MM_EMBED_PROVIDER=${MM_EMBED_PROVIDER:-openai}
+      # Public HTTPS address for claude.ai / ChatGPT connectors (e.g. your tunnel URL).
+      # Leave empty for Claude Desktop or local use.
+      - MCP_BASE_URL=${MCP_BASE_URL:-}
     depends_on:
       api:
         condition: service_healthy

@@ -211,12 +211,20 @@ class FilesConnector(BaseConnector):
                     files.append(f)
 
         pages: list[ConnectorPage] = []
+        self.skipped: list[str] = []
         for i, f in enumerate(sorted(files)):
             domain = _detect_domain(f, domain_map)
-            if f.suffix == ".pdf":
-                pages.extend(_ingest_pdf_file(f, domain))
-            else:
-                pages.append(_ingest_text_file(f, domain))
+            try:
+                if f.suffix == ".pdf":
+                    pages.extend(_ingest_pdf_file(f, domain))
+                else:
+                    pages.append(_ingest_text_file(f, domain))
+            except ImportError:
+                raise  # a missing dependency is a setup problem, not one bad file
+            except Exception as exc:  # one corrupt or unreadable file must not stop the folder
+                import warnings
+                self.skipped.append(f"{f}: {type(exc).__name__}: {exc}")
+                warnings.warn(f"Skipping {f.name}: {type(exc).__name__}: {exc}")
             if progress_cb:
                 progress_cb(i + 1, len(files))
 

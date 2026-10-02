@@ -74,7 +74,14 @@ def run_wizard() -> None:
     typer.echo("\nLLM provider")
     for i, p in enumerate(llm_providers, 1):
         typer.echo(f"  {i}. {p}")
-    llm_choice = typer.prompt("Choose [1-3]", default="3" if _ollama_available() else "1")
+    # Default to a provider the user already has a key for: one OpenAI key should just work.
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        default_llm = "1"
+    elif os.environ.get("OPENAI_API_KEY"):
+        default_llm = "2"
+    else:
+        default_llm = "3" if _ollama_available() else "1"
+    llm_choice = typer.prompt("Choose [1-3]", default=default_llm)
     try:
         llm_provider = llm_providers[int(llm_choice) - 1]
     except (ValueError, IndexError):

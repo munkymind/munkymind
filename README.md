@@ -44,14 +44,14 @@ Cross-domain answers. Traced to sources. No hallucination.
 
 ## Quickstart
 
-**Prerequisites:** Docker + Docker Compose. OpenAI API key (embeddings). Anthropic or OpenAI key (synthesis). About 10 minutes.
+**Prerequisites:** Docker + Docker Compose and **one API key**: an OpenAI key covers both embeddings and answers. (Prefer Claude for answers? Add an Anthropic key too. Want it fully local? Use Ollama and no key.) About 10–15 minutes. Full checklist: [Before you start](docs/quickstart.md#before-you-start-about-10-minutes-of-setup).
 
 ```bash
 # 1. Clone and configure
 git clone https://github.com/jungleboyz/monkey-mind-oss.git
 cd monkey-mind-oss
 cp .env.example .env
-# Edit .env — add OPENAI_API_KEY and ANTHROPIC_API_KEY
+# Edit .env — add OPENAI_API_KEY (and ANTHROPIC_API_KEY only if you want Claude for answers)
 
 # 2. Put some notes in ./notes (markdown, text or PDF)
 mkdir -p notes && cp -r ~/path/to/your/notes/* notes/
@@ -180,7 +180,20 @@ Then ask Claude: *"What should I focus on this week?"* — and it will draw from
 
 For hosted deployments (e.g. Railway), Monkey Mind's MCP server supports OAuth 2.1 Authorization Code + PKCE (S256) with Dynamic Client Registration (RFC 7591), so it works as a standard remote connector for **claude.ai** and **ChatGPT** — no manual config file editing needed.
 
-1. In Claude or ChatGPT's connector settings, add a custom connector pointing at your deployed MCP URL (e.g. `https://your-mm-instance.up.railway.app/mcp`).
+claude.ai and ChatGPT can only reach a **public HTTPS** address, so a laptop install needs one first:
+
+- **Quickest (free, no account):** a Cloudflare quick tunnel to the MCP container.
+  ```bash
+  # install: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+  cloudflared tunnel --url http://localhost:8001
+  # → prints https://<random-words>.trycloudflare.com  — your connector URL is that + /mcp
+  ```
+  The URL changes each time you restart the tunnel (re-add the connector), and it only works while your machine and the tunnel are running.
+- **Always on:** deploy to Railway (`railway.toml` is included) or any host with HTTPS.
+
+Then:
+
+1. In Claude or ChatGPT's connector settings, add a custom connector pointing at your MCP URL (e.g. `https://<random-words>.trycloudflare.com/mcp` or `https://your-mm-instance.up.railway.app/mcp`).
 2. The platform auto-discovers OAuth endpoints via `/.well-known/oauth-authorization-server` and registers itself via `/register`.
 3. You'll be redirected to a login page — enter your `mm_sk_` API key once to authorize the connection.
 4. The platform stores a session token; no key re-entry needed until you revoke access.

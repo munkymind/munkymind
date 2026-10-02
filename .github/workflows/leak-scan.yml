@@ -1,0 +1,19 @@
+name: Leak Scan
+
+# Odin's launch check L4: the public repo must contain no personal Monkey Mind content.
+# The protected terms are stored only as salted hashes (.github/leak-hashes.txt).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  leak-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Scan tracked files for personal terms
+        run: python scripts/leak_scan.py

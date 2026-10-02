@@ -4,12 +4,29 @@ Get from `git clone` to working queries in one sitting.
 
 ---
 
-## Prerequisites
+## Before you start (about 10 minutes of setup)
 
-- Python 3.11+
-- An OpenAI API key (for embeddings — `text-embedding-3-small`)
-- An Anthropic or OpenAI API key (for synthesis)
-- Optional: Docker + Docker Compose for the containerised path
+Have these ready before step 1. Path A (Docker, recommended) needs only the first four.
+
+| You need | Why | How to get it |
+|---|---|---|
+| **A Mac, Windows or Linux machine** with ~4 GB free RAM and ~3 GB free disk | Runs the Monkey Mind containers | Windows: use Docker Desktop with WSL 2 (Docker's installer sets it up) |
+| **Docker Desktop** (Mac/Windows) or **Docker Engine + Compose v2** (Linux) | Runs Monkey Mind | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/). Check with `docker compose version` |
+| **git** | Downloads the code | [git-scm.com/downloads](https://git-scm.com/downloads). Check with `git --version` |
+| **One API key: OpenAI** | Turns your notes into searchable vectors and writes answers | [platform.openai.com/api-keys](https://platform.openai.com/api-keys). Add a few dollars of credit; typical personal use costs cents |
+| A folder of **your notes** (markdown, text or PDF) | What Monkey Mind learns from | Start small, e.g. 20–50 files, and add more later |
+
+**Optional, depending on how you want to use it:**
+
+| If you want… | Also need |
+|---|---|
+| Claude to write the answers (instead of OpenAI) | An Anthropic API key: [console.anthropic.com](https://console.anthropic.com/) |
+| Fully local, no API key | [Ollama](https://ollama.com/) with a chat model and `nomic-embed-text` pulled (slower; needs a decent machine) |
+| To use it from **Claude Desktop** | [Claude Desktop](https://claude.ai/download) (step 6) |
+| To use it from **claude.ai or ChatGPT** | `cloudflared` for a free tunnel, or a hosted deploy (step 7). Connectors need a public HTTPS address |
+| Path B (local install, no Docker) | Python 3.11+ (with `pip`) |
+
+Never paste your API keys into a chat or commit them; they go only in `.env` or the setup wizard.
 
 ---
 
@@ -25,10 +42,9 @@ cp .env.example .env
 
 Edit `.env`:
 ```bash
-OPENAI_API_KEY=sk-...         # Required for embeddings
-ANTHROPIC_API_KEY=sk-ant-...  # Required for synthesis (or use OPENAI)
-MM_LLM_PROVIDER=anthropic     # anthropic | openai | ollama
-MM_EMBED_PROVIDER=openai      # openai | ollama
+OPENAI_API_KEY=sk-...         # One key is enough: OpenAI does embeddings and answers
+ANTHROPIC_API_KEY=            # Optional: add it if you want Claude to write the answers
+MM_USER_ID=yourname           # The username you'll create in the wizard (the MCP container serves it)
 ```
 
 ### 2. Start services
@@ -117,6 +133,28 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 Set `MM_USER_ID=myname` in `.env` and run `docker compose up -d mcp` so the MCP container serves your user (it defaults to `default`).
 
 Or for local install (Path B), use the simpler config from the README.
+
+---
+
+### 7. Connect claude.ai or ChatGPT (remote connector)
+
+Claude Desktop (step 6) talks to Monkey Mind locally. **claude.ai and ChatGPT** connect over the internet, so they need a public HTTPS address for the MCP container (port 8001).
+
+**Quick test (free, no account):** a Cloudflare quick tunnel.
+
+```bash
+# Install cloudflared: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+cloudflared tunnel --url http://localhost:8001
+# It prints a URL like https://quiet-river-1234.trycloudflare.com
+```
+
+1. In claude.ai (Settings → Connectors → Add custom connector) or ChatGPT (Settings → Connectors), enter **`https://<your-tunnel>.trycloudflare.com/mcp`**.
+2. A Monkey Mind login page opens. Paste the `mm_sk_...` API key the setup wizard printed.
+3. Ask: *"Use Monkey Mind: what am I working on?"*
+
+The tunnel URL changes every time you restart it (re-add the connector), and it only works while your machine is on. For an always-on connector, deploy to Railway (`railway.toml` is included) or any HTTPS host. If your host rewrites the address, set `MCP_BASE_URL=https://your-host` in `.env` and run `docker compose up -d mcp`.
+
+> **Make sure `MM_USER_ID` in `.env` matches the username you created in the wizard**, then `docker compose up -d mcp`. The MCP container serves that one user.
 
 ---
 
@@ -214,6 +252,13 @@ monkey-mind domain remove projects --user myname             # Remove domain
 ---
 
 ## Troubleshooting
+
+### Known limitations (v0.2.0)
+
+- **One notes folder.** Docker mounts a single folder (`MM_NOTES_DIR`, default `./notes`) at `/notes`. To ingest several folders, put them under one parent folder and point `MM_NOTES_DIR` there, or use the GitHub connector for repos (no mount needed). Changing `MM_NOTES_DIR` needs `docker compose up -d`.
+- **Unreadable files are skipped.** A corrupt PDF (or any file that can't be read) is skipped with a warning; the rest of the folder still ingests.
+- **Remote connectors need a public URL.** See step 7 (tunnel or a hosted deploy).
+
 
 **"Collection not found" on first query**
 → You haven't ingested any content yet. Run `monkey-mind ingest --connector files --user myname`.

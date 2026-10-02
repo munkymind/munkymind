@@ -16,11 +16,16 @@ Versioning: [Semantic Versioning](https://semver.org/)
 - macOS Claude Desktop installer (`setup-mcp.sh`) and stack check (`test-mcp.sh`)
 - Integration test gate in CI (full Docker stack) and smoke test workflow
 - Logo and README rewrite
+- Docs: connecting claude.ai / ChatGPT to a self-hosted install via a free Cloudflare quick tunnel; known limitations (one notes folder, skipped files)
 - `monkey-mind query --user <name> "<question>"` — query from the CLI (was a stub)
 - Docker Compose mounts your notes folder (`MM_NOTES_DIR`, default `./notes`) at `/notes`
 - CLI and API server load keys the wizard saved to `<DATA_ROOT>/.env`
 
 ### Fixed
+- **Remote connectors:** OAuth discovery now advertises the authorization-code login (`authorization_endpoint`, `registration_endpoint`, PKCE) and serves `/.well-known/oauth-protected-resource`, so claude.ai and ChatGPT can start the connector login. URLs follow the address the server was reached on (tunnel or proxy), or `MCP_BASE_URL`
+- **One API key is enough:** the setup wizard defaults the answer model to the provider you have a key for (OpenAI-only works end to end); docs and `.env.example` no longer say both keys are required
+- **A corrupt or unreadable file no longer stops ingestion:** it is skipped with a warning and the rest of the folder ingests
+- `MCP_BASE_URL` is passed through Docker Compose, and an empty value counts as unset
 - `monkey-mind ingest` now embeds and stores pages; previously it read files, reported success, and wrote nothing
 - `monkey-mind eval` runs the suite (`--api-url`, `--api-key` / `MM_API_KEY`, `--output`); previously always "not available"
 - Query sources cite the actual file and ingest time instead of just `files`, so provenance (S7) and staleness warnings work

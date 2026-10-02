@@ -489,10 +489,14 @@ class OAuthMCPMiddleware:
             token = headers.get(b"x-api-key", b"").decode("utf-8", errors="replace")
 
         if not token or not self._verify(token):
-            base_url = os.environ.get("MCP_BASE_URL", "")
+            base_url = os.environ.get("MCP_BASE_URL", "").rstrip("/")
+            if not base_url:  # derive the public address from the request (tunnel / proxy)
+                proto = headers.get(b"x-forwarded-proto", b"").decode() or scope.get("scheme", "http")
+                host = headers.get(b"host", b"").decode()
+                base_url = f"{proto}://{host}" if host else ""
             www_auth = (
                 f'Bearer realm="Monkey Mind", '
-                f'resource_metadata="{base_url}/.well-known/oauth-authorization-server"'
+                f'resource_metadata="{base_url}/.well-known/oauth-protected-resource"'
             )
             body = json.dumps({
                 "detail": "Unauthorized. Use OAuth (/authorize) or X-API-Key header."
