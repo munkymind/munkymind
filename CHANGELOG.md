@@ -7,6 +7,22 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [0.2.1] — 2026-10-02
+
+Security hardening before the first tester round. See [SECURITY.md](SECURITY.md).
+
+### Security
+- **Local only by default:** Docker publishes the API and MCP ports on `127.0.0.1`, so other devices on your network can't reach them (`MM_BIND=0.0.0.0` to opt out)
+- **Prompt-injection fencing:** retrieved notes are passed to the answer model inside `<context>` tags as data, with a rule never to follow instructions found in them; fence tags inside content are stripped. MCP tools label returned text as user content
+- **Rate limits** on the connector login and token endpoints (10 attempts a minute per IP, `MM_AUTH_RATE_LIMIT`)
+- **Supply chain:** the Docker image pins its base image by digest, pins `uv`, installs dependencies from `uv.lock` with hash checking, and ships no dev/test tools
+- **Dependencies:** upgraded `pyjwt`, `urllib3`, `httpx2` and `oauthlib` to fix known vulnerabilities. New weekly **Dependency Audit** (`pip-audit`) and Dependabot. Four `chromadb` advisories that only affect Chroma's own HTTP server are documented as not applicable (Munkymind embeds Chroma; no fixed release yet)
+- **SECURITY.md:** exactly what leaves your machine, the threat model, and private vulnerability reporting
+
+### Changed
+- Honest privacy wording: your library lives on your machine; note text goes only to the AI provider you choose (or nowhere, with Ollama)
+- Website: a "How it works" diagram
+
 ## [0.2.0] — 2026-10
 
 **Monkey Mind is now Munkymind.** New home: [munkymind.dev](https://munkymind.dev) and `github.com/munkymind/munkymind` (old links redirect). The CLI is `munkymind`; `monkey-mind` still works as an alias, and an existing `~/.monkey-mind` data folder is picked up automatically.

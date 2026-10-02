@@ -165,6 +165,29 @@ def _render_login(
 # Paths that bypass the Bearer/X-API-Key gate entirely
 _PUBLIC_PATHS = {b"/authorize", b"/register"}
 _WELL_KNOWN_PREFIX = b"/.well-known/"
+
+# Rate limit for the login and token endpoints (v0.2.1): a tunnel or hosted deploy exposes
+# /authorize to the internet. Keys are long and random, so this is cheap insurance against
+# brute force and floods rather than the main defence.
+AUTH_RATE_LIMIT = int(os.environ.get("MM_AUTH_RATE_LIMIT", "10"))  # attempts per minute per IP
+_ATTEMPTS: dict[str, list[float]] = {}
+
+
+def _client_ip(scope: Scope) -> str:
+    headers = {k.lower(): v for k, v in scope.get("headers", [])}
+    fwd = headers.get(b"x-forwarded-for", b"").decode("latin-1").split(",")[0].strip()
+    return fwd or (scope.get("client") or ("?", 0))[0]
+
+
+def _rate_limited(scope: Scope) -> bool:
+    now = time.monotonic()
+    ip = _client_ip(scope)
+    recent = [t for t in _ATTEMPTS.get(ip, []) if now - t < 60]
+    recent.append(now)
+    _ATTEMPTS[ip] = recent
+    if len(_ATTEMPTS) > 10_000:  # bound memory under a flood of distinct IPs
+        _ATTEMPTS.clear()
+    return len(recent) > AUTH_RATE_LIMIT
 _TOKEN_PATH = b"/token"
 
 
@@ -463,6 +486,13 @@ class OAuthMCPMiddleware:
         # /register — DCR (open, no auth)
         if path_bytes == b"/register" and scope["type"] == "http":
             await self._handle_register(scope, receive, send)
+            return
+
+        # Login and token endpoints are rate limited per client IP
+        if (path_bytes == b"/token" or (path_bytes == b"/authorize" and scope.get("method") == "POST")) \
+                and scope["type"] == "http" and _rate_limited(scope):
+            await self._send_json(send, 429, {"error": "too_many_requests",
+                                              "error_description": "Too many attempts; wait a minute."})
             return
 
         # /authorize — login form (GET) or code issuance (POST)
