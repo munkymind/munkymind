@@ -1,4 +1,4 @@
-"""MCP server for Monkey Mind OSS.
+"""MCP server for Munkymind.
 
 Exposes 5 tools:
   - query_context
@@ -32,7 +32,7 @@ from mcp.server.mcpserver import MCPServer
 # Server init
 # ------------------------------------------------------------------ #
 
-mcp = MCPServer("monkey-mind")
+mcp = MCPServer("munkymind")
 
 # ------------------------------------------------------------------ #
 # Store factory  (reads env on first call, cached per process)
@@ -281,7 +281,41 @@ def _seed_api_key_from_env() -> None:
     )
 
 
-def build_http_app(host: str, oauth_metadata):
+def public_base(request) -> str:
+    """The address clients reached us on: MCP_BASE_URL if set, else the request's
+    own (forwarded) host. Behind a tunnel or proxy that is the public HTTPS URL."""
+    configured = os.environ.get("MCP_BASE_URL")  # empty from compose = unset
+    if configured:
+        return configured.rstrip("/")
+    proto = request.headers.get("x-forwarded-proto", request.url.scheme)
+    return f"{proto}://{request.headers.get('host', request.url.netloc)}"
+
+# OAuth discovery (RFC 8414). claude.ai / ChatGPT read authorization_endpoint and
+# registration_endpoint from here; without them the connector login never starts.
+async def oauth_metadata(request):
+    from starlette.responses import JSONResponse
+
+    base = public_base(request)
+    return JSONResponse({
+        "issuer": base,
+        "authorization_endpoint": f"{base}/authorize",
+        "token_endpoint": f"{base}/token",
+        "registration_endpoint": f"{base}/register",
+        "response_types_supported": ["code"],
+        "grant_types_supported": ["authorization_code", "client_credentials"],
+        "code_challenge_methods_supported": ["S256"],
+        "token_endpoint_auth_methods_supported": ["none", "client_secret_post"],
+    })
+
+# RFC 9728: which authorization server protects /mcp.
+async def protected_resource(request):
+    from starlette.responses import JSONResponse
+
+    base = public_base(request)
+    return JSONResponse({"resource": f"{base}/mcp", "authorization_servers": [base]})
+
+
+def build_http_app(host: str, oauth_metadata, protected_resource=None):
     """Compose discovery + streamable HTTP (/mcp) + SSE (/sse, /messages).
 
     - /mcp is what claude.ai and ChatGPT connectors call. It used to be built
@@ -300,6 +334,8 @@ def build_http_app(host: str, oauth_metadata):
     return Starlette(
         routes=[
             Route("/.well-known/oauth-authorization-server", oauth_metadata),
+            *([Route("/.well-known/oauth-protected-resource", protected_resource),
+               Route("/.well-known/oauth-protected-resource/mcp", protected_resource)] if protected_resource else []),
             *mcp_app.routes,
             *sse_app.routes,
         ],
@@ -308,7 +344,7 @@ def build_http_app(host: str, oauth_metadata):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Monkey Mind MCP server")
+    parser = argparse.ArgumentParser(description="Munkymind MCP server")
     parser.add_argument(
         "--transport",
         choices=["stdio", "http"],
@@ -335,18 +371,8 @@ def main() -> None:
         from mm.mcp.auth import OAuthMCPMiddleware
 
         host = os.environ.get("MCP_HOST", "0.0.0.0")
-        base_url = os.environ.get("MCP_BASE_URL", f"http://{host}:{args.port}")
 
-        # OAuth discovery endpoint (RFC 8414) — Claude Mobile reads this
-        async def oauth_metadata(request):
-            return JSONResponse({
-                "issuer": base_url,
-                "token_endpoint": f"{base_url}/token",
-                "grant_types_supported": ["client_credentials"],
-                "token_endpoint_auth_methods_supported": ["client_secret_post"],
-            })
-
-        composed = build_http_app(host, oauth_metadata)
+        composed = build_http_app(host, oauth_metadata, protected_resource)
         protected_app = OAuthMCPMiddleware(composed)
 
         config = uvicorn.Config(protected_app, host=host, port=args.port, log_level="info")

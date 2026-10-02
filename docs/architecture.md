@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Monkey Mind is a self-hosted personal context library. This document describes the technical design.
+Munkymind is a self-hosted personal context library. This document describes the technical design.
 
 ---
 
@@ -106,7 +106,7 @@ No Postgres multi-tenancy in v0.1. Postgres is Phase 2 if/when needed.
 ## Auth Model
 
 ```
-monkey-mind user create rob
+munkymind user create rob
 → generate cryptographically random 32-byte key
 → encode as base58: mm_sk_{48 chars}
 → bcrypt hash stored in users/rob/api_key.hash
@@ -125,7 +125,7 @@ X-API-Key: mm_sk_...
 
 ## Two-Tier Embedding
 
-Inherited from the original Monkey Mind architecture. Each context page produces:
+Inherited from the original Munkymind architecture. Each context page produces:
 
 - **1 summary chunk:** `[SUMMARY] {page.summary}` — 100–200 tokens, self-contained
 - **N detail chunks:** `[DETAIL:{heading}] {section_text}` — one per markdown section

@@ -1,4 +1,4 @@
-"""Auth layer for the Monkey Mind MCP HTTP server.
+"""Auth layer for the Munkymind MCP HTTP server.
 
 Supports four auth modes:
 
@@ -91,7 +91,7 @@ _LOGIN_FORM = """\
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Monkey Mind — Sign In</title>
+<title>Munkymind — Sign In</title>
 <style>
   body {{ font-family: system-ui, sans-serif; background: #0f0f0f; color: #e8e8e8;
           display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }}
@@ -115,7 +115,7 @@ _LOGIN_FORM = """\
 </head>
 <body>
 <div class="card">
-  <h1>🐵 Monkey Mind</h1>
+  <h1>🐵 Munkymind</h1>
   <p class="sub">Sign in to connect your context library</p>
   {app_banner}
   <form method="post">
@@ -489,10 +489,14 @@ class OAuthMCPMiddleware:
             token = headers.get(b"x-api-key", b"").decode("utf-8", errors="replace")
 
         if not token or not self._verify(token):
-            base_url = os.environ.get("MCP_BASE_URL", "")
+            base_url = os.environ.get("MCP_BASE_URL", "").rstrip("/")
+            if not base_url:  # derive the public address from the request (tunnel / proxy)
+                proto = headers.get(b"x-forwarded-proto", b"").decode() or scope.get("scheme", "http")
+                host = headers.get(b"host", b"").decode()
+                base_url = f"{proto}://{host}" if host else ""
             www_auth = (
-                f'Bearer realm="Monkey Mind", '
-                f'resource_metadata="{base_url}/.well-known/oauth-authorization-server"'
+                f'Bearer realm="Munkymind", '
+                f'resource_metadata="{base_url}/.well-known/oauth-protected-resource"'
             )
             body = json.dumps({
                 "detail": "Unauthorized. Use OAuth (/authorize) or X-API-Key header."

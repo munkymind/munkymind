@@ -1,4 +1,4 @@
-"""Monkey Mind parameterized eval suite — 9 scenarios (S1-S9).
+"""Munkymind parameterized eval suite — 9 scenarios (S1-S9).
 
 Usage:
     from mm.eval.runner import EvalRunner, run_all
@@ -64,7 +64,7 @@ class EvalResult:
 
 
 class EvalRunner:
-    """Runs all 9 eval scenarios against a live Monkey Mind API instance."""
+    """Runs all 9 eval scenarios against a live Munkymind API instance."""
 
     def __init__(self, api_url: str = "http://localhost:8000", api_key: str = ""):
         self.api_url = api_url.rstrip("/")
@@ -343,7 +343,7 @@ def print_results(eval_result: EvalResult, output: str = "text") -> None:
     # Text table
     print()
     print("=" * 70)
-    print(f"  Monkey Mind Eval Suite — {eval_result.score} scenarios passed")
+    print(f"  Munkymind Eval Suite — {eval_result.score} scenarios passed")
     print("=" * 70)
     print(f"  {'ID':<5} {'Scenario':<30} {'Result':<8} Reason")
     print(f"  {'-'*4} {'-'*29} {'-'*7} {'-'*25}")

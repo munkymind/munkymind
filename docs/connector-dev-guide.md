@@ -1,12 +1,12 @@
 # Connector Developer Guide
 
-Build a Monkey Mind connector and add new data sources to the ecosystem.
+Build a Munkymind connector and add new data sources to the ecosystem.
 
 ---
 
 ## Overview
 
-Connectors are the extensibility point of Monkey Mind. The core engine never changes when a new connector is added — connectors plug in via Python entry points.
+Connectors are the extensibility point of Munkymind. The core engine never changes when a new connector is added — connectors plug in via Python entry points.
 
 **Examples of connectors the community could build:**
 - Obsidian vault connector
@@ -138,23 +138,23 @@ class HelloWorldConnector(BaseConnector):
 
 ## Registering Your Connector
 
-Connectors register via Python entry points — no changes to core Monkey Mind required.
+Connectors register via Python entry points — no changes to core Munkymind required.
 
 In your connector package's `pyproject.toml`:
 
 ```toml
-[project.entry-points."monkey_mind.connectors"]
+[project.entry-points."munkymind.connectors"]
 hello = "my_package.connector:HelloWorldConnector"
 ```
 
-After installing your package (`pip install my-monkey-mind-hello`), Monkey Mind discovers it automatically at startup.
+After installing your package (`pip install my-munkymind-hello`), Munkymind discovers it automatically at startup.
 
 Test discovery:
 ```python
 import importlib.metadata
 connectors = {
     ep.name: ep.load()
-    for ep in importlib.metadata.entry_points(group="monkey_mind.connectors")
+    for ep in importlib.metadata.entry_points(group="munkymind.connectors")
 }
 print(connectors)  # Should include your connector
 ```
@@ -253,8 +253,8 @@ def _auto_domain(text: str) -> str:
 
 Share your connector with the community:
 
-1. Create a public GitHub repo named `monkey-mind-{source}` (e.g. `monkey-mind-obsidian`)
-2. Publish to PyPI: `pip install monkey-mind-obsidian`
-3. Open a PR to add it to the [community connectors list](https://github.com/jungleboyz/monkey-mind-oss#connectors) in the README
+1. Create a public GitHub repo named `munkymind-{source}` (e.g. `munkymind-obsidian`)
+2. Publish to PyPI: `pip install munkymind-obsidian`
+3. Open a PR to add it to the [community connectors list](https://github.com/munkymind/munkymind#connectors) in the README
 
-The goal: `pip install monkey-mind-obsidian` → connector available immediately, no forking.
+The goal: `pip install munkymind-obsidian` → connector available immediately, no forking.

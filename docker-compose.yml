@@ -2,7 +2,7 @@ services:
 
   api:
     build: .
-    image: monkeymind/api:latest
+    image: munkymind/api:latest
     command: uvicorn mm.api.server:app --host 0.0.0.0 --port 8000
     ports:
       - "${API_PORT:-8000}:8000"
@@ -25,7 +25,7 @@ services:
 
   mcp:
     build: .
-    image: monkeymind/api:latest
+    image: munkymind/api:latest
     command: python -m mm.mcp.server --transport http --port 8001
     ports:
       - "${MCP_PORT:-8001}:8001"
@@ -38,6 +38,9 @@ services:
       - ANTHROPIC_API_KEY
       - MM_LLM_PROVIDER=${MM_LLM_PROVIDER:-anthropic}
       - MM_EMBED_PROVIDER=${MM_EMBED_PROVIDER:-openai}
+      # Public HTTPS address for claude.ai / ChatGPT connectors (e.g. your tunnel URL).
+      # Leave empty for Claude Desktop or local use.
+      - MCP_BASE_URL=${MCP_BASE_URL:-}
     depends_on:
       api:
         condition: service_healthy

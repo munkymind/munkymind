@@ -1,4 +1,4 @@
-"""Interactive setup wizard for Monkey Mind.
+"""Interactive setup wizard for Munkymind.
 
 Fixes:
   F2 – clearly display created username, generate+display API key 'shown once',
@@ -14,12 +14,18 @@ from pathlib import Path
 import typer
 
 import os
-DATA_ROOT = Path(os.environ.get('DATA_ROOT', str(Path.home() / '.monkey-mind')))
+def _default_data_root() -> Path:
+    # Renamed from Monkey Mind (v0.2.0): keep using an existing ~/.monkey-mind folder.
+    new, old = Path.home() / '.munkymind', Path.home() / '.monkey-mind'
+    return old if old.exists() and not new.exists() else new
+
+
+DATA_ROOT = Path(os.environ.get('DATA_ROOT', str(_default_data_root())))
 
 
 def run_wizard() -> None:
     """Walk user through initial configuration interactively."""
-    typer.echo("\n🐒 Welcome to Monkey Mind Setup Wizard\n")
+    typer.echo("\n🐒 Welcome to Munkymind Setup Wizard\n")
 
     # ── Step 1: Username ─────────────────────────────────────────────────────
     system_user = os.environ.get("USER", os.environ.get("LOGNAME", "user"))
@@ -74,7 +80,19 @@ def run_wizard() -> None:
     typer.echo("\nLLM provider")
     for i, p in enumerate(llm_providers, 1):
         typer.echo(f"  {i}. {p}")
-    llm_choice = typer.prompt("Choose [1-3]", default="3" if _ollama_available() else "1")
+    # Default to a provider the user already has a key for: one OpenAI key should just work.
+    def _has_key(name: str) -> bool:
+        # Compose turns an empty `KEY=   # comment` line into the value "# comment".
+        value = (os.environ.get(name) or "").strip()
+        return bool(value) and not value.startswith("#")
+
+    if _has_key("ANTHROPIC_API_KEY"):
+        default_llm = "1"
+    elif _has_key("OPENAI_API_KEY"):
+        default_llm = "2"
+    else:
+        default_llm = "3" if _ollama_available() else "1"
+    llm_choice = typer.prompt("Choose [1-3]", default=default_llm)
     try:
         llm_provider = llm_providers[int(llm_choice) - 1]
     except (ValueError, IndexError):
@@ -172,7 +190,7 @@ def run_wizard() -> None:
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"\n  ✗ Ingestion failed: {exc}", err=True)
         typer.echo(
-            "  Fix the issue and run: monkey-mind ingest --connector <name> --user "
+            "  Fix the issue and run: munkymind ingest --connector <name> --user "
             f"{username}",
             err=True,
         )
@@ -220,7 +238,7 @@ def run_wizard() -> None:
         f"   Connectors: {', '.join(c['connector'] for c in connector_configs)}"
     )
     typer.echo(f"   Pages:      {total_pages} ingested across {n_domains} domain(s)")
-    typer.echo(f"\n   Try: monkey-mind query --user {username} \"<your question>\"")
+    typer.echo(f"\n   Try: munkymind query --user {username} \"<your question>\"")
     typer.echo("━" * 60)
 
 
@@ -245,7 +263,7 @@ def _default_model(provider: str) -> str:
 
 
 def _set_env_var(key: str, value: str) -> None:
-    """Write key=value to ~/.monkey-mind/.env and set in current process."""
+    """Write key=value to ~/.munkymind/.env and set in current process."""
     os.environ[key] = value
     env_path = DATA_ROOT / ".env"
     lines: list[str] = []

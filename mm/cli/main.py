@@ -1,15 +1,15 @@
-"""Monkey Mind CLI entry point."""
+"""Munkymind CLI entry point."""
 import shutil
 import typer
 from pathlib import Path
 
 app = typer.Typer(
-    name="monkey-mind",
-    help="Your AI tools forget you every conversation. Monkey Mind remembers everything.",
+    name="munkymind",
+    help="Your AI tools forget you every conversation. Munkymind remembers everything.",
     no_args_is_help=True,
 )
 
-user_app = typer.Typer(help="Manage Monkey Mind users.")
+user_app = typer.Typer(help="Manage Munkymind users.")
 domain_app = typer.Typer(help="Manage knowledge domains in config.yaml.")
 app.add_typer(user_app, name="user")
 app.add_typer(domain_app, name="domain")
@@ -18,7 +18,13 @@ import os
 from mm import __version__
 from mm.config.env import load_data_root_env
 
-DATA_ROOT = Path(os.environ.get('DATA_ROOT', str(Path.home() / '.monkey-mind')))
+def _default_data_root() -> Path:
+    # Renamed from Monkey Mind (v0.2.0): keep using an existing ~/.monkey-mind folder.
+    new, old = Path.home() / '.munkymind', Path.home() / '.monkey-mind'
+    return old if old.exists() and not new.exists() else new
+
+
+DATA_ROOT = Path(os.environ.get('DATA_ROOT', str(_default_data_root())))
 load_data_root_env(DATA_ROOT)
 
 
@@ -93,7 +99,7 @@ def _load_user_config(username: str):
 
     store = UserStore(DATA_ROOT, username)
     if not store.config_path.exists():
-        typer.echo(f"No config found for user '{username}'. Run 'monkey-mind setup' first.", err=True)
+        typer.echo(f"No config found for user '{username}'. Run 'munkymind setup' first.", err=True)
         raise typer.Exit(1)
     return UserConfig.load(store.config_path), store
 
@@ -188,7 +194,7 @@ def ingest(
 
     store = UserStore(DATA_ROOT, username)
     if not store.config_path.exists():
-        typer.echo(f"No config found for user '{username}'. Run 'monkey-mind setup' first.", err=True)
+        typer.echo(f"No config found for user '{username}'. Run 'munkymind setup' first.", err=True)
         raise typer.Exit(1)
 
     cfg = UserConfig.load(store.config_path)
@@ -252,7 +258,7 @@ def query(
 
     store = UserStore(DATA_ROOT, username)
     if not store.config_path.exists():
-        typer.echo(f"No config found for user '{username}'. Run 'monkey-mind setup' first.", err=True)
+        typer.echo(f"No config found for user '{username}'. Run 'munkymind setup' first.", err=True)
         raise typer.Exit(1)
 
     engine = QueryEngine()
@@ -275,11 +281,11 @@ def query(
 
 @app.command()
 def eval(
-    api_url: str = typer.Option("http://localhost:8000", '--api-url', help='Running Monkey Mind API'),
+    api_url: str = typer.Option("http://localhost:8000", '--api-url', help='Running Munkymind API'),
     api_key: str = typer.Option(..., '--api-key', envvar='MM_API_KEY', help='Your mm_sk_ API key'),
     output: str = typer.Option("text", help="Output format: text | json"),
 ):
-    """Run the eval suite against a running Monkey Mind API."""
+    """Run the eval suite against a running Munkymind API."""
     from mm.eval.runner import print_results, run_all
 
     if output == "text":
@@ -297,7 +303,7 @@ def version(
     version: bool = typer.Option(False, "--version", "-v", help="Show version and exit"),
 ):
     if version:
-        typer.echo(f"monkey-mind {__version__}")
+        typer.echo(f"munkymind {__version__}")
         raise typer.Exit()
     if ctx.invoked_subcommand is None:
         typer.echo(ctx.get_help())

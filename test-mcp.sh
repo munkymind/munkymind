@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# test-mcp.sh — Validate Monkey Mind MCP server is reachable before setup
+# test-mcp.sh — Validate Munkymind MCP server is reachable before setup
 # Usage: bash test-mcp.sh [--quiet]
 # Exit 0 = healthy, Exit 1 = not reachable
 
@@ -16,7 +16,7 @@ API_URL="${MM_API_URL:-http://localhost:8000}"
 MCP_URL="${MM_MCP_URL:-http://localhost:8001}"
 
 $QUIET || echo ""
-$QUIET || echo "Monkey Mind — MCP pre-flight check"
+$QUIET || echo "Munkymind — MCP pre-flight check"
 $QUIET || echo "─────────────────────────────────"
 
 # ── Check API health ──────────────────────────────────────────────────────────

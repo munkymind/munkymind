@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# setup-mcp.sh — Monkey Mind MCP installer for Claude Desktop (Mac-first)
+# setup-mcp.sh — Munkymind MCP installer for Claude Desktop (Mac-first)
 # Usage: bash setup-mcp.sh
-# Detects Claude Desktop config, injects the Monkey Mind MCP server entry.
+# Detects Claude Desktop config, injects the Munkymind MCP server entry.
 
 set -euo pipefail
 
@@ -16,7 +16,7 @@ hdr()  { echo -e "\n${BOLD}$*${RESET}"; }
 # ── Banner ────────────────────────────────────────────────────────────────────
 echo -e "${BOLD}"
 echo "┌─────────────────────────────────────────┐"
-echo "│   Monkey Mind — Claude Desktop Setup    │"
+echo "│   Munkymind — Claude Desktop Setup    │"
 echo "└─────────────────────────────────────────┘"
 echo -e "${RESET}"
 
@@ -54,7 +54,7 @@ ok "Docker daemon is running."
 # ── Prompt for project path ───────────────────────────────────────────────────
 hdr "Step 3: Project configuration..."
 DEFAULT_PATH="$(cd "$(dirname "$0")" && pwd)"
-echo -e "  Where is your monkey-mind-oss directory?"
+echo -e "  Where is your munkymind directory?"
 echo -e "  Press Enter to use: ${BOLD}$DEFAULT_PATH${RESET}"
 read -r -p "  Path: " PROJECT_PATH
 PROJECT_PATH="${PROJECT_PATH:-$DEFAULT_PATH}"
@@ -63,13 +63,13 @@ PROJECT_PATH="${PROJECT_PATH:-$DEFAULT_PATH}"
 PROJECT_PATH="${PROJECT_PATH/#\~/$HOME}"
 
 if [[ ! -f "$PROJECT_PATH/docker-compose.yml" ]]; then
-  fail "No docker-compose.yml found at: $PROJECT_PATH\nCheck that you're pointing to the monkey-mind-oss root directory."
+  fail "No docker-compose.yml found at: $PROJECT_PATH\nCheck that you're pointing to the munkymind root directory."
 fi
 ok "Project path: $PROJECT_PATH"
 
 # ── Prompt for username ───────────────────────────────────────────────────────
 DEFAULT_USER="$(whoami)"
-echo -e "\n  What username did you create with 'monkey-mind user create'?"
+echo -e "\n  What username did you create with 'munkymind user create'?"
 echo -e "  Press Enter to use: ${BOLD}$DEFAULT_USER${RESET}"
 read -r -p "  Username: " MM_USER
 MM_USER="${MM_USER:-$DEFAULT_USER}"
@@ -136,12 +136,12 @@ new_entry = json.loads(new_entry_str)
 if "mcpServers" not in config:
     config["mcpServers"] = {}
 
-if "monkey-mind" in config["mcpServers"]:
-    print("  Existing monkey-mind entry found — updating.")
+if "munkymind" in config["mcpServers"]:
+    print("  Existing munkymind entry found — updating.")
 else:
-    print("  Adding new monkey-mind entry.")
+    print("  Adding new munkymind entry.")
 
-config["mcpServers"]["monkey-mind"] = new_entry
+config["mcpServers"]["munkymind"] = new_entry
 
 with open(config_path, "w") as f:
     json.dump(config, f, indent=2)
@@ -161,7 +161,7 @@ echo "  Fully quit Claude Desktop and relaunch it."
 echo "  'Close window' is not enough — use Cmd+Q or quit from the menu bar icon."
 echo ""
 echo "  Then ask Claude: \"What do you know about my work?\""
-echo "  It should draw from your Monkey Mind library."
+echo "  It should draw from your Munkymind library."
 echo ""
 echo -e "  ${YELLOW}Tip:${RESET} If Claude shows a connection error, check the stack is running:"
 echo "    cd $PROJECT_PATH && docker compose ps"
