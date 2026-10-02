@@ -221,6 +221,10 @@ jobs:
       # ------------------------------------------------------------------ #
       # Cleanup
       # ------------------------------------------------------------------ #
+      - name: API logs (on failure)
+        if: failure()
+        run: docker compose logs api --tail 200 | sed -E 's/(sk-|mm_sk_)[A-Za-z0-9_-]+/\1[REDACTED]/g'
+
       - name: Cleanup
         if: always()
         run: docker compose down -v
