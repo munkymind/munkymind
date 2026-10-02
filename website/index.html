@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Munkymind: your context, in every AI tool</title>
-<meta name="description" content="Munkymind is an open-source personal context library. Your notes stay on your machine, and Claude, ChatGPT and other AI tools can use them through MCP.">
+<meta name="description" content="Munkymind is an open-source personal context library you run yourself. Claude, ChatGPT and other AI tools can use your notes through MCP, with your own API key.">
 <meta property="og:title" content="Munkymind: your context, in every AI tool">
-<meta property="og:description" content="Open-source personal context library. Your notes stay on your machine; your AI tools stop forgetting you.">
+<meta property="og:description" content="Open-source personal context library you run yourself, with your own API key. Your AI tools stop forgetting you.">
 <meta property="og:url" content="https://munkymind.dev/">
 <meta property="og:image" content="https://munkymind.dev/logo.svg">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
@@ -56,6 +56,29 @@
          background: var(--card); color: var(--text); font-size: 16px; }
   .subscribe button { padding: 12px 20px; border-radius: 10px; border: 0; background: var(--accent); color: #fff;
          font-weight: 600; font-size: 16px; cursor: pointer; }
+  .flow { display: flex; align-items: stretch; gap: 0; margin: 4px 0 18px; }
+  .flow .node { flex: 1 1 0; background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+                padding: 18px 16px; text-align: center; }
+  .flow .node.hub { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+  .flow .node svg { width: 40px; height: 40px; color: var(--accent-2); margin-bottom: 6px; }
+  .flow .node h3 { margin: 0 0 4px; font-size: 17px; }
+  .flow .node p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+  .flow .link { flex: 0 0 92px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+                color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  .flow .link svg { width: 56px; height: 20px; color: var(--accent-2); }
+  .roundtrip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 0 18px; counter-reset: rt; }
+  .roundtrip div { background: var(--bg-2); border: 1px dashed var(--line); border-radius: 12px; padding: 12px 14px;
+                   font-size: 15px; color: var(--text); }
+  .roundtrip div::before { counter-increment: rt; content: counter(rt); display: inline-grid; place-items: center;
+                   width: 22px; height: 22px; margin-right: 8px; border-radius: 50%; background: var(--accent); color: #fff;
+                   font-size: 12px; font-weight: 700; }
+  .privacy-line { font-size: 14px; color: var(--muted); margin: 0 0 22px; }
+  @media (max-width: 720px) {
+    .flow { flex-direction: column; }
+    .flow .link { flex: 0 0 52px; flex-direction: row; gap: 8px; }
+    .flow .link svg { transform: rotate(90deg); width: 34px; }
+    .roundtrip { grid-template-columns: 1fr; }
+  }
   footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
   footer a { color: var(--muted); }
   @media (max-width: 560px) { nav a.hide-sm { display: none; } }
@@ -84,18 +107,35 @@
 
   <section id="how">
     <h2>How it works</h2>
-    <div class="grid">
-      <div class="card"><h3>1. Your notes in</h3><p>Markdown, text, PDFs or GitHub repos. Munkymind reads them and builds a searchable library of who you are and what you're working on.</p></div>
-      <div class="card"><h3>2. Ask from anywhere</h3><p>Connect Claude Desktop, claude.ai or ChatGPT through MCP. They pull the right pages when a question needs your context.</p></div>
-      <div class="card"><h3>3. Answers with sources</h3><p>Every answer cites the notes it came from, and stale pages are flagged, so you can see why it said what it said.</p></div>
+    <div class="flow" role="img" aria-label="Your notes flow into Munkymind on your machine, which your AI tools query over MCP">
+      <div class="node">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>
+        <h3>Your notes</h3><p>Markdown, text, PDFs and GitHub repos you choose</p>
+      </div>
+      <div class="link"><svg viewBox="0 0 56 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 10h50M44 3l8 7-8 7"/></svg><span>Ingest</span></div>
+      <div class="node hub">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7" ry="2.5"/><path d="M5 5.5v13c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-13M5 12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5"/></svg>
+        <h3>Munkymind</h3><p>On your machine: a searchable library of you, with sources and freshness</p>
+      </div>
+      <div class="link"><svg viewBox="0 0 56 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 10h40M12 3 4 10l8 7M44 3l8 7-8 7"/></svg><span>MCP</span></div>
+      <div class="node">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg>
+        <h3>Your AI tools</h3><p>Claude Desktop, claude.ai, ChatGPT and other MCP clients</p>
+      </div>
     </div>
+    <div class="roundtrip">
+      <div>You ask a question in your AI tool</div>
+      <div>Munkymind finds the notes that matter</div>
+      <div>A short answer comes back, with its sources</div>
+    </div>
+    <p class="privacy-line">Your library stays on your machine. Note text goes only to the AI provider you choose, under your own key, or nowhere at all with Ollama.</p>
   </section>
 
   <section id="private">
     <h2>Yours, and private</h2>
     <div class="grid">
-      <div class="card"><h3>Runs on your machine</h3><p>Self-host with Docker. Your notes and library stay on your computer.</p></div>
-      <div class="card"><h3>Bring your own key</h3><p>One OpenAI key is enough, or use Claude for answers. Want it fully local? Use Ollama and no key at all.</p></div>
+      <div class="card"><h3>Runs on your machine</h3><p>Self-host with Docker. Your library is stored on your computer, and only reachable from it unless you choose to connect a remote tool.</p></div>
+      <div class="card"><h3>Bring your own key</h3><p>Note text is sent only to the AI provider you choose (OpenAI or Anthropic), under your own key, to index it and write answers. Want nothing to leave your machine? Use Ollama, with no key at all.</p></div>
       <div class="card"><h3>Open source</h3><p>Apache 2.0 licensed. Read the code, change it, add your own connectors.</p></div>
     </div>
   </section>

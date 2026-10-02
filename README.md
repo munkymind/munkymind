@@ -28,7 +28,7 @@
 
 Every conversation, Claude forgets you. Every new Cursor session, you re-explain the project. Every ChatGPT window, you paste the same stale context blob and hope for the best.
 
-**Munkymind is a persistent, structured memory for your AI tools** — self-hosted, open source, works with any LLM. It ingests your notes, GitHub repos, and documents, then serves that context to Claude, Cursor, or any MCP-compatible tool. Cross-domain synthesis. Source provenance. Staleness detection. No cloud dependency. Your data never leaves your machine.
+**Munkymind is a persistent, structured memory for your AI tools** — self-hosted, open source, works with any LLM. It ingests your notes, GitHub repos, and documents, then serves that context to Claude, Cursor, or any MCP-compatible tool. Cross-domain synthesis. Source provenance. Staleness detection. Self-hosted: your library lives on your machine, and note text goes only to the AI provider you choose (or nowhere, with Ollama).
 
 ```bash
 # What your AI can answer once Munkymind is running:
@@ -110,7 +110,7 @@ That's it. Full setup guide: **[docs/quickstart.md](docs/quickstart.md)**
 - **MCP server** — connects to Claude Desktop, Cursor, and any MCP-compatible tool
 - **REST API** — documented, authenticated, OpenAPI spec at `/docs`
 - **Pluggable connectors** — `files` and `github` built-in; build your own
-- **Self-hosted** — your data never leaves your machine
+- **Self-hosted**: your library is stored on your machine. Note text goes only to the AI provider you choose (under your own key), or nowhere if you use Ollama. See [SECURITY.md](SECURITY.md)
 - **Model-agnostic** — bring your own keys for OpenAI, Anthropic, or Ollama
 
 ---

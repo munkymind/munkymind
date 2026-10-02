@@ -1,0 +1,27 @@
+name: Dependency Audit
+
+# Known-vulnerability check on the exact locked runtime dependencies (v0.2.1).
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 3 * * 1"   # weekly, catches newly published advisories
+
+jobs:
+  pip-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Export locked runtime dependencies
+        run: uv export --frozen --no-dev --no-emit-project --format requirements-txt -o requirements.txt
+      # Accepted (2026-10-02): these chromadb advisories affect Chroma's own HTTP server
+      # (auth, RBAC, multi-tenant API). Munkymind embeds Chroma via PersistentClient and never
+      # runs or exposes that server. No fixed release exists yet (latest 1.5.9); remove the
+      # ignores once one does, and Dependabot will propose the upgrade.
+      - name: pip-audit
+        run: >
+          uvx pip-audit --strict --require-hashes -r requirements.txt
+          --ignore-vuln PYSEC-2026-311 --ignore-vuln PYSEC-2026-3813
+          --ignore-vuln PYSEC-2026-3814 --ignore-vuln PYSEC-2026-3815
