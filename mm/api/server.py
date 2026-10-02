@@ -27,7 +27,7 @@ app = FastAPI(
 DATA_ROOT = Path(os.environ.get("DATA_ROOT", "./data"))
 load_data_root_env(DATA_ROOT)
 # Same default as /bootstrap below.
-seed_key_from_env(DATA_ROOT, os.environ.get("USER_ID", "rob"), "mm-api")
+seed_key_from_env(DATA_ROOT, os.environ.get("USER_ID", "default"), "mm-api")
 API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
@@ -135,7 +135,7 @@ async def bootstrap():
     Fails if user already has a key (idempotent-safe)."""
     from mm.auth.keys import generate_key, save_key_hash
 
-    user_id = os.environ.get("USER_ID", "rob")
+    user_id = os.environ.get("USER_ID", "default")
     store = UserStore(DATA_ROOT, user_id)
 
     if load_key_hash(store.user_dir) is not None:

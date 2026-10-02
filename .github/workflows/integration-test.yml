@@ -236,7 +236,7 @@ jobs:
         id: summary
         if: always()
         run: |
-          echo "## 🏭 Factory Integration Gate Results" >> $GITHUB_STEP_SUMMARY
+          echo "## Integration Gate Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Gate | Result |" >> $GITHUB_STEP_SUMMARY
           echo "|------|--------|" >> $GITHUB_STEP_SUMMARY

@@ -256,7 +256,9 @@ See [docs/connector-dev-guide.md](docs/connector-dev-guide.md) to get started.
 
 ## License
 
-[Apache 2.0](LICENSE)
+- **Code:** [Apache 2.0](LICENSE)
+- **Docs:** [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Name, logo and characters:** not licensed for reuse. See [TRADEMARK.md](TRADEMARK.md) (forks welcome, please rename)
 
 ---
 
