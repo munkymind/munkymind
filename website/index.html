@@ -126,14 +126,30 @@ docker compose up -d</code></pre></li>
   <section id="updates">
     <h2>Stay in the loop</h2>
     <p>Get an email when there's something new: releases and major features only. Optional, and unsubscribe any time. You don't need it to use Munkymind.</p>
-    <form class="subscribe" action="https://buttondown.com/api/emails/embed-subscribe/munkymind" method="post">
-      <label for="bd-email" class="note" style="position:absolute;left:-9999px">Email address</label>
-      <input type="email" name="email" id="bd-email" placeholder="you@example.com" required autocomplete="email">
-      <input type="hidden" value="1" name="embed">
-      <input type="hidden" value="munkymind.dev" name="tag">
+    <form class="subscribe" id="subscribe" action="https://ripin.ai/waitlist" method="post">
+      <label for="sub-email" style="position:absolute;left:-9999px">Email address</label>
+      <input type="email" name="email" id="sub-email" placeholder="you@example.com" required autocomplete="email" maxlength="254">
+      <input type="hidden" name="list" value="munkymind">
+      <!-- honeypot: real visitors never see or fill this -->
+      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
       <button type="submit">Keep me posted</button>
     </form>
-    <p class="note">You'll get one email to confirm. We only use your address for Munkymind updates.</p>
+    <p class="note" id="sub-msg" role="status">We only use your address for Munkymind updates. Unsubscribe any time.</p>
+    <script>
+      document.getElementById("subscribe").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.target, msg = document.getElementById("sub-msg"), btn = form.querySelector("button");
+        btn.disabled = true;
+        try {
+          const r = await fetch(form.action, { method: "POST", body: new FormData(form) });
+          const d = await r.json().catch(() => ({}));
+          if (r.ok && d.ok) { form.reset(); msg.textContent = "Thanks, you're on the list. We'll email when there's something new."; }
+          else if (r.status === 429) { msg.textContent = "Too many tries. Please wait a minute and try again."; }
+          else { msg.textContent = d.error || "Something went wrong. Please try again."; }
+        } catch { msg.textContent = "Couldn't reach the server. Please try again later."; }
+        btn.disabled = false;
+      });
+    </script>
   </section>
 
   <footer>
