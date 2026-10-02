@@ -27,7 +27,7 @@ VALID_KEY = "mm_sk_testkey1234567890abcdef"
 
 
 def _make_user_store(tmp_path: Path, raw_key: str) -> Path:
-    user_dir = tmp_path / "users" / "rob"
+    user_dir = tmp_path / "users" / "alice"
     user_dir.mkdir(parents=True)
     hashed = bcrypt.hashpw(raw_key.encode(), bcrypt.gensalt()).decode()
     (user_dir / "api_key.hash").write_text(hashed)
@@ -39,7 +39,7 @@ def _make_client(tmp_path: Path, create_hash: bool = True) -> TestClient:
         data_root = _make_user_store(tmp_path, VALID_KEY)
     else:
         data_root = tmp_path
-        (tmp_path / "users" / "rob").mkdir(parents=True)
+        (tmp_path / "users" / "alice").mkdir(parents=True)
 
     async def ok(request):
         return JSONResponse({"status": "ok"})
@@ -47,7 +47,7 @@ def _make_client(tmp_path: Path, create_hash: bool = True) -> TestClient:
     inner = Starlette(routes=[Route("/mcp", ok), Route("/", ok)])
     middleware = OAuthMCPMiddleware(inner)
     middleware._data_root = data_root
-    middleware._user_id = "rob"
+    middleware._user_id = "alice"
     middleware._hash = None
     return TestClient(middleware, raise_server_exceptions=True)
 
@@ -91,7 +91,7 @@ class TestOAuthToken:
     def test_valid_client_credentials(self, client):
         resp = client.post("/token", data={
             "grant_type": "client_credentials",
-            "client_id": "rob",
+            "client_id": "alice",
             "client_secret": VALID_KEY,
         })
         assert resp.status_code == 200
@@ -103,7 +103,7 @@ class TestOAuthToken:
     def test_wrong_secret_returns_401(self, client):
         resp = client.post("/token", data={
             "grant_type": "client_credentials",
-            "client_id": "rob",
+            "client_id": "alice",
             "client_secret": "mm_sk_wrongXXXXXXXXXXXXXXXXXXXX",
         })
         assert resp.status_code == 401
@@ -112,7 +112,7 @@ class TestOAuthToken:
     def test_unknown_grant_type_returns_400(self, client):
         resp = client.post("/token", data={
             "grant_type": "not_a_real_grant",
-            "client_id": "rob",
+            "client_id": "alice",
             "client_secret": VALID_KEY,
         })
         assert resp.status_code == 400
@@ -124,7 +124,7 @@ class TestOAuthToken:
         # rejected as an unsupported grant type.
         resp = client.post("/token", data={
             "grant_type": "authorization_code",
-            "client_id": "rob",
+            "client_id": "alice",
             "client_secret": VALID_KEY,
         })
         assert resp.status_code == 400
@@ -134,7 +134,7 @@ class TestOAuthToken:
         # Get token then use it
         token_resp = client.post("/token", data={
             "grant_type": "client_credentials",
-            "client_id": "rob",
+            "client_id": "alice",
             "client_secret": VALID_KEY,
         })
         token = token_resp.json()["access_token"]

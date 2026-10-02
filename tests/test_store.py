@@ -55,12 +55,12 @@ def test_key_format():
 
 
 def test_user_config_default():
-    cfg = UserConfig.default('rob')
+    cfg = UserConfig.default('alice')
     assert len(cfg.domains) == 6
 
 
 def test_user_config_roundtrip(tmp_path):
-    cfg = UserConfig.default('rob')
+    cfg = UserConfig.default('alice')
     path = tmp_path / 'config.yaml'
     cfg.save(path)
     cfg2 = UserConfig.load(path)
@@ -75,27 +75,27 @@ def test_seed_key_from_env_rotates_and_is_idempotent(tmp_path, monkeypatch, caps
     from mm.auth.keys import generate_key, load_key_hash, save_key_hash, seed_key_from_env, verify_key
 
     old, old_hash = generate_key()
-    (tmp_path / "users" / "rob").mkdir(parents=True)
-    save_key_hash(tmp_path / "users" / "rob", old_hash)
+    (tmp_path / "users" / "alice").mkdir(parents=True)
+    save_key_hash(tmp_path / "users" / "alice", old_hash)
     (tmp_path / "users" / "tester").mkdir()
     save_key_hash(tmp_path / "users" / "tester", generate_key()[1])
 
     new, _ = generate_key()
     monkeypatch.setenv("MM_OSS_API_KEY", new)
-    seed_key_from_env(tmp_path, "rob", "mm-api")
-    stored = load_key_hash(tmp_path / "users" / "rob")
+    seed_key_from_env(tmp_path, "alice", "mm-api")
+    stored = load_key_hash(tmp_path / "users" / "alice")
     assert verify_key(new, stored) and not verify_key(old, stored)
     out = capsys.readouterr().out
-    assert "users with API keys: rob, tester" in out  # surfaces stray users
+    assert "users with API keys: alice, tester" in out  # surfaces stray users
     assert "seeded" in out
 
-    seed_key_from_env(tmp_path, "rob", "mm-api")
-    assert load_key_hash(tmp_path / "users" / "rob") == stored  # no rewrite when in sync
+    seed_key_from_env(tmp_path, "alice", "mm-api")
+    assert load_key_hash(tmp_path / "users" / "alice") == stored  # no rewrite when in sync
 
 
 def test_seed_key_from_env_ignores_missing_or_bad_key(tmp_path, monkeypatch):
     from mm.auth.keys import seed_key_from_env
 
     monkeypatch.setenv("MM_OSS_API_KEY", "not-a-key")
-    seed_key_from_env(tmp_path, "rob", "mm-api")
-    assert not (tmp_path / "users" / "rob" / "api_key.hash").exists()
+    seed_key_from_env(tmp_path, "alice", "mm-api")
+    assert not (tmp_path / "users" / "alice" / "api_key.hash").exists()

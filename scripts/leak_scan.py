@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Fail if the public repo contains personal Monkey Mind content (Odin's launch check L4).
+"""Fail if the public repo contains personal or internal content that must stay private.
 
-The maintainer's personal context library lives in a separate private repo. This scan keeps
+Maintainers' personal data and internal working notes live elsewhere. This scan keeps
 it from leaking here. The list of personal terms is stored only as salted SHA-256 hashes
 (.github/leak-hashes.txt), so this check doesn't publish what it protects. Every word and
 2–3 word phrase in tracked text files is hashed and compared.

@@ -106,10 +106,10 @@ No Postgres multi-tenancy in v0.1. Postgres is Phase 2 if/when needed.
 ## Auth Model
 
 ```
-munkymind user create rob
+munkymind user create alice
 → generate cryptographically random 32-byte key
 → encode as base58: mm_sk_{48 chars}
-→ bcrypt hash stored in users/rob/api_key.hash
+→ bcrypt hash stored in users/alice/api_key.hash
 → raw key shown ONCE to user — never stored
 ```
 
