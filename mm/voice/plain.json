@@ -66,6 +66,9 @@
     },
     "easter.banana": {
       "plain": "You found the banana. That's it. That's the feature."
+    },
+    "cast._other": {
+      "name": "{label}"
     }
   }
 }

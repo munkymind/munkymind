@@ -111,6 +111,7 @@ def domain_add(
     username: str = typer.Option(..., '--user', '-u', help='Username whose config to modify'),
     staleness: int = typer.Option(30, '--staleness', help='Staleness threshold in days'),
     icon: str = typer.Option('', '--icon', help='Emoji for this brain in the viewer'),
+    brain: str = typer.Option('', '--brain-name', help='Your own name for this brain'),
 ):
     """Add a new domain to config.yaml."""
     from mm.config.user import DomainConfig
@@ -123,7 +124,7 @@ def domain_add(
         raise typer.Exit(1)
 
     cfg.domains.append(DomainConfig(id=domain_id, label=label, staleness_threshold_days=staleness,
-                                    icon=icon))
+                                    icon=icon, brain=brain))
     cfg.save(store.config_path)
     typer.echo(f"✓ Domain '{domain_id}' ({label}) added.")
 
@@ -306,9 +307,12 @@ def _open_store(username: str):
     return store
 
 
-def _brain(domain: str, labels: dict) -> str:
-    label = labels.get(domain) or domain.title()
-    return label if label.lower().endswith("brain") else f"{label} Brain"
+def _brain(domain: str, domains) -> str:
+    """Brain name for a domain id, given the user's DomainConfig list."""
+    from mm import voice
+
+    d = next((x for x in domains if x.id == domain), None)
+    return voice.brain_name(domain, d.label if d else "", d.brain if d else "")
 
 
 def _hunger(freshness: dict) -> str:
@@ -331,6 +335,7 @@ def status(username: str = typer.Option(..., '--user', '-u', help='Username')):
     """How your brains are doing: pages, freshness and recent feeding."""
     from rich.console import Console
     from rich.table import Table
+    from mm import voice
     from mm.core import library
 
     console = Console()
@@ -347,14 +352,14 @@ def status(username: str = typer.Option(..., '--user', '-u', help='Username')):
     for col in ("Brain", "Pages", "Peckish", "Starving", "Last fed"):
         table.add_column(col)
     for d in st["domains"]:
-        label = d["label"] if d["label"].lower().endswith("brain") else f"{d['label']} Brain"
+        label = voice.brain_name(d["id"], d["label"], d["brain"])
         table.add_row(f"{d['icon']} {label}", str(d["pages"]), str(d["ripening"]), str(d["stale"]),
                       (d["last_fed"] or "never")[:10])
     console.print(table)
     hungry = [d for d in st["domains"] if d["stale"]]
     if hungry:
         worst = max(hungry, key=lambda d: d["stale"] / max(d["pages"], 1))
-        label = worst["label"] if worst["label"].lower().endswith("brain") else f"{worst['label']} Brain"
+        label = voice.brain_name(worst["id"], worst["label"], worst["brain"])
         _say(console, "fresh.stale_brain", brain=label, n=worst["stale"],
              date=(worst["last_fed"] or "never")[:10])
     else:
@@ -379,7 +384,7 @@ def pages(
     if not rows:
         _say(console, "search.none", q=search or "")
         return
-    labels = {d.id: d.label for d in store.get_config().domains}
+    labels = store.get_config().domains
     table = Table(show_edge=False, header_style="bold")
     for col in ("Page", "Title", "Brain", "Freshness", "Updated"):
         table.add_column(col, overflow="fold")
@@ -406,7 +411,7 @@ def show(
         _say(console, "error.missing")
         console.print(f"[dim]List pages with: munkymind pages -u {username}[/dim]")
         raise typer.Exit(1)
-    labels = {d.id: d.label for d in store.get_config().domains}
+    labels = store.get_config().domains
     f = page["freshness"]
     console.print(f"[bold]{page.get('title') or page_id}[/bold]")
     console.print(f"{_brain(page['domain'], labels)} · {_hunger(f)} (updated {_age(f)}, "
@@ -436,7 +441,7 @@ def peek(
         return
     share = result["share"] * 100
     top = result["chunks"][0]
-    labels = {d.id: d.label for d in _open_store(username).get_config().domains}
+    labels = _open_store(username).get_config().domains
     n = len(result["chunks"])
     _say(console, "peek.result_big" if result["share"] > 0.5 else "peek.result",
          brain=_brain(top["domain"], labels), chunks=f"{n} snippet{'s' if n != 1 else ''}",

@@ -292,11 +292,15 @@ const store = {
 /* ------------------------------------------------------------------ *
  * Formatting
  * ------------------------------------------------------------------ */
-let ICONS = {};
+let ICONS = {}, CUSTOM = {};
 function icon(domain) { return ICONS[domain] || "🧠"; }
+/* Your own name for the brain, else its cast name (health → Body Brain), else "<Label> Brain";
+   in plain mode just the label. */
 function brainName(domain, label) {
-  const l = label || (domain ? domain.charAt(0).toUpperCase() + domain.slice(1) : "Mystery");
-  return /brain$/i.test(l) ? l : l + " Brain";
+  if (CUSTOM[domain]) return CUSTOM[domain];
+  const l = label || (domain ? domain.charAt(0).toUpperCase() + domain.slice(1).replace(/-/g, " ") : "Unsorted");
+  const entry = VOICE["cast." + domain] || VOICE["cast._other"];
+  return entry && entry.name ? fill(entry.name, { label: l }) : l;
 }
 function ago(iso) {
   if (!iso) return "at an unknown time";
@@ -424,6 +428,7 @@ async function getStatus(force) {
   if (!force && cache.status && Date.now() - cache.at < 15000) return cache.status;
   cache = { status: await api("/status"), at: Date.now() };
   ICONS = Object.fromEntries(cache.status.domains.map(d => [d.id, d.icon]));
+  CUSTOM = Object.fromEntries(cache.status.domains.filter(d => d.brain).map(d => [d.id, d.brain]));
   return cache.status;
 }
 

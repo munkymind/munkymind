@@ -256,7 +256,7 @@ def test_cli_status_pages_show(store, tmp_path, monkeypatch):
     monkeypatch.setattr(cli, "DATA_ROOT", tmp_path)
     runner = CliRunner()
     r = runner.invoke(cli.app, ["status", "-u", "alice"])
-    assert r.exit_code == 0 and "3 pages" in r.output
+    assert r.exit_code == 0 and "3 pages" in r.output and "Body Brain" in r.output
     r = runner.invoke(cli.app, ["pages", "-u", "alice", "--stale"])
     assert r.exit_code == 0 and "professional/budget" in r.output and "health/training" not in r.output
     r = runner.invoke(cli.app, ["show", "health/training", "-u", "alice"])
@@ -292,4 +292,17 @@ def test_freshness_moods(monkeypatch):
         "😋", "😐", "😴"]
     monkeypatch.setenv("MM_VOICE", "plain")
     assert "mood" not in voice.lines()["fresh.stale"]
+    voice._load.cache_clear()
+
+
+def test_brain_cast_names(monkeypatch):
+    from mm import voice
+
+    voice._load.cache_clear()
+    assert voice.brain_name("health", "Health") == "Body Brain"
+    assert voice.brain_name("strategic", "Strategic") == "Big Picture Brain"
+    assert voice.brain_name("gardening", "Gardening") == "Gardening Brain"
+    assert voice.brain_name("health", "Health", "My Body") == "My Body"
+    monkeypatch.setenv("MM_VOICE", "plain")
+    assert voice.brain_name("health", "Health") == "Health"
     voice._load.cache_clear()

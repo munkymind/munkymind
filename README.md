@@ -219,7 +219,7 @@ munkymind ingest --connector github --user <name> # Ingest from GitHub connector
 munkymind eval --api-key mm_sk_...                # Run quality eval suite (9 scenarios)
 munkymind user create <name>                      # Create a user + API key only (no connector)
 munkymind user rotate-key <name>                  # Issue a new API key
-munkymind domain add <id> <label> --user <name>   # Add a domain (optional --icon 🌱)
+munkymind domain add <id> <label> --user <name>   # Add a domain (optional --icon 🌱 --brain-name "Garden Brain")
 munkymind domain rename <id> <label> --user <name>
 munkymind domain remove <id> --user <name>
 munkymind user delete <name> --confirm            # Delete all user data

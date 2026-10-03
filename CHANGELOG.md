@@ -11,6 +11,7 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ### Changed
 - **Messages moved into `mm/voice/`.** `plain.json` (Apache 2.0) holds the plain-language fact or fix for every event; `catalogue.json` holds the jokes and labels and is licensed **CC BY-NC-ND 4.0** (see `mm/voice/LICENSE`). The CLI and `/ui` both read from here; API and MCP output stays plain
+- **Brains have names:** built-in domains appear as their cast (Health → Body Brain, Professional → Business Brain, Personal → Personal Brain, Strategic → Big Picture Brain, Temporal → Calendar Brain, Projects → Builder Brain); other domains are "<Label> Brain". Name your own with `munkymind domain add ... --brain-name "Garden Brain"` (or `brain:` in config.yaml). Plain mode shows the plain domain label
 - Freshness badges show the brain's mood (😋 Fed, 😐 Peckish, 😴 Starving) instead of bananas
 - `MM_VOICE=plain` turns the jokes off everywhere. Munkymind also runs normally without `catalogue.json`
 

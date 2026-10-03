@@ -72,6 +72,30 @@
     },
     "easter.banana": {
       "joke": "🍌 BANANA! The monkey did a backflip. Morale is UP."
+    },
+    "cast.health": {
+      "name": "Body Brain"
+    },
+    "cast.professional": {
+      "name": "Business Brain"
+    },
+    "cast.personal": {
+      "name": "Personal Brain"
+    },
+    "cast.strategic": {
+      "name": "Big Picture Brain"
+    },
+    "cast.temporal": {
+      "name": "Calendar Brain"
+    },
+    "cast.projects": {
+      "name": "Builder Brain"
+    },
+    "cast.ideas": {
+      "name": "3am Brain"
+    },
+    "cast._other": {
+      "name": "{label} Brain"
     }
   }
 }
