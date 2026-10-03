@@ -30,7 +30,7 @@ Open **👀 Peek** and type a real question, e.g. *"What's my training plan this
 You'll see the exact snippets your AI would be sent, in order, and what share of your library that is. This is the point of Munkymind: your AI gets a few relevant paragraphs, not your whole life, so answers are grounded and cheap. No AI is called for a Peek.
 
 ### 3. Ask from your AI tool (5 min)
-Connect one tool (setup steps are in the [quickstart](quickstart.md)):
+Munkymind plugs into your AI tools through **MCP**, the standard way Claude, ChatGPT and Cursor call outside tools. Connect one tool (setup steps are in the [quickstart](quickstart.md)):
 - **Claude Desktop / Cursor:** run `bash setup-mcp.sh`, or use the manual config in the README
 - **claude.ai or ChatGPT:** add Munkymind as a custom connector (quickstart step 7)
 
@@ -49,7 +49,7 @@ Your AI calls Munkymind's tools by itself:
 
 Answers cite the pages they used. If a note is stale, the answer says so.
 
-### 4. Keep it fresh (2 min)
+### 4. Keep it fresh with 🍌 Pulse (2 min)
 Open **🍌 Pulse**. Each brain has a mood: 😋 Fed, 😐 Peckish, 😴 Starving. Every domain has a freshness window (temporal notes go stale in 3 days, personal ones in 60).
 
 After you add or edit notes, re-feed:
@@ -71,6 +71,14 @@ Prefer it without the jokes? Set `MM_VOICE=plain` in `.env` and restart.
 
 Each one says what to feed it and what to ask. The prompts work as written with the sample notes.
 
+### 🧭 Cross-domain planning (where Munkymind shines, so start here)
+**Feed:** a bit of everything.
+**Ask:**
+- *"Given my goals and this week's calendar, what are my top three priorities?"*
+- *"Does taking on the billing migration fit my five-year plan?"*
+
+One question draws on several brains at once (work, strategy, calendar) and the answer cites each source.
+
 ### 🏃 Personal coach
 **Feed:** training plans, sleep or health notes, your calendar for the week.
 **Ask:**
@@ -84,14 +92,6 @@ Each one says what to feed it and what to ask. The prompts work as written with 
 **Ask:**
 - *"Prep me for my 1:1 with Priya: open actions and anything she raised last time."*
 - *"Which of my Q4 key results are at risk, and why?"*
-
-### 🧭 Cross-domain planning (where Munkymind shines)
-**Feed:** a bit of everything.
-**Ask:**
-- *"Given my goals and this week's calendar, what are my top three priorities?"*
-- *"Does taking on the billing migration fit my five-year plan?"*
-
-One question draws on several brains at once (work, strategy, calendar) and the answer cites each source.
 
 ### 👩‍💻 Developer context
 **Feed:** the GitHub connector (`munkymind ingest --connector github --user <you>`): your profile, repos and READMEs.

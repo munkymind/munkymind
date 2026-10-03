@@ -72,6 +72,8 @@ No notes handy, or just kicking the tyres? Set `MM_NOTES_DIR=./examples/sample-n
 
 Domains (health, professional, strategic, projects, temporal, personal) are detected from file and folder names, so `notes/health/sleep.md` lands in *health*. Anything unmatched goes to *personal*.
 
+**Cost and time:** indexing about 50 notes takes a minute or two and a few cents of OpenAI usage. After that, each question costs a fraction of a cent.
+
 ### 4. Run the setup wizard
 
 ```bash

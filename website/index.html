@@ -104,6 +104,7 @@
       <a class="btn primary" href="#start">Get started in 15 minutes</a>
       <a class="btn ghost" href="https://github.com/munkymind/munkymind">View on GitHub</a>
     </div>
+    <p class="note">Needs Docker and one OpenAI API key. Setup costs a few cents.</p>
   </div>
 
   <section id="how">
@@ -143,7 +144,7 @@
 
   <section id="start">
     <h2>Get started</h2>
-    <p class="note">You need Docker, git and one OpenAI API key. Full checklist: <a href="https://github.com/munkymind/munkymind/blob/main/docs/quickstart.md#before-you-start-about-10-minutes-of-setup">Before you start</a>.</p>
+    <p class="note">You need Docker, git and one OpenAI API key. Indexing 50 notes takes a minute or two and costs a few cents of OpenAI usage; each question costs a fraction of a cent. Full checklist: <a href="https://github.com/munkymind/munkymind/blob/main/docs/quickstart.md#before-you-start-about-10-minutes-of-setup">Before you start</a>.</p>
     <ol class="steps">
       <li><strong>Download and add your key</strong>
 <pre><code>git clone https://github.com/munkymind/munkymind.git
@@ -157,7 +158,7 @@ docker compose up -d</code></pre>
 <pre><code>docker compose exec api munkymind setup</code></pre>
         <p class="note">Save the <code>mm_sk_…</code> key it prints. Then ask: <code>docker compose exec api munkymind query --user yourname "What am I working on?"</code></p></li>
       <li><strong>See your brains.</strong> Open <code>http://localhost:8000/ui</code> and paste your key to browse what it learned.</li>
-      <li><strong>Connect your AI tools.</strong> Claude Desktop works locally. For claude.ai or ChatGPT, give the MCP server a public HTTPS address (a free Cloudflare tunnel works) and add it as a custom connector. <a href="https://github.com/munkymind/munkymind/blob/main/docs/quickstart.md">Step-by-step guide</a>.</li>
+      <li><strong>Connect your AI tools.</strong> Munkymind plugs in through MCP, the standard way Claude, ChatGPT and Cursor call outside tools. Claude Desktop works locally. For claude.ai or ChatGPT, give the MCP server a public HTTPS address (a free Cloudflare tunnel works) and add it as a custom connector. <a href="https://github.com/munkymind/munkymind/blob/main/docs/quickstart.md">Step-by-step guide</a>.</li>
     </ol>
   </section>
 
@@ -166,13 +167,13 @@ docker compose up -d</code></pre>
     <div class="grid">
       <div class="card"><h3>🧠 See your brains</h3><p>A local viewer at <code>localhost:8000/ui</code>. Every topic is a brain: Body Brain, Business Brain, Big Picture Brain. Browse and search what each one knows, and see where it came from.</p></div>
       <div class="card"><h3>👀 Peek</h3><p>Type a question and see exactly which few snippets your AI would be sent, and how small that is next to your whole library. No AI is called.</p></div>
-      <div class="card"><h3>😋 Keep it fresh</h3><p>Brains get hungry. Each one shows a mood, from 😋 fed to 😴 starving, so you know which notes are out of date before your AI relies on them.</p></div>
+      <div class="card"><h3>🍌 Pulse: keep it fresh</h3><p>Brains get hungry. Each one shows a mood, from 😋 fed to 😴 starving, so you know which notes are out of date before your AI relies on them.</p></div>
     </div>
     <h3 style="margin-top:28px">What people use it for</h3>
     <div class="grid">
+      <div class="card"><h3>🧭 Cross-domain planning</h3><p>“Given my goals and this week, what are my top three priorities?” One answer that draws on work, strategy and calendar, with sources.</p></div>
       <div class="card"><h3>🏃 Personal coach</h3><p>“Plan my runs this week around my calendar.” Your plan, your rules and your week, without re-explaining them.</p></div>
       <div class="card"><h3>💼 Work brain</h3><p>“Prep me for my 1:1 with Priya: open actions and what she raised last time.”</p></div>
-      <div class="card"><h3>🧭 Cross-domain planning</h3><p>“Given my goals and this week, what are my top three priorities?” One answer that draws on work, strategy and calendar, with sources.</p></div>
       <div class="card"><h3>👩‍💻 Developer context</h3><p>Connect GitHub, then ask Cursor or Claude Code: “Which of my repos already solve auth?”</p></div>
     </div>
     <p class="note" style="margin-top:16px"><a href="https://github.com/munkymind/munkymind/blob/main/docs/using-munkymind.md">What can I do with it?</a>: a 15-minute tour, use cases and example prompts.</p>
