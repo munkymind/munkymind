@@ -82,6 +82,8 @@ Added more notes later? `docker compose exec api munkymind ingest --connector fi
 
 That's it. Full setup guide: **[docs/quickstart.md](docs/quickstart.md)**
 
+**Next: [What can I do with it?](docs/using-munkymind.md)**: a 15-minute tour, use cases with example prompts, and tester missions. No notes handy? Try the made-up library in [`examples/sample-notes`](examples/sample-notes).
+
 ---
 
 ## Why it works

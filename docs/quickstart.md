@@ -68,7 +68,11 @@ mkdir -p notes
 cp -r ~/path/to/your/notes/* notes/
 ```
 
+No notes handy, or just kicking the tyres? Set `MM_NOTES_DIR=./examples/sample-notes` in `.env` to use a small made-up library instead.
+
 Domains (health, professional, strategic, projects, temporal, personal) are detected from file and folder names, so `notes/health/sleep.md` lands in *health*. Anything unmatched goes to *personal*.
+
+**Cost and time:** indexing about 50 notes takes a minute or two and a few cents of OpenAI usage. After that, each question costs a fraction of a cent.
 
 ### 4. Run the setup wizard
 
@@ -173,6 +177,12 @@ cloudflared tunnel --url http://localhost:8001
 The tunnel URL changes every time you restart it (re-add the connector), and it only works while your machine is on. For an always-on connector, deploy to Railway (`railway.toml` is included) or any HTTPS host. If your host rewrites the address, set `MCP_BASE_URL=https://your-host` in `.env` and run `docker compose up -d mcp`.
 
 > **Make sure `MM_USER_ID` in `.env` matches the username you created in the wizard**, then `docker compose up -d mcp`. The MCP container serves that one user.
+
+---
+
+### Next: what to try
+
+You're set up. **[What can I do with it?](using-munkymind.md)** walks you through your first 15 minutes, with use cases, example prompts and tester missions.
 
 ---
 
