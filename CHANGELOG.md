@@ -7,6 +7,23 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [0.2.2] — 2026-10-03
+
+See what's in your library.
+
+### Added
+- **Library viewer** at `http://localhost:8000/ui` (read-only, no external fonts or scripts):
+  - **Brains**: your library by domain, with search, and a page view showing sections, source, confidence, size and freshness
+  - **Peek**: type a question and see exactly which snippets an AI tool would be sent, plus the share of your library that represents. Retrieval only; no LLM call
+  - **Pulse**: freshness per domain (Fed / Peckish / Starving) and the feeding log
+- CLI: `munkymind status`, `munkymind pages` (`--domain`, `--search`, `--stale`), `munkymind show <page>`, `munkymind peek "<question>"`
+- API: `GET /status`, `POST /preview`, `GET /pages?q=&stale=`, `GET /pages/{id}?content=true`
+- Each domain ("brain") has an icon: built-in defaults, an automatic pick for new domains, or your own with `munkymind domain add ... --icon 🌱` (or `icon:` in config.yaml)
+- Every page now reports its freshness (`fresh` / `ripening` / `stale`) against its domain's staleness threshold
+
+### Changed
+- `GET /` redirects to `/ui`. Page responses no longer include the local file path (`raw_path`)
+
 ## [0.2.1] — 2026-10-02
 
 Security hardening before the first tester round. See [SECURITY.md](SECURITY.md).

@@ -111,6 +111,24 @@ Added or edited notes? Re-ingest (existing pages are updated, not duplicated):
 docker compose exec api munkymind ingest --connector files --user myname
 ```
 
+### See your brains (what's in your library)
+
+Open **http://localhost:8000/ui** and paste your API key. Three tabs:
+
+- **🧠 Brains**: your library by domain. Search titles and tags, open any page to read it, with where it came from and how fresh it is.
+- **👀 Peek**: type a question and see exactly which snippets an AI tool would be sent, and how small that is next to your whole library. No AI is called.
+- **🍌 Pulse**: freshness per domain (Fed / Peckish / Starving) and the feeding log.
+
+The page is read-only. Your key is kept in the browser tab (or on the device, if you tick "remember") and only sent to your own server.
+
+The same from the terminal:
+```bash
+docker compose exec api munkymind status -u myname          # pages, freshness, recent ingestions
+docker compose exec api munkymind pages -u myname --stale   # list pages (filter: --domain, --search, --stale)
+docker compose exec api munkymind show <page-id> -u myname  # read one page
+docker compose exec api munkymind peek -u myname "What should I focus on this week?"
+```
+
 ### 6. Connect to Claude Desktop (MCP)
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):

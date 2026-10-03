@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<title>Your Brains · Munkymind</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧠%3C/text%3E%3C/svg%3E">
+<style>
+/* No external fonts, scripts or images: this page runs on your machine and stays there. */
+:root {
+  --paper: #fff8ec; --paper-2: #fff1d9; --card: #ffffff; --ink: #1d1530; --muted: #5d5470;
+  --brand: #6d28d9; --brand-soft: #ede4ff; --banana: #ffd23f; --pink: #ff8fb1;
+  --on-brand: #ffffff; --fed: #2fcf8a; --peckish: #ffa94d; --starving: #ff5d5d;
+  --shadow: 4px 4px 0 var(--ink); --shadow-sm: 2px 2px 0 var(--ink);
+  --radius: 14px; --border: 2.5px solid var(--ink);
+  --round: ui-rounded, "SF Pro Rounded", "Nunito", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #15111f; --paper-2: #1d1729; --card: #221b31; --ink: #f1ebff; --muted: #b3a9c9;
+    --brand: #a78bfa; --on-brand: #15111f; --brand-soft: #2e2546; --shadow: 4px 4px 0 #6d28d9; --shadow-sm: 2px 2px 0 #6d28d9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #15111f; --paper-2: #1d1729; --card: #221b31; --ink: #f1ebff; --muted: #b3a9c9;
+  --brand: #a78bfa; --on-brand: #15111f; --brand-soft: #2e2546; --shadow: 4px 4px 0 #6d28d9; --shadow-sm: 2px 2px 0 #6d28d9;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--paper); color: var(--ink); font: 16px/1.55 var(--body);
+  background-image: radial-gradient(var(--paper-2) 1.2px, transparent 1.2px); background-size: 22px 22px;
+  min-height: 100vh;
+}
+a { color: var(--brand); }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+code, kbd { font-family: var(--mono); font-size: .88em; background: var(--brand-soft); padding: 1px 6px; border-radius: 6px; }
+kbd { border: 1.5px solid var(--ink); box-shadow: 1px 1px 0 var(--ink); }
+
+/* Header + tabs */
+header.wrap { padding-top: 22px; padding-bottom: 10px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+.brand .mark { font-size: 30px; display: inline-block; transform: rotate(-8deg); }
+.brand b { font: 800 22px/1 var(--round); letter-spacing: -.02em; }
+.brand small { display: block; font-size: 13px; color: var(--muted); font-weight: 500; margin-top: 3px; }
+.top-actions { display: flex; gap: 8px; }
+.btn {
+  border: var(--border); background: var(--card); border-radius: 999px; padding: 7px 14px; cursor: pointer;
+  box-shadow: var(--shadow-sm); font-weight: 650; transition: transform .08s, box-shadow .08s;
+}
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+.btn:active { transform: translate(2px, 2px); box-shadow: none; }
+.btn.primary { background: var(--banana); color: #1d1530; }
+.btn.ghost { box-shadow: none; }
+nav.tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 18px 0 6px; }
+nav.tabs a {
+  display: block; text-decoration: none; color: var(--ink); border: var(--border); border-radius: var(--radius);
+  background: var(--card); padding: 10px 14px; box-shadow: var(--shadow-sm); transition: transform .08s;
+}
+nav.tabs a:hover { transform: translate(-1px, -1px); }
+nav.tabs a b { font: 800 18px/1.2 var(--round); display: block; }
+nav.tabs a span { font-size: 13px; color: var(--muted); }
+nav.tabs a[aria-current="page"] { background: var(--brand); color: var(--on-brand); box-shadow: var(--shadow); }
+nav.tabs a[aria-current="page"] span { color: var(--on-brand); opacity: .85; }
+
+/* Voice: every joke sits on top of a plain fact or fix */
+.say { margin: 18px 0; }
+.say .joke { font: 750 clamp(19px, 2.6vw, 24px)/1.3 var(--round); margin: 0; letter-spacing: -.01em; }
+.say .plain { margin: 6px 0 0; color: var(--muted); }
+.bubble { border: var(--border); border-radius: var(--radius); background: var(--card); padding: 16px 18px; box-shadow: var(--shadow); }
+
+/* Brains grid */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 8px 0 26px; }
+.brain {
+  text-align: left; border: var(--border); border-radius: var(--radius); background: var(--card); padding: 14px 16px;
+  box-shadow: var(--shadow); cursor: pointer; transition: transform .12s; width: 100%;
+}
+.brain:nth-child(odd) { transform: rotate(-.8deg); }
+.brain:nth-child(even) { transform: rotate(.7deg); }
+.brain:hover, .brain:focus-visible { transform: rotate(0) translate(-2px, -2px); }
+.brain[aria-pressed="true"] { background: var(--brand-soft); outline: 3px solid var(--brand); }
+.brain .icon { font-size: 34px; line-height: 1; margin-bottom: 8px; display: inline-block; transition: transform .2s; }
+.brain:hover .icon { transform: rotate(-12deg) scale(1.12); }
+.brain h3 { margin: 0 0 2px; font: 800 19px/1.2 var(--round); }
+.brain .count { color: var(--muted); font-size: 14px; }
+.brain .fed { margin-top: 10px; font-size: 13px; color: var(--muted); }
+
+.hunger { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700;
+  border: 2px solid var(--ink); border-radius: 999px; padding: 1px 9px 1px 6px; background: var(--card); white-space: nowrap; }
+.hunger .nanas { letter-spacing: -2px; }
+.hunger .nanas i { font-style: normal; }
+.hunger .nanas i.off { filter: grayscale(1); opacity: .28; }
+.hunger.fresh { background: color-mix(in srgb, var(--fed) 22%, var(--card)); }
+.hunger.ripening { background: color-mix(in srgb, var(--peckish) 25%, var(--card)); }
+.hunger.stale { background: color-mix(in srgb, var(--starving) 22%, var(--card)); }
+
+/* Search + list */
+.bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 4px 0 14px; }
+.search { flex: 1 1 260px; position: relative; }
+.search input, .field input {
+  width: 100%; border: var(--border); border-radius: 999px; padding: 10px 16px 10px 42px; background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+.search::before { content: "🔍"; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 15px; }
+.search kbd { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); }
+.chip { border: 2px solid var(--ink); border-radius: 999px; padding: 4px 11px; background: var(--card); cursor: pointer; font-size: 14px; font-weight: 600; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.row {
+  display: flex; align-items: center; gap: 12px; justify-content: space-between; text-decoration: none; color: var(--ink);
+  border: var(--border); border-radius: 12px; background: var(--card); padding: 11px 14px; transition: transform .08s, box-shadow .08s;
+}
+.row:hover, .row:focus-visible { transform: translate(-2px, -2px); box-shadow: var(--shadow-sm); }
+.row .t { font-weight: 700; overflow-wrap: anywhere; }
+.row .m { font-size: 13px; color: var(--muted); }
+.row .r { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.tag { font-size: 12px; font-weight: 700; border-radius: 6px; padding: 1px 7px; background: var(--brand-soft); color: var(--brand); }
+
+/* Page view */
+.crumbs { font-size: 14px; margin: 8px 0 4px; }
+.page-head h2 { font: 800 clamp(24px, 4vw, 34px)/1.15 var(--round); margin: 6px 0 10px; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 14px 0 22px; }
+.meta div { border: 2px dashed var(--ink); border-radius: 10px; padding: 8px 12px; background: var(--card); }
+.meta dt { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
+.meta dd { margin: 2px 0 0; font-weight: 650; overflow-wrap: anywhere; }
+.section { border: var(--border); border-radius: var(--radius); background: var(--card); padding: 14px 18px; margin: 0 0 14px; box-shadow: var(--shadow-sm); }
+.section h3 { margin: 0 0 8px; font: 800 17px/1.3 var(--round); display: flex; justify-content: space-between; gap: 10px; }
+.section h3 small { font: 600 12px var(--body); color: var(--muted); }
+.section p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Peek */
+.field { display: flex; gap: 10px; flex-wrap: wrap; }
+.field input { flex: 1 1 280px; padding-left: 16px; }
+.meter { border: var(--border); border-radius: 999px; height: 22px; background: var(--card); overflow: hidden; margin: 10px 0 6px; }
+.meter i { display: block; height: 100%; background: repeating-linear-gradient(-45deg, var(--banana), var(--banana) 8px, #ffe27a 8px, #ffe27a 16px); border-right: 2px solid var(--ink); min-width: 6px; }
+.chunk .why { font-size: 12px; color: var(--muted); font-weight: 600; }
+
+/* Pulse */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin: 6px 0 22px; }
+.stat { border: var(--border); border-radius: var(--radius); background: var(--card); padding: 12px 16px; box-shadow: var(--shadow-sm); }
+.stat b { display: block; font: 800 30px/1.1 var(--round); }
+.stat span { font-size: 13px; color: var(--muted); font-weight: 600; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; border: var(--border); border-radius: 12px; overflow: hidden; background: var(--card); }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1.5px solid color-mix(in srgb, var(--ink) 15%, transparent); font-size: 14px; }
+th { background: var(--paper-2); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+tr:last-child td { border-bottom: 0; }
+.table-wrap { overflow-x: auto; }
+h2.h { font: 800 21px/1.2 var(--round); margin: 26px 0 10px; }
+
+/* Key gate */
+.gate { max-width: 560px; margin: 40px auto; }
+.gate form { display: grid; gap: 12px; margin-top: 14px; }
+.gate input[type=password] { border: var(--border); border-radius: 12px; padding: 11px 14px; background: var(--card); font-family: var(--mono); }
+.gate label.check { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--muted); }
+
+/* Toast */
+#toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); width: min(560px, calc(100% - 32px)); z-index: 10; }
+#toast .bubble { box-shadow: 6px 6px 0 var(--ink); }
+#toast .x { float: right; margin: -4px -6px 0 8px; }
+
+footer.wrap { margin-top: 40px; margin-bottom: 28px; font-size: 13px; color: var(--muted); text-align: center; }
+.monkey { display: inline-block; }
+.flip { animation: flip .7s ease-in-out; }
+@keyframes flip { 0% { transform: rotate(0) } 50% { transform: translateY(-14px) rotate(180deg) } 100% { transform: rotate(360deg) } }
+.thinking::after { content: "…"; display: inline-block; animation: dots 1.2s steps(4) infinite; width: 1.2em; overflow: hidden; vertical-align: bottom; }
+@keyframes dots { from { width: 0 } to { width: 1.2em } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .brain:nth-child(n) { transform: none; }
+}
+@media (max-width: 640px) {
+  nav.tabs { gap: 8px; }
+  nav.tabs a { padding: 8px 10px; }
+  nav.tabs a span { display: none; }
+  nav.tabs a b { font-size: 16px; text-align: center; }
+  .row { flex-direction: column; align-items: flex-start; }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .brain { padding: 11px 12px; }
+  .brain h3 { font-size: 16px; }
+  .brain .icon { font-size: 26px; margin-bottom: 4px; }
+  .brain .fed { display: none; }
+  .hunger { font-size: 12px; }
+}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <div class="top">
+    <a class="brand" href="#/brains" aria-label="Munkymind home">
+      <span class="mark" aria-hidden="true">🧠</span>
+      <span><b>Your Brains</b><small>Munkymind · read-only library viewer</small></span>
+    </a>
+    <div class="top-actions">
+      <button class="btn ghost" id="theme" type="button" aria-label="Switch light or dark theme">🌗</button>
+      <button class="btn ghost" id="lock" type="button" hidden>🔒 Lock</button>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs" aria-label="Main" hidden>
+    <a href="#/brains" data-tab="brains"><b>🧠 Brains</b><span>What you've fed them</span></a>
+    <a href="#/peek" data-tab="peek"><b>👀 Peek</b><span>What your AI would see</span></a>
+    <a href="#/pulse" data-tab="pulse"><b>🍌 Pulse</b><span>Freshness and activity</span></a>
+  </nav>
+</header>
+
+<main class="wrap" id="main" tabindex="-1" aria-live="polite"></main>
+
+<div id="toast" role="status" aria-live="assertive"></div>
+
+<footer class="wrap">
+  Read-only. Your key and your library stay on this machine. <span class="monkey" id="monkey" aria-hidden="true">🐒</span>
+</footer>
+
+<script>
+"use strict";
+/* ------------------------------------------------------------------ *
+ * Voice. One table, so the copy can be swapped without touching code.
+ * Each entry: joke (the personality) + plain (the literal fact or fix).
+ * The plain line is never optional: the joke may not hide the fix.
+ * ------------------------------------------------------------------ */
+const VOICE = {
+  "error.auth": {
+    joke: "🔑 The brains don't recognise you. It's not personal.",
+    plain: "Paste your API key (it starts with mm_sk_). Lost it? Run {fix} to make a new one."
+  },
+  "error.auth_bad": {
+    joke: "🔑 Nice try. The brains have never seen that key in their lives.",
+    plain: "That key didn't work. Check you copied all of it, or make a new one with {fix}."
+  },
+  "error.server_down": {
+    joke: "🚬 All brains are on a smoke break.",
+    plain: "The API isn't answering. Start it with {fix} and reload this page."
+  },
+  "error.rate_limit": {
+    joke: "🐌 Whoa — the brains' hands are UP. Too fast.",
+    plain: "Too many requests. Give it {n}s and try again."
+  },
+  "error.crash": {
+    joke: "💥 Brain meeting descended into chaos. A chair was thrown.",
+    plain: "Something went wrong on the server: {detail}"
+  },
+  "error.missing": {
+    joke: "🕳️ The brains searched every drawer. Nothing by that name.",
+    plain: "That page doesn't exist (any more). Head back to your brains."
+  },
+  "query.empty": {
+    joke: "Blank faces all round. A tumbleweed went past.",
+    plain: "Nothing in your library matches that. Feed your brains a note on it and ask again."
+  },
+  "query.thinking": {
+    joke: "💭 Deep in thought — somewhere between Aristotle and 'where did I leave my keys.'",
+    plain: "Finding the most relevant pieces of your library."
+  },
+  "peek.intro": {
+    joke: "👀 Ever wondered what your AI actually gets told about you?",
+    plain: "Type a question. You'll see exactly which pieces of your library would be sent, and how small that is next to the whole thing. No AI is called."
+  },
+  "peek.result": {
+    joke: "{brain} would pass along {chunks} — a light snack, not the whole fridge.",
+    plain: "{sent} tokens sent out of a {total}-token library ({share})."
+  },
+  "peek.result_big": {
+    joke: "{brain} would pass along {chunks}. Your library's still a toddler, so that's most of it.",
+    plain: "{sent} tokens sent out of a {total}-token library ({share}). The share shrinks as you feed your brains more."
+  },
+  "library.empty": {
+    joke: "Blank faces all round. A tumbleweed went past.",
+    plain: "Your brains haven't been fed yet. Add some notes with {fix}, then come back."
+  },
+  "library.welcome": {
+    joke: "👋 You've got a headful of brains and they're DYING to show you what they know.",
+    plain: "Each card is a domain of your library. Pick one, or search everything."
+  },
+  "search.none": {
+    joke: "The brains looked at each other. Long pause.",
+    plain: "No page titles or tags match \"{q}\". Try fewer words, or Peek to search inside pages."
+  },
+  "fresh.fresh": { label: "Fed", plain: "Updated {age}. Fresh for {threshold} days." },
+  "fresh.ripening": { label: "Peckish", plain: "Updated {age}. Gets stale after {threshold} days." },
+  "fresh.stale": { label: "Starving", plain: "Updated {age}, past its {threshold}-day freshness window. Re-feed the source." },
+  "fresh.stale_brain": {
+    joke: "😴 {brain}'s FADING— hasn't eaten since {date}— monkey's panicking— feed it—",
+    plain: "{n} page(s) in {brain} are past their freshness window. Re-run the connector that feeds them."
+  },
+  "fresh.all_good": {
+    joke: "🍽️ Every brain is fed and smug about it.",
+    plain: "Nothing is past its freshness window."
+  },
+  "pulse.roster": {
+    joke: "The brains line up. Each one's carrying something. Here's how they're doing.",
+    plain: "Page counts, freshness and recent feeding, per domain."
+  },
+  "milestone.first_memory": { joke: "🎉 FIRST memory! {brain} framed it and hung it on the wall." },
+  "milestone.100_memories": { joke: "🎉 {brain} just hit 100 memories. It's asking for a corner office." },
+  "easter.banana": {
+    joke: "🍌 BANANA! The monkey did a backflip. Morale is UP.",
+    plain: "You found the banana. That's it. That's the feature."
+  }
+};
+
+function fill(text, vars) {
+  return String(text || "").replace(/\{(\w+)\}/g, (m, k) => (vars && k in vars ? String(vars[k]) : m));
+}
+
+/* ------------------------------------------------------------------ *
+ * Tiny DOM helpers (textContent only: library content is never HTML)
+ * ------------------------------------------------------------------ */
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    el.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+
+/* Renders "{fix}"-style placeholders as <code> so commands stand out. */
+function rich(text, vars) {
+  const frag = document.createDocumentFragment();
+  String(text).split(/(\{\w+\})/).forEach(part => {
+    const m = part.match(/^\{(\w+)\}$/);
+    if (m && vars && m[1] in vars) {
+      const v = vars[m[1]];
+      frag.append(m[1] === "fix" ? h("code", {}, v) : String(v));
+    } else frag.append(part);
+  });
+  return frag;
+}
+
+function say(key, vars, opts) {
+  const v = VOICE[key] || {};
+  return h("div", { class: "say" + (opts && opts.bubble ? " bubble" : "") },
+    v.joke ? h("p", { class: "joke" + (opts && opts.thinking ? " thinking" : "") }, rich(v.joke, vars)) : null,
+    v.plain ? h("p", { class: "plain" }, rich(v.plain, vars)) : null);
+}
+
+const main = document.getElementById("main");
+function render(...nodes) { main.replaceChildren(...nodes.flat(Infinity).filter(n => n != null && n !== false)); }
+
+const store = {
+  get(k) { try { return sessionStorage.getItem(k) || localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v, remember) {
+    try { sessionStorage.setItem(k, v); if (remember) localStorage.setItem(k, v); } catch (e) { /* storage blocked */ }
+  },
+  del(k) { try { sessionStorage.removeItem(k); localStorage.removeItem(k); } catch (e) { /* storage blocked */ } }
+};
+
+/* ------------------------------------------------------------------ *
+ * Formatting
+ * ------------------------------------------------------------------ */
+let ICONS = {};
+function icon(domain) { return ICONS[domain] || "🧠"; }
+function brainName(domain, label) {
+  const l = label || (domain ? domain.charAt(0).toUpperCase() + domain.slice(1) : "Mystery");
+  return /brain$/i.test(l) ? l : l + " Brain";
+}
+function ago(iso) {
+  if (!iso) return "at an unknown time";
+  const d = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(iso) ? iso : iso + "Z");
+  const s = (Date.now() - d.getTime()) / 1000;
+  if (isNaN(s)) return "at an unknown time";
+  if (s < 90) return "just now";
+  const units = [["year", 31536000], ["month", 2592000], ["week", 604800], ["day", 86400], ["hour", 3600], ["minute", 60]];
+  for (const [u, n] of units) if (s >= n) { const c = Math.floor(s / n); return `${c} ${u}${c > 1 ? "s" : ""} ago`; }
+  return "just now";
+}
+function day(iso) {
+  if (!iso) return "who knows when";
+  const d = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(iso) ? iso : iso + "Z");
+  return isNaN(d) ? iso : d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+}
+const num = n => Number(n || 0).toLocaleString();
+
+/* A brain is Starving when at least half its pages are stale, Peckish when any are stale or ripening. */
+function brainLevel(d) {
+  if (d.stale && d.stale * 2 >= d.pages) return "stale";
+  return d.stale || d.ripening ? "ripening" : "fresh";
+}
+
+function hunger(f, updated) {
+  const level = (f && f.level) || "stale";
+  const v = VOICE["fresh." + level];
+  const lit = { fresh: 3, ripening: 2, stale: 1 }[level];
+  const plain = fill(v.plain, { age: ago(updated), threshold: f ? f.threshold_days : 30 });
+  return h("span", { class: "hunger " + level, title: plain, "aria-label": `${v.label}: ${plain}` },
+    h("span", { class: "nanas", "aria-hidden": "true" },
+      [0, 1, 2].map(i => h("i", { class: i < lit ? "" : "off" }, "🍌"))),
+    v.label);
+}
+
+/* ------------------------------------------------------------------ *
+ * API
+ * ------------------------------------------------------------------ */
+class ApiError extends Error {
+  constructor(kind, info) { super(kind); this.kind = kind; this.info = info || {}; }
+}
+async function api(path, opts) {
+  const key = store.get("mm_key");
+  if (!key) throw new ApiError("auth");
+  let res;
+  try {
+    res = await fetch(path, {
+      ...(opts || {}),
+      headers: { "X-API-Key": key, "Content-Type": "application/json", ...((opts && opts.headers) || {}) }
+    });
+  } catch (e) {
+    throw new ApiError("down");
+  }
+  if (res.status === 401) throw new ApiError("auth_bad");
+  if (res.status === 404) throw new ApiError("missing");
+  if (res.status === 429) throw new ApiError("rate", { n: res.headers.get("Retry-After") || 30 });
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`;
+    try { const j = await res.json(); if (j && j.detail) detail = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail); } catch (e) { /* not JSON */ }
+    throw new ApiError("crash", { detail });
+  }
+  return res.json();
+}
+
+function showError(err) {
+  const kind = err instanceof ApiError ? err.kind : "crash";
+  if (kind === "auth" || kind === "auth_bad") { store.del("mm_key"); return gate(kind === "auth_bad"); }
+  if (kind === "missing") return render(say("error.missing", {}, { bubble: true }),
+    h("p", {}, h("a", { href: "#/brains" }, "← Back to your brains")));
+  const map = {
+    down: ["error.server_down", { fix: "docker compose up -d" }],
+    rate: ["error.rate_limit", { n: err.info.n }],
+    crash: ["error.crash", { detail: (err.info && err.info.detail) || String(err.message || err) }]
+  };
+  const [k, vars] = map[kind] || map.crash;
+  render(say(k, vars, { bubble: true }), h("p", {}, h("button", { class: "btn", type: "button", onclick: route }, "↻ Try again")));
+}
+
+function toast(key, vars) {
+  const t = document.getElementById("toast");
+  const close = h("button", { class: "btn ghost x", type: "button", "aria-label": "Dismiss", onclick: () => t.replaceChildren() }, "✕");
+  const b = say(key, vars, { bubble: true });
+  b.prepend(close);
+  t.replaceChildren(b);
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.replaceChildren(), 7000);
+}
+
+/* ------------------------------------------------------------------ *
+ * Views
+ * ------------------------------------------------------------------ */
+function gate(bad) {
+  document.getElementById("tabs").hidden = true;
+  document.getElementById("lock").hidden = true;
+  const input = h("input", { type: "password", id: "key", autocomplete: "off", spellcheck: "false",
+    placeholder: "mm_sk_…", "aria-describedby": "key-help", required: true });
+  const remember = h("input", { type: "checkbox", id: "remember" });
+  const form = h("form", {
+    onsubmit: e => {
+      e.preventDefault();
+      const v = input.value.trim();
+      if (!v.startsWith("mm_sk_")) { input.setCustomValidity("API keys start with mm_sk_"); input.reportValidity(); return; }
+      store.set("mm_key", v, remember.checked);
+      location.hash = "#/brains";
+      route();
+    }
+  },
+    h("label", { for: "key" }, h("b", {}, "Your API key")),
+    input,
+    h("label", { class: "check" }, remember, "Remember on this device (otherwise it's forgotten when you close the tab)"),
+    h("button", { class: "btn primary", type: "submit" }, "Let me in →"));
+  input.addEventListener("input", () => input.setCustomValidity(""));
+  render(h("section", { class: "gate bubble", "aria-labelledby": "gate-title" },
+    h("div", { id: "gate-title" }, say(bad ? "error.auth_bad" : "error.auth", { fix: "munkymind user rotate-key <you>" })),
+    form,
+    h("p", { class: "plain", id: "key-help", style: "font-size:13px;color:var(--muted);margin:12px 0 0" },
+      "Your key is only sent to this Munkymind server, never anywhere else. This page can look but never change anything.")));
+  input.focus();
+}
+
+let cache = { status: null, at: 0 };
+async function getStatus(force) {
+  if (!force && cache.status && Date.now() - cache.at < 15000) return cache.status;
+  cache = { status: await api("/status"), at: Date.now() };
+  ICONS = Object.fromEntries(cache.status.domains.map(d => [d.id, d.icon]));
+  return cache.status;
+}
+
+async function viewBrains(domain, q) {
+  const st = await getStatus();
+  const params = new URLSearchParams();
+  if (domain) params.set("domain", domain);
+  if (q) params.set("q", q);
+  const { pages } = await api("/pages?" + params);
+  const brains = st.domains.filter(d => d.pages > 0);
+
+  if (!st.pages) return render(say("library.empty", { fix: "munkymind ingest -c files -u <you>" }, { bubble: true }));
+
+  const search = h("input", { type: "search", id: "q", value: q || "", placeholder: "Search titles and tags…",
+    "aria-label": "Search your brains by title or tag" });
+  let timer;
+  search.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      const p = new URLSearchParams(); if (search.value.trim()) p.set("q", search.value.trim());
+      history.replaceState(null, "", "#/brains" + (domain ? "/" + encodeURIComponent(domain) : "") + (p.toString() ? "?" + p : ""));
+      viewBrains(domain, search.value.trim()).then(() => { const s = document.getElementById("q"); s.focus(); s.setSelectionRange(s.value.length, s.value.length); }, showError);
+    }, 250);
+  });
+
+  const grid = h("div", { class: "grid", role: "list", "aria-label": "Your brains" },
+    brains.map(d => h("button", {
+      class: "brain", type: "button", role: "listitem", "aria-pressed": String(d.id === domain),
+      onclick: () => { location.hash = d.id === domain ? "#/brains" : "#/brains/" + encodeURIComponent(d.id); }
+    },
+      h("div", { class: "icon", "aria-hidden": "true" }, d.icon || "🧠"),
+      h("h3", {}, brainName(d.id, d.label)),
+      h("div", { class: "count" }, `${num(d.pages)} page${d.pages === 1 ? "" : "s"}`),
+      h("div", { style: "margin-top:8px" }, hunger({ level: brainLevel(d), threshold_days: d.threshold_days }, d.last_fed)),
+      h("div", { class: "fed" }, d.stale ? `${d.stale} of ${d.pages} starving · last fed ${ago(d.last_fed)}` : "Last fed " + ago(d.last_fed)))));
+
+  const current = domain ? st.domains.find(d => d.id === domain) : null;
+  const list = pages.length
+    ? h("ul", { class: "list" }, pages.map(p => h("li", {},
+        h("a", { class: "row", href: "#/page/" + encodeURIComponent(p.id) },
+          h("div", {}, h("div", { class: "t" }, p.title || p.id),
+            h("div", { class: "m" }, `${p.connector || p.source || "unknown source"} · updated ${ago(p.updated_at)}`)),
+          h("div", { class: "r" }, domain ? null : h("span", { class: "tag" }, icon(p.domain) + " " + brainName(p.domain, (st.domains.find(d => d.id === p.domain) || {}).label)),
+            hunger(p.freshness, p.updated_at))))))
+    : say("search.none", { q });
+
+  render(
+    say("library.welcome", {}),
+    grid,
+    h("div", { class: "bar" },
+      h("div", { class: "search" }, search, h("kbd", { "aria-hidden": "true" }, "/")),
+      domain ? h("button", { class: "chip", type: "button", "aria-pressed": "true", onclick: () => { location.hash = "#/brains"; } },
+        `${brainName(domain, current && current.label)} ✕`) : null),
+    h("h2", { class: "h" }, domain ? `Everything ${brainName(domain, current && current.label)} knows` : q ? `Matches for “${q}”` : "Recently fed",
+      h("span", { class: "m", style: "font: 600 14px var(--body); color: var(--muted); margin-left: 8px" }, `${num(pages.length)} page${pages.length === 1 ? "" : "s"}`)),
+    list);
+}
+
+async function viewPage(id) {
+  const [p, st] = await Promise.all([api("/pages/" + id.split("/").map(encodeURIComponent).join("/") + "?content=true"), getStatus()]);
+  const label = (st.domains.find(d => d.id === p.domain) || {}).label;
+  const f = p.freshness || {};
+  const v = VOICE["fresh." + (f.level || "stale")];
+  const tags = (p.tags || "").split(",").map(t => t.trim()).filter(Boolean);
+  render(
+    h("p", { class: "crumbs" }, h("a", { href: "#/brains/" + encodeURIComponent(p.domain) }, "← " + icon(p.domain) + " " + brainName(p.domain, label))),
+    h("div", { class: "page-head" }, h("h2", {}, p.title || p.id), hunger(f, p.updated_at),
+      h("span", { class: "m", style: "margin-left:8px;color:var(--muted);font-size:14px" }, fill(v.plain, { age: ago(p.updated_at), threshold: f.threshold_days }))),
+    h("dl", { class: "meta" },
+      h("div", {}, h("dt", {}, "Where it came from"), h("dd", {}, p.source || "—")),
+      h("div", {}, h("dt", {}, "Fed by"), h("dd", {}, p.connector || "—")),
+      h("div", {}, h("dt", {}, "First learned"), h("dd", {}, day(p.created_at))),
+      h("div", {}, h("dt", {}, "Confidence"), h("dd", {}, p.confidence || "—")),
+      h("div", {}, h("dt", {}, "Size"), h("dd", {}, `≈ ${num(p.tokens)} tokens`)),
+      tags.length ? h("div", {}, h("dt", {}, "Tags"), h("dd", {}, tags.join(", "))) : null),
+    p.sections && p.sections.length
+      ? p.sections.map(s => h("section", { class: "section" },
+          h("h3", {}, s.heading, h("small", {}, `≈ ${num(s.tokens)} tokens`)), h("p", {}, s.text)))
+      : say("query.empty", {}),
+    h("p", { class: "plain", style: "color:var(--muted);font-size:13px" }, "Page ID: ", h("code", {}, p.id)));
+}
+
+async function viewPeek(q) {
+  const input = h("input", { type: "search", id: "peek-q", value: q || "", placeholder: "e.g. what's my training plan this month?",
+    "aria-label": "A question your AI might ask about you" });
+  const out = h("div", { id: "peek-out" });
+  const form = h("form", { class: "field", role: "search", onsubmit: e => {
+    e.preventDefault();
+    const v = input.value.trim(); if (!v) return input.focus();
+    history.replaceState(null, "", "#/peek?q=" + encodeURIComponent(v));
+    runPeek(v, out);
+  } }, input, h("button", { class: "btn primary", type: "submit" }, "Peek 👀"));
+  render(say("peek.intro", {}), form, out);
+  if (q) runPeek(q, out); else input.focus();
+}
+
+async function runPeek(q, out) {
+  out.replaceChildren(say("query.thinking", {}, { thinking: true }));
+  let r, st;
+  try { [r, st] = await Promise.all([api("/preview", { method: "POST", body: JSON.stringify({ query: q, limit: 8 }) }), getStatus()]); }
+  catch (e) { return showError(e); }
+  if (!r.chunks.length) return out.replaceChildren(say("query.empty", {}, { bubble: true }));
+  const top = r.chunks[0];
+  const label = (st.domains.find(d => d.id === top.domain) || {}).label;
+  const pct = r.share ? (r.share * 100 < 1 ? "<1%" : Math.round(r.share * 100) + "%") : "—";
+  out.replaceChildren(
+    h("div", { class: "bubble", style: "margin-top:18px" },
+      say(r.share > 0.5 ? "peek.result_big" : "peek.result", { brain: brainName(top.domain, label), chunks: `${r.chunks.length} snippet${r.chunks.length === 1 ? "" : "s"}`,
+        sent: num(r.tokens_sent), total: num(r.library_tokens), share: pct }),
+      h("div", { class: "meter", role: "img", "aria-label": `${pct} of your library would be sent` },
+        h("i", { style: `width:${Math.max(1, Math.min(100, (r.share || 0) * 100))}%` })),
+      h("p", { class: "plain", style: "font-size:13px;color:var(--muted);margin:4px 0 0" },
+        "No AI was called to make this preview, just one small search of your own library.")),
+    h("h2", { class: "h" }, "Exactly what would be sent, in order"),
+    h("ol", { class: "list", style: "list-style:none" }, r.chunks.map((c, i) => h("li", {},
+      h("section", { class: "section chunk" },
+        h("h3", {}, h("a", { href: "#/page/" + encodeURIComponent(c.page_id) }, `${i + 1}. ${c.title || c.page_id}`),
+          h("small", {}, `${c.section || "—"} · ≈ ${num(c.tokens)} tokens`)),
+        h("div", { class: "why", style: "margin-bottom:8px" }, icon(c.domain) + " " + brainName(c.domain, (st.domains.find(d => d.id === c.domain) || {}).label), " · ",
+          hunger(c.freshness, null)),
+        h("p", {}, c.text.length > 700 ? c.text.slice(0, 700) + " …" : c.text))))));
+}
+
+async function viewPulse() {
+  const st = await getStatus(true);
+  if (!st.pages) return render(say("library.empty", { fix: "munkymind ingest -c files -u <you>" }, { bubble: true }));
+  const fresh = st.pages - st.stale - st.ripening;
+  const starving = st.domains.filter(d => d.stale > 0).sort((a, b) => b.stale / b.pages - a.stale / a.pages);
+  const worst = starving[0];
+  render(
+    say("pulse.roster", {}),
+    h("div", { class: "stats" },
+      h("div", { class: "stat" }, h("b", {}, num(st.pages)), h("span", {}, "pages in your library")),
+      h("div", { class: "stat" }, h("b", {}, "≈ " + num(st.library_tokens)), h("span", {}, "tokens if you sent it all")),
+      h("div", { class: "stat" }, h("b", {}, num(fresh)), h("span", {}, "🍌🍌🍌 Fed")),
+      h("div", { class: "stat" }, h("b", {}, num(st.ripening)), h("span", {}, "🍌🍌 Peckish")),
+      h("div", { class: "stat" }, h("b", {}, num(st.stale)), h("span", {}, "🍌 Starving"))),
+    worst
+      ? h("div", { class: "bubble" }, say("fresh.stale_brain", { brain: brainName(worst.id, worst.label), date: day(worst.last_fed), n: worst.stale }),
+          h("p", {}, h("a", { href: "#/brains/" + encodeURIComponent(worst.id) }, `See ${brainName(worst.id, worst.label)}'s pages →`)))
+      : h("div", { class: "bubble" }, say("fresh.all_good", {})),
+    h("h2", { class: "h" }, "Brain by brain"),
+    h("div", { class: "table-wrap" }, h("table", {},
+      h("thead", {}, h("tr", {}, ["Brain", "Pages", "Peckish", "Starving", "Last fed"].map(t => h("th", { scope: "col" }, t)))),
+      h("tbody", {}, st.domains.map(d => h("tr", {},
+        h("td", {}, d.icon + " ", d.pages ? h("a", { href: "#/brains/" + encodeURIComponent(d.id) }, brainName(d.id, d.label)) : brainName(d.id, d.label)),
+        h("td", {}, num(d.pages)), h("td", {}, num(d.ripening)), h("td", {}, num(d.stale)),
+        h("td", {}, d.last_fed ? ago(d.last_fed) : "never — still hungry")))))),
+    h("h2", { class: "h" }, "Feeding log"),
+    st.recent_ingestions.length
+      ? h("div", { class: "table-wrap" }, h("table", {},
+          h("thead", {}, h("tr", {}, ["When", "Connector", "New", "Updated", "Result"].map(t => h("th", { scope: "col" }, t)))),
+          h("tbody", {}, st.recent_ingestions.map(i => h("tr", {},
+            h("td", { title: i.ran_at }, ago(i.ran_at)), h("td", {}, i.connector),
+            h("td", {}, num(i.pages_created)), h("td", {}, num(i.pages_updated)),
+            h("td", {}, i.status === "ok" ? "✅ ok" : `⚠️ ${i.status}${i.error_msg ? ": " + i.error_msg : ""}`))))))
+      : h("p", { class: "plain" }, "No feeding recorded yet."));
+}
+
+/* ------------------------------------------------------------------ *
+ * Router
+ * ------------------------------------------------------------------ */
+async function route() {
+  if (!store.get("mm_key")) return gate(false);
+  document.getElementById("tabs").hidden = false;
+  document.getElementById("lock").hidden = false;
+  const [path, query] = (location.hash.replace(/^#/, "") || "/brains").split("?");
+  const params = new URLSearchParams(query || "");
+  const parts = path.split("/").filter(Boolean);
+  const tab = parts[0] === "page" ? "brains" : (parts[0] || "brains");
+  document.querySelectorAll("#tabs a").forEach(a => {
+    if (a.dataset.tab === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+  try {
+    if (parts[0] === "page") await viewPage(decodeURIComponent(parts.slice(1).join("/")));
+    else if (tab === "peek") await viewPeek(params.get("q") || "");
+    else if (tab === "pulse") await viewPulse();
+    else await viewBrains(parts[1] ? decodeURIComponent(parts[1]) : null, params.get("q") || "");
+  } catch (e) { showError(e); }
+}
+window.addEventListener("hashchange", () => { route(); main.focus({ preventScroll: true }); window.scrollTo(0, 0); });
+
+document.getElementById("lock").addEventListener("click", () => { store.del("mm_key"); cache = { status: null, at: 0 }; gate(false); });
+
+(function theme() {
+  const btn = document.getElementById("theme");
+  let saved = null; try { saved = localStorage.getItem("mm_theme"); } catch (e) { /* blocked */ }
+  if (saved) document.documentElement.dataset.theme = saved;
+  btn.addEventListener("click", () => {
+    const dark = document.documentElement.dataset.theme
+      ? document.documentElement.dataset.theme === "dark"
+      : matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("mm_theme", document.documentElement.dataset.theme); } catch (e) { /* blocked */ }
+  });
+})();
+
+/* Keyboard: "/" jumps to search. Typing "banana" anywhere outside a field does what you'd hope. */
+let typed = "";
+document.addEventListener("keydown", e => {
+  const inField = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName);
+  if (e.key === "/" && !inField) {
+    const s = document.getElementById("q") || document.getElementById("peek-q");
+    if (s) { e.preventDefault(); s.focus(); }
+    return;
+  }
+  if (e.key === "Escape") document.getElementById("toast").replaceChildren();
+  if (inField || e.key.length !== 1) return;
+  typed = (typed + e.key.toLowerCase()).slice(-6);
+  if (typed === "banana") {
+    typed = "";
+    const m = document.getElementById("monkey");
+    m.classList.remove("flip"); void m.offsetWidth; m.classList.add("flip");
+    toast("easter.banana", {});
+  }
+});
+
+route();
+</script>
+</body>
+</html>
