@@ -222,7 +222,11 @@ def run_wizard() -> None:
         )
 
     # ── Summary ──────────────────────────────────────────────────────────────
-    n_domains = len(domains_seen) or len(cfg.domains)
+    try:
+        from mm.core.library import list_pages
+        n_domains = len({p["domain"] for p in list_pages(store)}) or len(domains_seen)
+    except Exception:  # noqa: BLE001  (summary line only; never fail setup over it)
+        n_domains = len(domains_seen)
     typer.echo("\n" + "━" * 60)
     if ingest_ok and (total_pages > 0 or query_ok):
         typer.echo("🎉 Your context library is ready!")

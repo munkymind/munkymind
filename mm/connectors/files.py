@@ -114,7 +114,8 @@ def _ingest_text_file(path: Path, domain: str) -> ConnectorPage:
 
     if path.suffix == ".md":
         meta, body = _parse_frontmatter(raw)
-        title = meta.get("title", path.stem)
+        h1 = next((ln[2:].strip() for ln in body.splitlines() if ln.startswith("# ")), "")
+        title = meta.get("title") or h1 or path.stem
         sections = _split_by_headings(body)
     else:
         meta = {}

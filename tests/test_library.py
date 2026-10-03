@@ -348,4 +348,4 @@ def test_domain_folder_wins_and_parent_path_is_ignored(tmp_path):
     (root / "health" / "plan.md").write_text("# Plan\n\nRun.")
     (root / "misc.md").write_text("# Misc\n\nThings.")
     pages = FilesConnector({"path": str(root)}, UserConfig.default("t")).ingest()
-    assert {p.title: p.domain for p in pages} == {"plan": "health", "misc": "personal"}
+    assert {p.title: p.domain for p in pages} == {"Plan": "health", "Misc": "personal"}

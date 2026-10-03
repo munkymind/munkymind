@@ -18,6 +18,8 @@ Ready for testers.
 
 ### Fixed
 - **Domains now follow folder names**, as the docs promised: `notes/strategic/plan.md` goes to *strategic* even without a keyword match. Keywords only look inside the notes folder, so a notes folder under e.g. `~/projects/` no longer puts everything in *projects*. If you ingested before, re-ingest to re-sort pages
+- Page titles come from the note's first `# heading` (or `title:` front matter) instead of the file name
+- The setup wizard's summary counted domains wrongly ("across 1 domain")
 - MCP `get_page` returned empty content for uploaded files or moved sources; it now rebuilds the text from the library. It no longer exposes the local file path
 
 ## [0.2.3] — 2026-10-03
