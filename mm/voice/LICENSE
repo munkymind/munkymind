@@ -1,0 +1,18 @@
+Munkymind voice catalogue (catalogue.json in this folder)
+Copyright 2026 the Munkymind authors.
+
+This file is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives
+4.0 International License (CC BY-NC-ND 4.0):
+https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
+
+In short (the legal code above is what applies):
+- You may copy and redistribute it, unchanged, for example as part of Munkymind or a fork.
+- You may not distribute modified versions of it.
+- You may not use it for commercial purposes.
+- Credit "the Munkymind authors" and link to the licence.
+
+Everything else in this repository keeps its own licence: code is Apache 2.0 (LICENSE at
+the repository root), plain.json in this folder is Apache 2.0, docs are CC BY 4.0.
+Munkymind runs without catalogue.json: delete it, or set MM_VOICE=plain, and every
+message falls back to its plain-language line. Forks that want their own personality
+should write their own catalogue.

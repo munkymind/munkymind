@@ -5,7 +5,7 @@ The **code** in this repository is open source under the [Apache License 2.0](LI
 ## What's covered
 - The name **Munkymind** and the domain **munkymind.dev**
 - The Munkymind **logo** and visual identity (`assets/`, `website/logo.svg`)
-- The Munkymind **characters and personality** (for example the named "brains" and monkey crew), and any branded voice or message packs we publish
+- The Munkymind **characters and personality** (for example the named "brains" and monkey crew), and any branded voice or message packs we publish (the voice catalogue's copyright licence is CC BY-NC-ND 4.0, see `mm/voice/LICENSE`; that licence grants no trademark rights)
 
 ## You can, without asking
 - Use, modify and redistribute the code under Apache 2.0

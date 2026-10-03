@@ -117,7 +117,7 @@ Open **http://localhost:8000/ui** and paste your API key. Three tabs:
 
 - **🧠 Brains**: your library by domain. Search titles and tags, open any page to read it, with where it came from and how fresh it is.
 - **👀 Peek**: type a question and see exactly which snippets an AI tool would be sent, and how small that is next to your whole library. No AI is called.
-- **🍌 Pulse**: freshness per domain (Fed / Peckish / Starving) and the feeding log.
+- **🍌 Pulse**: freshness per domain (😋 Fed / 😐 Peckish / 😴 Starving) and the feeding log.
 
 The page is read-only. Your key is kept in the browser tab (or on the device, if you tick "remember") and only sent to your own server.
 

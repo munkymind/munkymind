@@ -17,6 +17,7 @@ services:
       - ANTHROPIC_API_KEY
       - MM_LLM_PROVIDER=${MM_LLM_PROVIDER:-anthropic}
       - MM_EMBED_PROVIDER=${MM_EMBED_PROVIDER:-openai}
+      - MM_VOICE
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]

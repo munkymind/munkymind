@@ -193,20 +193,59 @@ def test_ui_served_locked_down():
     assert c.get("/", follow_redirects=False).headers["location"] == "/ui"
 
 
-def test_ui_voice_pairs_every_joke_with_plain_text():
+def test_every_joke_has_a_plain_line():
+    import json
     from pathlib import Path
-    import re
 
     import mm
 
-    html = (Path(mm.__file__).parent / "ui" / "index.html").read_text()
-    table = re.search(r"const VOICE = \{(.*?)\n\};", html, re.S).group(1)
-    parts = re.split(r'\n  "([\w.]+)":', table)[1:]
-    entries = dict(zip(parts[::2], parts[1::2]))
-    assert len(entries) > 15
-    for key, body in entries.items():
+    d = Path(mm.__file__).parent / "voice"
+    jokes = json.loads((d / "catalogue.json").read_text())["lines"]
+    plain = json.loads((d / "plain.json").read_text())["lines"]
+    assert len(jokes) > 15
+    for key, entry in jokes.items():
         if key.startswith(("error.", "query.", "library.", "search.", "peek.", "fresh.")):
-            assert "plain:" in body, f"{key} has no plain fact/fix next to the joke"
+            assert plain.get(key, {}).get("plain"), f"{key} has a joke but no plain fact/fix"
+        if "label" in entry:
+            assert plain[key].get("label"), f"{key} has no plain label"
+
+
+def test_voice_licences_are_marked():
+    import json
+    from pathlib import Path
+
+    import mm
+
+    d = Path(mm.__file__).parent / "voice"
+    assert "CC BY-NC-ND 4.0" in json.loads((d / "catalogue.json").read_text())["license"]
+    assert "Apache" in json.loads((d / "plain.json").read_text())["license"]
+    assert "by-nc-nd/4.0" in (d / "LICENSE").read_text()
+
+
+def test_plain_mode_and_missing_catalogue(monkeypatch):
+    from mm import voice
+
+    voice._load.cache_clear()
+    joke, plain = voice.say("query.empty")
+    assert joke and plain
+    monkeypatch.setenv("MM_VOICE", "plain")
+    assert voice.say("query.empty") == ("", plain)
+    assert voice.label("fresh.stale") == "Stale"
+    monkeypatch.delenv("MM_VOICE")
+    monkeypatch.setattr(voice, "_read", lambda name: {} if name == "catalogue.json"
+                        else {"query.empty": {"plain": "nothing"}})
+    voice._load.cache_clear()
+    assert voice.say("query.empty") == ("", "nothing")
+    voice._load.cache_clear()
+
+
+def test_ui_gets_voice_from_server():
+    from mm.api.server import app
+
+    c = TestClient(app)
+    v = c.get("/ui/voice.json").json()
+    assert v["error.auth"]["joke"] and v["error.auth"]["plain"]
+    assert "const VOICE = {" not in c.get("/ui").text  # copy lives in mm/voice, not the page
 
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
@@ -243,3 +282,14 @@ def test_every_brain_has_an_icon(store):
     assert library.domain_icon("gardening") == library.domain_icon("gardening")  # stable
     assert library.domain_icon("gardening") in library.ICON_POOL
     assert library.domain_icon("gardening", "🌱") == "🌱"
+
+
+def test_freshness_moods(monkeypatch):
+    from mm import voice
+
+    voice._load.cache_clear()
+    assert [voice.lines()[f"fresh.{lv}"]["mood"] for lv in ("fresh", "ripening", "stale")] == [
+        "😋", "😐", "😴"]
+    monkeypatch.setenv("MM_VOICE", "plain")
+    assert "mood" not in voice.lines()["fresh.stale"]
+    voice._load.cache_clear()

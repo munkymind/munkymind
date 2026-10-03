@@ -263,6 +263,7 @@ See [docs/connector-dev-guide.md](docs/connector-dev-guide.md) to get started.
 
 - **Code:** [Apache 2.0](LICENSE)
 - **Docs:** [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Voice catalogue** (`mm/voice/catalogue.json`, the jokes): [CC BY-NC-ND 4.0](mm/voice/LICENSE). Share it unchanged; no edited versions or commercial reuse. Set `MM_VOICE=plain` (or delete the file) for plain messages only
 - **Name, logo and characters:** not licensed for reuse. See [TRADEMARK.md](TRADEMARK.md) (forks welcome, please rename)
 
 ---

@@ -248,6 +248,14 @@ async def ui():
     })
 
 
+@app.get("/ui/voice.json", include_in_schema=False)
+async def ui_voice():
+    """Messages for the viewer (plain lines, plus the voice catalogue unless MM_VOICE=plain)."""
+    from mm import voice
+
+    return voice.lines()
+
+
 @app.get("/", include_in_schema=False)
 async def root():
     return RedirectResponse("/ui")

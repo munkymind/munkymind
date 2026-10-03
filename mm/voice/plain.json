@@ -1,0 +1,71 @@
+{
+  "license": "Apache-2.0. Plain-language messages; free to use and change.",
+  "lines": {
+    "error.auth": {
+      "plain": "Paste your API key (it starts with mm_sk_). Lost it? Run {fix} to make a new one."
+    },
+    "error.auth_bad": {
+      "plain": "That key didn't work. Check you copied all of it, or make a new one with {fix}."
+    },
+    "error.server_down": {
+      "plain": "The API isn't answering. Start it with {fix} and reload this page."
+    },
+    "error.rate_limit": {
+      "plain": "Too many requests. Give it {n}s and try again."
+    },
+    "error.crash": {
+      "plain": "Something went wrong on the server: {detail}"
+    },
+    "error.missing": {
+      "plain": "That page doesn't exist (any more). Head back to your brains."
+    },
+    "query.empty": {
+      "plain": "Nothing in your library matches that. Feed your brains a note on it and ask again."
+    },
+    "query.thinking": {
+      "plain": "Finding the most relevant pieces of your library."
+    },
+    "peek.intro": {
+      "plain": "Type a question. You'll see exactly which pieces of your library would be sent, and how small that is next to the whole thing. No AI is called."
+    },
+    "peek.result": {
+      "plain": "{sent} tokens sent out of a {total}-token library ({share})."
+    },
+    "peek.result_big": {
+      "plain": "{sent} tokens sent out of a {total}-token library ({share}). The share shrinks as you feed your brains more."
+    },
+    "library.empty": {
+      "plain": "Your brains haven't been fed yet. Add some notes with {fix}, then come back."
+    },
+    "library.welcome": {
+      "plain": "Each card is a domain of your library. Pick one, or search everything."
+    },
+    "search.none": {
+      "plain": "No page titles or tags match \"{q}\". Try fewer words, or Peek to search inside pages."
+    },
+    "fresh.fresh": {
+      "plain": "Updated {age}. Fresh for {threshold} days.",
+      "label": "Fresh"
+    },
+    "fresh.ripening": {
+      "plain": "Updated {age}. Gets stale after {threshold} days.",
+      "label": "Ageing"
+    },
+    "fresh.stale": {
+      "plain": "Updated {age}, past its {threshold}-day freshness window. Re-feed the source.",
+      "label": "Stale"
+    },
+    "fresh.stale_brain": {
+      "plain": "{n} page(s) in {brain} are past their freshness window. Re-run the connector that feeds them."
+    },
+    "fresh.all_good": {
+      "plain": "Nothing is past its freshness window."
+    },
+    "pulse.roster": {
+      "plain": "Page counts, freshness and recent feeding, per domain."
+    },
+    "easter.banana": {
+      "plain": "You found the banana. That's it. That's the feature."
+    }
+  }
+}
