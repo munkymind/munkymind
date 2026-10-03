@@ -207,7 +207,7 @@ footer.wrap { margin-top: 40px; margin-bottom: 28px; font-size: 13px; color: var
   <nav class="tabs" id="tabs" aria-label="Main" hidden>
     <a href="#/brains" data-tab="brains"><b>🧠 Brains</b><span>What you've fed them</span></a>
     <a href="#/peek" data-tab="peek"><b>👀 Peek</b><span>What your AI would see</span></a>
-    <a href="#/pulse" data-tab="pulse"><b>🍌 Pulse</b><span>Freshness and activity</span></a>
+    <a href="#/moods" data-tab="moods"><b>😋 Moods</b><span>How fed each brain is</span></a>
   </nav>
 </header>
 
@@ -274,7 +274,8 @@ function rich(text, vars) {
 }
 
 function say(key, vars, opts) {
-  const v = VOICE[key] || {};
+  const v = { ...(VOICE[key] || {}) };
+  if (Array.isArray(v.joke)) v.joke = v.joke[Math.floor(Math.random() * v.joke.length)];
   return h("div", { class: "say" + (opts && opts.bubble ? " bubble" : "") },
     v.joke ? h("p", { class: "joke" + (opts && opts.thinking ? " thinking" : "") }, rich(v.joke, vars)) : null,
     v.plain ? h("p", { class: "plain" }, rich(v.plain, vars)) : null);
@@ -554,14 +555,15 @@ async function runPeek(q, out) {
         h("p", {}, c.text.length > 700 ? c.text.slice(0, 700) + " …" : c.text))))));
 }
 
-async function viewPulse() {
+async function viewMoods() {
   const st = await getStatus(true);
   if (!st.pages) return render(say("library.empty", { fix: "munkymind ingest -c files -u <you>" }, { bubble: true }));
   const fresh = st.pages - st.stale - st.ripening;
   const starving = st.domains.filter(d => d.stale > 0).sort((a, b) => b.stale / b.pages - a.stale / a.pages);
   const worst = starving[0];
   render(
-    say("pulse.roster", {}),
+    h("h2", { class: "h", style: "margin-top:18px" }, "Moods"),
+    say("moods.intro", {}),
     h("div", { class: "stats" },
       h("div", { class: "stat" }, h("b", {}, num(st.pages)), h("span", {}, "pages in your library")),
       h("div", { class: "stat" }, h("b", {}, "≈ " + num(st.library_tokens)), h("span", {}, "tokens if you sent it all")),
@@ -600,14 +602,14 @@ async function route() {
   const [path, query] = (location.hash.replace(/^#/, "") || "/brains").split("?");
   const params = new URLSearchParams(query || "");
   const parts = path.split("/").filter(Boolean);
-  const tab = parts[0] === "page" ? "brains" : (parts[0] || "brains");
+  const tab = parts[0] === "page" ? "brains" : parts[0] === "pulse" ? "moods" : (parts[0] || "brains");
   document.querySelectorAll("#tabs a").forEach(a => {
     if (a.dataset.tab === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });
   try {
     if (parts[0] === "page") await viewPage(decodeURIComponent(parts.slice(1).join("/")));
     else if (tab === "peek") await viewPeek(params.get("q") || "");
-    else if (tab === "pulse") await viewPulse();
+    else if (tab === "moods" || tab === "pulse") await viewMoods();
     else await viewBrains(parts[1] ? decodeURIComponent(parts[1]) : null, params.get("q") || "");
   } catch (e) { showError(e); }
 }

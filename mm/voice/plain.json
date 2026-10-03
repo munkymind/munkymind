@@ -61,14 +61,86 @@
     "fresh.all_good": {
       "plain": "Nothing is past its freshness window."
     },
-    "pulse.roster": {
-      "plain": "Page counts, freshness and recent feeding, per domain."
-    },
     "easter.banana": {
       "plain": "You found the banana. That's it. That's the feature."
     },
     "cast._other": {
       "name": "{label}"
+    },
+    "ingest.start": {
+      "plain": "Ingesting {count} notes…"
+    },
+    "ingest.progress": {
+      "plain": "Processed {n} of {count}."
+    },
+    "ingest.done": {
+      "plain": "Done. {count} notes ingested."
+    },
+    "ingest.skipped": {
+      "plain": "Skipped {count} duplicate notes."
+    },
+    "query.start": {
+      "plain": "Searching your memory…"
+    },
+    "query.answer": {
+      "plain": "{brain}: {answer}"
+    },
+    "query.disagree": {
+      "plain": "Conflicting answers — {brain_a}: {a}; {brain_b}: {b}. You decide."
+    },
+    "fresh.digest": {
+      "plain": "Weekly digest: {summary}"
+    },
+    "fresh.refresh": {
+      "plain": "Running nightly refresh (reindexing your memory)…"
+    },
+    "error.file": {
+      "plain": "Couldn't read {file}. Check the path/format: {fix}."
+    },
+    "error.credit": {
+      "plain": "Out of API credit. Top up your balance to continue."
+    },
+    "error.network": {
+      "plain": "No network connection. Check your internet and retry."
+    },
+    "wizard.welcome": {
+      "plain": "Welcome to Monkey Mind. Let's set up your brains."
+    },
+    "wizard.name_brain": {
+      "plain": "Name this brain (e.g. Personal, Business, Health):"
+    },
+    "wizard.first_feed": {
+      "plain": "Add your first note to this brain:"
+    },
+    "wizard.done": {
+      "plain": "Setup complete. You can start asking questions now."
+    },
+    "milestone.first_memory": {
+      "plain": "First memory stored in {brain}."
+    },
+    "milestone.100_memories": {
+      "plain": "{brain} has reached 100 memories."
+    },
+    "milestone.streak": {
+      "plain": "{n}-day streak."
+    },
+    "milestone.new_brain": {
+      "plain": "New brain added: {brain}."
+    },
+    "idea.graduate": {
+      "plain": "Promoting idea from 3am Brain to a tracked idea."
+    },
+    "easter.brains": {
+      "plain": "Brain status: {roster}"
+    },
+    "easter.vote": {
+      "plain": "Vote on '{topic}': {result}."
+    },
+    "wizard.connect_senses": {
+      "plain": "Choose an AI tool to connect: ChatGPT, Claude Desktop or Claude Code."
+    },
+    "moods.intro": {
+      "plain": "How fed each brain is: page counts, freshness and the feeding log."
     }
   }
 }

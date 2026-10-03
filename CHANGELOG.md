@@ -7,6 +7,16 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [0.2.5] — 2026-10-03
+
+One consistent voice.
+
+### Changed
+- **Full voice catalogue:** every message now rotates between several lines in the same style (more than 100 jokes across all events), each with a plain-language version
+- **One world, one set of words:** topics are *brains*, notes are *brain food*, AI tools are the brains' *senses*, and freshness is each brain's *mood*. The viewer's 🍌 Pulse tab is now **😋 Moods** (old `#/pulse` links still work); bananas are just for the monkey
+- **One quip per screen:** the Moods view keeps the brain-mood line and drops the extra heading joke
+- Body Brain's icon is 💪
+
 ## [0.2.4] — 2026-10-03
 
 Ready for testers.

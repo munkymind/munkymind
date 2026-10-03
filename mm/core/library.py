@@ -19,7 +19,7 @@ FRESHNESS_LEVELS = ("fresh", "ripening", "stale")
 
 # Each domain ("brain") gets an icon: its own from config.yaml, a default for the built-in
 # domains, or a stable pick from the pool for anything else.
-DEFAULT_ICONS = {"health": "🫀", "professional": "💼", "personal": "🏡",
+DEFAULT_ICONS = {"health": "💪", "professional": "💼", "personal": "🏡",
                  "strategic": "♟️", "temporal": "⏰", "projects": "🛠️"}
 ICON_POOL = ("🦉", "🐙", "🦊", "🐝", "🍄", "🌶️", "🎸", "🔭", "🧪", "🎲", "🪐", "🧩")
 

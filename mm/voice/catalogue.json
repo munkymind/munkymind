@@ -2,28 +2,45 @@
   "license": "CC BY-NC-ND 4.0 (https://creativecommons.org/licenses/by-nc-nd/4.0/). Copyright 2026 the Munkymind authors. See mm/voice/LICENSE.",
   "lines": {
     "error.auth": {
-      "joke": "🔑 The brains don't recognise you. It's not personal."
+      "joke": [
+        "🔑 The brains don't recognise you. It's not personal."
+      ]
     },
     "error.auth_bad": {
       "joke": "🔑 Nice try. The brains have never seen that key in their lives."
     },
     "error.server_down": {
-      "joke": "🚬 All brains are on a smoke break."
+      "joke": [
+        "🚬 All brains are on a smoke break."
+      ]
     },
     "error.rate_limit": {
-      "joke": "🐌 Whoa — the brains' hands are UP. Too fast."
+      "joke": [
+        "🐌 Whoa — the brains' hands are UP. Too fast."
+      ]
     },
     "error.crash": {
-      "joke": "💥 Brain meeting descended into chaos. A chair was thrown."
+      "joke": [
+        "💥 Brain meeting descended into chaos. A chair was thrown."
+      ]
     },
     "error.missing": {
       "joke": "🕳️ The brains searched every drawer. Nothing by that name."
     },
     "query.empty": {
-      "joke": "Blank faces all round. A tumbleweed went past."
+      "joke": [
+        "Blank faces all round. A tumbleweed went past.",
+        "Blank faces all round. A tumbleweed went past. Feed them a note and ask again.",
+        "Silence in the room, then someone coughed. Nobody knows that yet — feed them a note.",
+        "The brains checked their pockets. Nothing. Give them a note on this and try again."
+      ]
     },
     "query.thinking": {
-      "joke": "💭 Deep in thought — somewhere between Aristotle and 'where did I leave my keys.'"
+      "joke": [
+        "💭 Deep in thought — somewhere between Aristotle and 'where did I leave my keys.'",
+        "💭 Thinking it over, in the way a committee of philosophers might, but faster.",
+        "💭 Mulling. There's a lot of nodding going on in there."
+      ]
     },
     "peek.intro": {
       "joke": "👀 Ever wondered what your AI actually gets told about you?"
@@ -56,22 +73,34 @@
       "mood": "😴"
     },
     "fresh.stale_brain": {
-      "joke": "😴 {brain}'s FADING— hasn't eaten since {date}— monkey's panicking— feed it—"
+      "joke": [
+        "😴 {brain}'s FADING— hasn't eaten since {date}— monkey's panicking— feed it—",
+        "😴 {brain}'s gone all wobbly— last fed {date}— the monkey's genuinely worried—"
+      ]
     },
     "fresh.all_good": {
       "joke": "🍽️ Every brain is fed and smug about it."
     },
-    "pulse.roster": {
-      "joke": "The brains line up. Each one's carrying something. Here's how they're doing."
-    },
     "milestone.first_memory": {
-      "joke": "🎉 FIRST memory! {brain} framed it and hung it on the wall."
+      "joke": [
+        "🎉 FIRST memory! {brain} framed it and hung it on the wall.",
+        "🎉 First one in! {brain}'s showing it to the others already.",
+        "🎉 Memory number one! {brain} is BEAMING. This is the one it keeps."
+      ]
     },
     "milestone.100_memories": {
-      "joke": "🎉 {brain} just hit 100 memories. It's asking for a corner office."
+      "joke": [
+        "🎉 {brain} just hit 100 memories. It's asking for a corner office.",
+        "🎉 {brain} reached 100 memories. Small number, big attitude — it wants a nameplate now.",
+        "🎉 100 memories for {brain}. It's started referring to itself as 'senior'."
+      ]
     },
     "easter.banana": {
-      "joke": "🍌 BANANA! The monkey did a backflip. Morale is UP."
+      "joke": [
+        "🍌 BANANA! The monkey did a backflip. Morale is UP.",
+        "🍌 BANANA! The monkey dropped everything and cheered. Worth it.",
+        "🍌 BANANA! Instant morale boost. The monkey's doing a lap of honour."
+      ]
     },
     "cast.health": {
       "name": "Body Brain"
@@ -96,6 +125,160 @@
     },
     "cast._other": {
       "name": "{label} Brain"
+    },
+    "ingest.start": {
+      "joke": [
+        "🍌 Feeding {count} notes to your brains. {brain}'s been waiting for this one.",
+        "🍌 {count} notes going in. {brain} went quiet — it knows one of these matters.",
+        "🍌 Feeding {count} notes. {brain} shuffled closer. It remembers asking for these."
+      ]
+    },
+    "ingest.progress": {
+      "joke": [
+        "{n}/{count} in. {brain} just went 'OOH, THIS one.'",
+        "{n} of {count}! {brain} grabbed that one with both hands.",
+        "{n}/{count} — {brain}'s on its feet now, properly into it."
+      ]
+    },
+    "ingest.done": {
+      "joke": [
+        "✅ Done. {count} notes fed. {brain}'s full and a little emotional about it.",
+        "✅ {count} notes in. {brain} sat back, quiet. It's got what it needed.",
+        "✅ All {count} fed. {brain} won't say thanks out loud, but it's grateful."
+      ]
+    },
+    "ingest.skipped": {
+      "joke": [
+        "Skipped {count}. {brain} already had those — turns out it's been paying attention. Finally.",
+        "Skipped {count}. Looked new. Weren't — {brain} filed them ages ago.",
+        "Skipped {count} duplicates. {brain} gave a little nod: already knew."
+      ]
+    },
+    "query.start": {
+      "joke": [
+        "📋 Right, brain meeting. Try an' keep it civil this time, eh.",
+        "📋 Calling the brains in. One item on the agenda: your question.",
+        "📋 Brain meeting. They're taking their seats. Mostly."
+      ]
+    },
+    "query.answer": {
+      "joke": [
+        "{brain} says: {answer}. Which, historically speaking, checks out.",
+        "{brain} says: {answer}. A sensible conclusion, as these things go.",
+        "{brain} says: {answer}. There was a pause, then general agreement."
+      ]
+    },
+    "query.disagree": {
+      "joke": [
+        "⚡ Brain meeting descended into chaos. A chair was thrown. → {brain_a}: {a} / {brain_b}: {b}",
+        "⚡ It's kicked off in there— {brain_a}'s up, {brain_b}'s up— → {brain_a}: {a} / {brain_b}: {b}",
+        "⚡ No agreement— they're all talking at once— you call it → {brain_a}: {a} / {brain_b}: {b}"
+      ]
+    },
+    "fresh.digest": {
+      "joke": [
+        "🍽️ WEEK IN REVIEW— brains all shouting at once— here's the gist: {summary}",
+        "🍽️ Right, everyone's got something to say— all at once— quick version: {summary}",
+        "🍽️ The week, delivered at full volume by seven brains: {summary}"
+      ]
+    },
+    "fresh.refresh": {
+      "joke": [
+        "🌙 Brains asleep. A monkey's tidying the filing cabinet. You'll wake up to a cleaner mind. Weird, but true.",
+        "🌙 Lights out in there. One monkey's up late, filing. Looks like nothing's happening. A lot's happening.",
+        "🌙 Brains are down for the night. The monkey's reorganising. By morning it'll feel sharper — and you won't know why."
+      ]
+    },
+    "error.file": {
+      "joke": [
+        "📄 {brain} picked up {file}, turned it over, went '…what IS this?' Check the file: {fix}.",
+        "📄 {brain} held {file} up to the light, baffled. Can't read it — check the file: {fix}.",
+        "📄 {brain} gave {file} a good look and gave up. Have a look yourself: {fix}."
+      ]
+    },
+    "error.credit": {
+      "joke": [
+        "💳 {brain} went to think and the lights flickered — you're out of API credit. Top up to continue.",
+        "💳 {brain} reached for a thought and the meter clicked zero — API credit's out. Top up to continue.",
+        "💳 {brain}'s ready and willing; the wallet isn't. You're out of API credit — top up to continue."
+      ]
+    },
+    "error.network": {
+      "joke": [
+        "📡 The brains are talking. The internet isn't listening — you're offline. Check your connection.",
+        "📡 Plenty of chatter in there. Nothing's getting out — you're offline. Check your connection.",
+        "📡 The brains shouted. The line was dead — you're offline. Check your connection."
+      ]
+    },
+    "wizard.welcome": {
+      "joke": [
+        "👋 Welcome! You've got a headful of brains and they're DYING to meet you. Let's go.",
+        "👋 Welcome! There's a whole crew in here waiting on you. Let's introduce everyone.",
+        "👋 Welcome! Big day — you're about to meet your brains. They've tidied up. Let's go."
+      ]
+    },
+    "wizard.name_brain": {
+      "joke": [
+        "Name this brain. Sounds small. It's the whole thing — this is the one you'll talk to.",
+        "Give this brain a name. Feels like a label. It's really the start of a relationship.",
+        "Name it. Looks like a form field. It's actually the brain you'll come back to most."
+      ]
+    },
+    "wizard.first_feed": {
+      "joke": [
+        "Now feed your brain its first note. It's been waiting its whole life for this.",
+        "Time for the first feed! {brain}'s got its bib on. Drop in a note.",
+        "First meal! {brain}'s practically bouncing. Give it a note to chew on."
+      ]
+    },
+    "wizard.done": {
+      "joke": [
+        "✅ DONE! Brains assembled, senses connected, monkey hired. Ask them anything!",
+        "✅ ALL SET! Brains in, senses on, monkey on the payroll. Go on — ask them something!",
+        "✅ THAT'S IT! Crew's assembled and buzzing. Fire your first question at them!"
+      ]
+    },
+    "milestone.streak": {
+      "joke": [
+        "🔥 {n}-day streak! {brain} is BRAGGING to the other brains.",
+        "🔥 {n} days running! {brain} won't stop telling everyone.",
+        "🔥 {n}-day streak! {brain}'s doing a little lap of the room."
+      ]
+    },
+    "milestone.new_brain": {
+      "joke": [
+        "🧠 New brain in the building: {brain}! The others are sizing it up already.",
+        "🧠 {brain} just joined! The room went quiet, then everyone leaned in.",
+        "🧠 Say hello to {brain}! It's found a desk and the others are curious."
+      ]
+    },
+    "idea.graduate": {
+      "joke": [
+        "💡 3am Brain burst in with an idea. 60% nonsense. This is the OTHER 40%. Promoting it.",
+        "💡 3am Brain had one that actually holds up in daylight. Promoting it!",
+        "💡 Out of all the 3am noise, this one's a keeper. Moving it up to a real idea."
+      ]
+    },
+    "easter.brains": {
+      "joke": [
+        "The brains line up. Each one's carrying something. Here's how they're doing: {roster}",
+        "Roll call. They file in, one by one, moods and all: {roster}",
+        "Everyone up. Here's the crew and how they're feeling today: {roster}"
+      ]
+    },
+    "easter.vote": {
+      "joke": [
+        "🗳️ You put '{topic}' to the brains. They voted. Some of them took it personally.",
+        "🗳️ '{topic}' went to a vote. The brains decided: {result}. Not everyone's happy.",
+        "🗳️ You asked the brains about '{topic}'. The result: {result}. One of them's sulking."
+      ]
+    },
+    "wizard.connect_senses": {
+      "joke": [
+        "Choose a sense for your brains: ChatGPT (chatty), Claude Desktop (thoughtful), Claude Code (gets things done). Same brains — different senses.",
+        "Pick a sense. ChatGPT natters, Claude Desktop ponders, Claude Code just gets on with it. Same brains behind all of them.",
+        "Your brains need senses to hear you an' answer: ChatGPT (chatty), Claude Desktop (thoughtful), Claude Code (does the work). One set of brains, your pick of senses."
+      ]
     }
   }
 }
