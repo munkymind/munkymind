@@ -316,7 +316,9 @@ def _hunger(freshness: dict) -> str:
 
     level = freshness["level"]
     colour = _HUNGER_COLOUR[level]
-    return f"[{colour}]{voice.label('fresh.' + level) or level}[/{colour}]"
+    mood = voice.lines().get("fresh." + level, {}).get("mood", "")
+    text = f"{mood} " if mood else ""
+    return f"{text}[{colour}]{voice.label('fresh.' + level) or level}[/{colour}]"
 
 
 def _age(freshness: dict) -> str:

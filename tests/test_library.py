@@ -282,3 +282,14 @@ def test_every_brain_has_an_icon(store):
     assert library.domain_icon("gardening") == library.domain_icon("gardening")  # stable
     assert library.domain_icon("gardening") in library.ICON_POOL
     assert library.domain_icon("gardening", "🌱") == "🌱"
+
+
+def test_freshness_moods(monkeypatch):
+    from mm import voice
+
+    voice._load.cache_clear()
+    assert [voice.lines()[f"fresh.{lv}"]["mood"] for lv in ("fresh", "ripening", "stale")] == [
+        "😋", "😐", "😴"]
+    monkeypatch.setenv("MM_VOICE", "plain")
+    assert "mood" not in voice.lines()["fresh.stale"]
+    voice._load.cache_clear()

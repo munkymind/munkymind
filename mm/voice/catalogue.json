@@ -44,13 +44,16 @@
       "joke": "The brains looked at each other. Long pause."
     },
     "fresh.fresh": {
-      "label": "Fed"
+      "label": "Fed",
+      "mood": "😋"
     },
     "fresh.ripening": {
-      "label": "Peckish"
+      "label": "Peckish",
+      "mood": "😐"
     },
     "fresh.stale": {
-      "label": "Starving"
+      "label": "Starving",
+      "mood": "😴"
     },
     "fresh.stale_brain": {
       "joke": "😴 {brain}'s FADING— hasn't eaten since {date}— monkey's panicking— feed it—"

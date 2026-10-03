@@ -98,9 +98,7 @@ nav.tabs a[aria-current="page"] span { color: var(--on-brand); opacity: .85; }
 
 .hunger { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700;
   border: 2px solid var(--ink); border-radius: 999px; padding: 1px 9px 1px 6px; background: var(--card); white-space: nowrap; }
-.hunger .nanas { letter-spacing: -2px; }
-.hunger .nanas i { font-style: normal; }
-.hunger .nanas i.off { filter: grayscale(1); opacity: .28; }
+.hunger .mood { font-size: 15px; line-height: 1; }
 .hunger.fresh { background: color-mix(in srgb, var(--fed) 22%, var(--card)); }
 .hunger.ripening { background: color-mix(in srgb, var(--peckish) 25%, var(--card)); }
 .hunger.stale { background: color-mix(in srgb, var(--starving) 22%, var(--card)); }
@@ -324,15 +322,15 @@ function brainLevel(d) {
 }
 
 function lbl(level) { return (VOICE["fresh." + level] || FALLBACK["fresh." + level]).label; }
+/* Brain mood for a freshness level (from the voice catalogue; none in plain mode). */
+function mood(level) { const v = VOICE["fresh." + level] || {}; return v.mood ? v.mood + " " : ""; }
 
 function hunger(f, updated) {
   const level = (f && f.level) || "stale";
   const v = VOICE["fresh." + level] || FALLBACK["fresh." + level];
-  const lit = { fresh: 3, ripening: 2, stale: 1 }[level];
   const plain = fill(v.plain, { age: ago(updated), threshold: f ? f.threshold_days : 30 });
   return h("span", { class: "hunger " + level, title: plain, "aria-label": `${v.label}: ${plain}` },
-    h("span", { class: "nanas", "aria-hidden": "true" },
-      [0, 1, 2].map(i => h("i", { class: i < lit ? "" : "off" }, "🍌"))),
+    v.mood ? h("span", { class: "mood", "aria-hidden": "true" }, v.mood) : null,
     v.label);
 }
 
@@ -560,9 +558,9 @@ async function viewPulse() {
     h("div", { class: "stats" },
       h("div", { class: "stat" }, h("b", {}, num(st.pages)), h("span", {}, "pages in your library")),
       h("div", { class: "stat" }, h("b", {}, "≈ " + num(st.library_tokens)), h("span", {}, "tokens if you sent it all")),
-      h("div", { class: "stat" }, h("b", {}, num(fresh)), h("span", {}, "🍌🍌🍌 " + lbl("fresh"))),
-      h("div", { class: "stat" }, h("b", {}, num(st.ripening)), h("span", {}, "🍌🍌 " + lbl("ripening"))),
-      h("div", { class: "stat" }, h("b", {}, num(st.stale)), h("span", {}, "🍌 " + lbl("stale")))),
+      h("div", { class: "stat" }, h("b", {}, num(fresh)), h("span", {}, mood("fresh") + lbl("fresh"))),
+      h("div", { class: "stat" }, h("b", {}, num(st.ripening)), h("span", {}, mood("ripening") + lbl("ripening"))),
+      h("div", { class: "stat" }, h("b", {}, num(st.stale)), h("span", {}, mood("stale") + lbl("stale")))),
     worst
       ? h("div", { class: "bubble" }, say("fresh.stale_brain", { brain: brainName(worst.id, worst.label), date: day(worst.last_fed), n: worst.stale }),
           h("p", {}, h("a", { href: "#/brains/" + encodeURIComponent(worst.id) }, `See ${brainName(worst.id, worst.label)}'s pages →`)))

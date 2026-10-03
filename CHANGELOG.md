@@ -11,6 +11,7 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ### Changed
 - **Messages moved into `mm/voice/`.** `plain.json` (Apache 2.0) holds the plain-language fact or fix for every event; `catalogue.json` holds the jokes and labels and is licensed **CC BY-NC-ND 4.0** (see `mm/voice/LICENSE`). The CLI and `/ui` both read from here; API and MCP output stays plain
+- Freshness badges show the brain's mood (😋 Fed, 😐 Peckish, 😴 Starving) instead of bananas
 - `MM_VOICE=plain` turns the jokes off everywhere. Munkymind also runs normally without `catalogue.json`
 
 ## [0.2.2] — 2026-10-03
@@ -21,7 +22,7 @@ See what's in your library.
 - **Library viewer** at `http://localhost:8000/ui` (read-only, no external fonts or scripts):
   - **Brains**: your library by domain, with search, and a page view showing sections, source, confidence, size and freshness
   - **Peek**: type a question and see exactly which snippets an AI tool would be sent, plus the share of your library that represents. Retrieval only; no LLM call
-  - **Pulse**: freshness per domain (Fed / Peckish / Starving) and the feeding log
+  - **Pulse**: freshness per domain (😋 Fed / 😐 Peckish / 😴 Starving) and the feeding log
 - CLI: `munkymind status`, `munkymind pages` (`--domain`, `--search`, `--stale`), `munkymind show <page>`, `munkymind peek "<question>"`
 - API: `GET /status`, `POST /preview`, `GET /pages?q=&stale=`, `GET /pages/{id}?content=true`
 - Each domain ("brain") has an icon: built-in defaults, an automatic pick for new domains, or your own with `munkymind domain add ... --icon 🌱` (or `icon:` in config.yaml)
