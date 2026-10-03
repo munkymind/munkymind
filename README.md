@@ -105,6 +105,7 @@ That's it. Full setup guide: **[docs/quickstart.md](docs/quickstart.md)**
 - **Two-tier retrieval** — summary + detail embeddings for fast, precise answers
 - **Cross-domain synthesis** — a single query draws from health, work, and calendar simultaneously
 - **Provenance tracking** — every fact points back to the source file
+- **See your brains** — a read-only library viewer at `localhost:8000/ui`: browse and search pages, check freshness, and peek at exactly what an AI tool would be sent
 - **Staleness detection** — configurable per domain; stale sources flagged in responses
 - **Knowledge boundary** — says "I don't know" instead of inventing an answer
 - **MCP server** — connects to Claude Desktop, Cursor, and any MCP-compatible tool
@@ -209,6 +210,10 @@ Backward-compatible: the legacy OAuth Client Credentials grant and direct `X-API
 ```bash
 munkymind setup                                   # Interactive setup wizard (start here)
 munkymind query --user <name> "<question>"        # Ask your context library
+munkymind status --user <name>                    # Pages, freshness, recent ingestions
+munkymind pages --user <name> [--stale]           # List pages (also --domain, --search)
+munkymind show <page-id> --user <name>            # Read one page and its provenance
+munkymind peek --user <name> "<question>"         # What an AI would be sent (no LLM call)
 munkymind ingest --connector files --user <name>  # Re-ingest after adding notes
 munkymind ingest --connector github --user <name> # Ingest from GitHub connector
 munkymind eval --api-key mm_sk_...                # Run quality eval suite (9 scenarios)

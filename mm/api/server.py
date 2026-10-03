@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 
@@ -187,29 +188,69 @@ async def list_domains(store: UserStore = Depends(get_user_store)):
 @app.get("/pages")
 async def list_pages(
     domain: Optional[str] = None,
+    q: Optional[str] = None,
+    stale: bool = False,
     store: UserStore = Depends(get_user_store),
 ):
-    con = sqlite3.connect(store.db_path)
-    con.row_factory = sqlite3.Row
-    if domain:
-        rows = con.execute(
-            "SELECT * FROM pages WHERE domain=? ORDER BY updated_at DESC", (domain,)
-        ).fetchall()
-    else:
-        rows = con.execute("SELECT * FROM pages ORDER BY updated_at DESC").fetchall()
-    con.close()
-    return {"pages": [dict(r) for r in rows]}
+    from mm.core import library
+
+    return {"pages": library.list_pages(store, domain=domain, q=q, stale_only=stale)}
 
 
 @app.get("/pages/{path:path}")
-async def get_page(path: str, store: UserStore = Depends(get_user_store)):
-    con = sqlite3.connect(store.db_path)
-    con.row_factory = sqlite3.Row
-    row = con.execute("SELECT * FROM pages WHERE id=?", (path,)).fetchone()
-    con.close()
-    if row is None:
+async def get_page(path: str, content: bool = False,
+                   store: UserStore = Depends(get_user_store)):
+    from mm.core import library
+
+    page = library.get_page(store, path, content=content)
+    if page is None:
         raise HTTPException(status_code=404, detail="Page not found")
-    return dict(row)
+    return page
+
+
+@app.get("/status")
+async def library_status(store: UserStore = Depends(get_user_store)):
+    """Library overview: page counts and freshness per domain, recent ingestions."""
+    from mm.core import library
+
+    return library.status(store)
+
+
+class PreviewRequest(BaseModel):
+    query: str
+    domains: Optional[list[str]] = None
+    limit: int = 10
+
+
+@app.post("/preview")
+async def preview(body: PreviewRequest, store: UserStore = Depends(get_user_store)):
+    """What an AI tool would be sent for this question. Retrieval only, no LLM call."""
+    from mm.core import library
+
+    return library.preview(store, body.query, domains=body.domains, limit=body.limit)
+
+
+_UI_DIR = Path(__file__).resolve().parent.parent / "ui"
+
+
+@app.get("/ui", include_in_schema=False)
+async def ui():
+    """Read-only library viewer. The page holds no data; it calls the API with your key."""
+    return FileResponse(_UI_DIR / "index.html", headers={
+        "Cache-Control": "no-store",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "no-referrer",
+        "Content-Security-Policy": (
+            "default-src 'none'; script-src 'self' 'unsafe-inline'; "
+            "style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; "
+            "frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+        ),
+    })
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    return RedirectResponse("/ui")
 
 
 @app.post("/ingest/files")

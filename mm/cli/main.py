@@ -276,6 +276,160 @@ def query(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# library viewer: status / pages / show / peek (read-only)
+# ─────────────────────────────────────────────────────────────────────────────
+
+_HUNGER = {"fresh": ("Fed", "green"), "ripening": ("Peckish", "yellow"), "stale": ("Starving", "red")}
+
+
+def _open_store(username: str):
+    from mm.core.store import UserStore
+
+    store = UserStore(DATA_ROOT, username)
+    if not store.config_path.exists():
+        typer.echo(f"No config found for user '{username}'. Run 'munkymind setup' first.", err=True)
+        raise typer.Exit(1)
+    return store
+
+
+def _brain(domain: str, labels: dict) -> str:
+    label = labels.get(domain) or domain.title()
+    return label if label.lower().endswith("brain") else f"{label} Brain"
+
+
+def _hunger(freshness: dict) -> str:
+    label, colour = _HUNGER[freshness["level"]]
+    return f"[{colour}]{label}[/{colour}]"
+
+
+def _age(freshness: dict) -> str:
+    age = freshness.get("age_days")
+    return "unknown" if age is None else ("today" if age == 0 else f"{age}d ago")
+
+
+@app.command()
+def status(username: str = typer.Option(..., '--user', '-u', help='Username')):
+    """How your brains are doing: pages, freshness and recent feeding."""
+    from rich.console import Console
+    from rich.table import Table
+    from mm.core import library
+
+    console = Console()
+    st = library.status(_open_store(username))
+    if not st["pages"]:
+        console.print("Blank faces all round. A tumbleweed went past.")
+        console.print("[dim]Your library is empty. Feed it: munkymind ingest -c files -u "
+                      f"{username}[/dim]")
+        return
+    fresh = st["pages"] - st["stale"] - st["ripening"]
+    console.print(f"[bold]{st['pages']} pages[/bold] · ≈ {st['library_tokens']:,} tokens · "
+                  f"[green]{fresh} fed[/green] · [yellow]{st['ripening']} peckish[/yellow] · "
+                  f"[red]{st['stale']} starving[/red]")
+    table = Table(show_edge=False, header_style="bold")
+    for col in ("Brain", "Pages", "Peckish", "Starving", "Last fed"):
+        table.add_column(col)
+    for d in st["domains"]:
+        label = d["label"] if d["label"].lower().endswith("brain") else f"{d['label']} Brain"
+        table.add_row(label, str(d["pages"]), str(d["ripening"]), str(d["stale"]),
+                      (d["last_fed"] or "never")[:10])
+    console.print(table)
+    hungry = [d for d in st["domains"] if d["stale"]]
+    if hungry:
+        worst = max(hungry, key=lambda d: d["stale"])
+        console.print(f"😴 {worst['label']} Brain is fading. [dim]{worst['stale']} page(s) are past "
+                      "their freshness window; re-run the connector that feeds them.[/dim]")
+    else:
+        console.print("🍽️  Every brain is fed and smug about it. [dim]Nothing is stale.[/dim]")
+
+
+@app.command()
+def pages(
+    username: str = typer.Option(..., '--user', '-u', help='Username'),
+    domain: str = typer.Option(None, '--domain', '-d', help='Only this domain'),
+    search: str = typer.Option(None, '--search', '-s', help='Match titles, ids and tags'),
+    stale: bool = typer.Option(False, '--stale', help='Only pages past their freshness window'),
+):
+    """List what's in your library, newest first."""
+    from rich.console import Console
+    from rich.table import Table
+    from mm.core import library
+
+    console = Console()
+    store = _open_store(username)
+    rows = library.list_pages(store, domain=domain, q=search, stale_only=stale)
+    if not rows:
+        console.print("The brains looked at each other. Long pause. [dim]No pages match.[/dim]")
+        return
+    labels = {d.id: d.label for d in store.get_config().domains}
+    table = Table(show_edge=False, header_style="bold")
+    for col in ("Page", "Title", "Brain", "Freshness", "Updated"):
+        table.add_column(col, overflow="fold")
+    for p in rows:
+        table.add_row(p["id"], p.get("title") or "", _brain(p["domain"], labels),
+                      _hunger(p["freshness"]), _age(p["freshness"]))
+    console.print(table)
+    console.print(f"[dim]{len(rows)} page(s). Read one with: munkymind show <page> -u {username}[/dim]")
+
+
+@app.command()
+def show(
+    page_id: str = typer.Argument(..., help='Page id (from `munkymind pages`)'),
+    username: str = typer.Option(..., '--user', '-u', help='Username'),
+):
+    """Read one page, with where it came from and how fresh it is."""
+    from rich.console import Console
+    from mm.core import library
+
+    console = Console()
+    store = _open_store(username)
+    page = library.get_page(store, page_id)
+    if page is None:
+        console.print("🕳️  The brains searched every drawer. Nothing by that name.")
+        console.print(f"[dim]No page '{page_id}'. List them with: munkymind pages -u {username}[/dim]")
+        raise typer.Exit(1)
+    labels = {d.id: d.label for d in store.get_config().domains}
+    f = page["freshness"]
+    console.print(f"[bold]{page.get('title') or page_id}[/bold]")
+    console.print(f"{_brain(page['domain'], labels)} · {_hunger(f)} (updated {_age(f)}, "
+                  f"stale after {f['threshold_days']}d) · ≈ {page['tokens']:,} tokens")
+    console.print(f"[dim]Source: {page.get('source') or '—'} · fed by {page.get('connector') or '—'}"
+                  f" · confidence {page.get('confidence') or '—'}[/dim]\n")
+    for section in page["sections"]:
+        console.print(f"[bold magenta]## {section['heading']}[/bold magenta]")
+        console.print(section["text"], markup=False, highlight=False)
+        console.print()
+
+
+@app.command()
+def peek(
+    q: str = typer.Argument(..., help='A question your AI might ask'),
+    username: str = typer.Option(..., '--user', '-u', help='Username'),
+    limit: int = typer.Option(8, '--limit', help='Max snippets'),
+):
+    """See exactly what your AI would be sent for a question. No LLM call."""
+    from rich.console import Console
+    from mm.core import library
+
+    console = Console()
+    result = library.preview(_open_store(username), q, limit=limit)
+    if not result["chunks"]:
+        console.print("Blank faces all round. A tumbleweed went past.")
+        console.print("[dim]Nothing in your library matches. Feed your brains a note on it.[/dim]")
+        return
+    share = result["share"] * 100
+    console.print(f"👀 [bold]{len(result['chunks'])} snippet(s), ≈ {result['tokens_sent']:,} tokens[/bold]"
+                  f" out of a {result['library_tokens']:,}-token library "
+                  f"({'<1' if 0 < share < 1 else round(share)}%). A light snack, not the whole fridge.")
+    console.print("[dim]No AI was called; this is the retrieval step only.[/dim]\n")
+    for i, c in enumerate(result["chunks"], 1):
+        console.print(f"[bold]{i}. {c['title'] or c['page_id']}[/bold] "
+                      f"[dim]· {c['section']} · ≈ {c['tokens']:,} tokens · {c['page_id']}[/dim]")
+        text = c["text"] if len(c["text"]) <= 400 else c["text"][:400] + " …"
+        console.print(text, markup=False, highlight=False)
+        console.print()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # eval
 # ─────────────────────────────────────────────────────────────────────────────
 
