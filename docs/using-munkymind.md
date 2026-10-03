@@ -10,6 +10,8 @@ Munkymind sits between your notes and your AI tools. You feed it notes once; aft
 | **The viewer** at `http://localhost:8000/ui` | See what Munkymind knows, check freshness, peek at what your AI gets sent |
 | **The terminal** (`munkymind …`) | Feed it, check on it, script it |
 
+**The language you'll see:** each topic is a **brain** (Body Brain, Business Brain…), your notes are **brain food**, and your AI tools are the brains' **senses**: they take in what you tell them and use what the brains know. Freshness shows as each brain's **mood**.
+
 No notes handy? Use the made-up library in [`examples/sample-notes`](../examples/sample-notes): set `MM_NOTES_DIR=./examples/sample-notes` in `.env` and every example below works as written.
 
 ---
@@ -49,8 +51,8 @@ Your AI calls Munkymind's tools by itself:
 
 Answers cite the pages they used. If a note is stale, the answer says so.
 
-### 4. Keep it fresh with 🍌 Pulse (2 min)
-Open **🍌 Pulse**. Each brain has a mood: 😋 Fed, 😐 Peckish, 😴 Starving. Every domain has a freshness window (temporal notes go stale in 3 days, personal ones in 60).
+### 4. Keep it fresh with 😋 Moods (2 min)
+Open **😋 Moods**. Each brain has a mood: 😋 Fed, 😐 Peckish, 😴 Starving. Every domain has a freshness window (temporal notes go stale in 3 days, personal ones in 60).
 
 After you add or edit notes, re-feed:
 ```bash

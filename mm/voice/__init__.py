@@ -1,7 +1,8 @@
 """User-facing messages: a plain-language line for every event, plus the personality layer.
 
 - plain.json (Apache 2.0): the literal fact or fix for each event. Always shown.
-- catalogue.json (CC BY-NC-ND 4.0, see LICENSE in this folder): the jokes and labels.
+- catalogue.json (CC BY-NC-ND 4.0, see LICENSE in this folder): the jokes and labels. A
+  "joke" may be a list of variants; one is picked at random each time.
   Optional: if it's missing, or MM_VOICE=plain is set, only the plain lines are used.
 
 Only human-facing surfaces (CLI, /ui) use this. API and MCP output stays plain.
@@ -10,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+import random
 import re
 from functools import lru_cache
 from pathlib import Path
@@ -49,7 +51,10 @@ def fill(text: str, **values) -> str:
 def say(key: str, **values) -> tuple[str, str]:
     """(joke, plain) for an event, placeholders filled. Either may be ''."""
     entry = lines().get(key, {})
-    return fill(entry.get("joke", ""), **values), fill(entry.get("plain", ""), **values)
+    joke = entry.get("joke", "")
+    if isinstance(joke, list):  # rotating variants: pick one each time
+        joke = random.choice(joke) if joke else ""
+    return fill(joke, **values), fill(entry.get("plain", ""), **values)
 
 
 def label(key: str) -> str:
