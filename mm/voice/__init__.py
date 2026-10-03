@@ -54,3 +54,13 @@ def say(key: str, **values) -> tuple[str, str]:
 
 def label(key: str) -> str:
     return lines().get(key, {}).get("label", "")
+
+
+def brain_name(domain_id: str, label: str = "", custom: str = "") -> str:
+    """Display name for a domain: the user's own name for it, the cast name from the
+    catalogue (health → Body Brain), '<Label> Brain', or just the label in plain mode."""
+    if custom:
+        return custom
+    label = label or domain_id.replace("-", " ").title()
+    entry = lines().get(f"cast.{domain_id}") or lines().get("cast._other") or {}
+    return fill(entry.get("name", "{label}"), label=label)

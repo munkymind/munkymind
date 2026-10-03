@@ -187,7 +187,7 @@ def status(store: UserStore, recent: int = 10) -> dict[str, Any]:
     labels = {d.id: d.label for d in cfg.domains}
 
     domains: dict[str, dict] = {
-        d.id: {"id": d.id, "label": d.label, "icon": domain_icon(d.id, d.icon),
+        d.id: {"id": d.id, "label": d.label, "brain": d.brain, "icon": domain_icon(d.id, d.icon),
                "threshold_days": d.staleness_threshold_days,
                "pages": 0, "stale": 0, "ripening": 0, "last_fed": None}
         for d in cfg.domains
@@ -195,7 +195,7 @@ def status(store: UserStore, recent: int = 10) -> dict[str, Any]:
     for page in pages:
         dom = domains.setdefault(page["domain"], {
             "id": page["domain"], "label": labels.get(page["domain"], page["domain"].title()),
-            "icon": domain_icon(page["domain"]),
+            "brain": "", "icon": domain_icon(page["domain"]),
             "threshold_days": page["freshness"]["threshold_days"], "pages": 0, "stale": 0, "ripening": 0, "last_fed": None})
         dom["pages"] += 1
         level = page["freshness"]["level"]

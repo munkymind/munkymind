@@ -15,6 +15,7 @@ class DomainConfig:
     label: str
     staleness_threshold_days: int = 30
     icon: str = ""  # emoji shown for this brain in the viewer; empty = automatic
+    brain: str = ""  # your own name for this brain (e.g. "Garden Brain"); empty = default
 
 
 @dataclass
