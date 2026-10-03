@@ -1,0 +1,74 @@
+{
+  "license": "CC BY-NC-ND 4.0 (https://creativecommons.org/licenses/by-nc-nd/4.0/). Copyright 2026 the Munkymind authors. See mm/voice/LICENSE.",
+  "lines": {
+    "error.auth": {
+      "joke": "🔑 The brains don't recognise you. It's not personal."
+    },
+    "error.auth_bad": {
+      "joke": "🔑 Nice try. The brains have never seen that key in their lives."
+    },
+    "error.server_down": {
+      "joke": "🚬 All brains are on a smoke break."
+    },
+    "error.rate_limit": {
+      "joke": "🐌 Whoa — the brains' hands are UP. Too fast."
+    },
+    "error.crash": {
+      "joke": "💥 Brain meeting descended into chaos. A chair was thrown."
+    },
+    "error.missing": {
+      "joke": "🕳️ The brains searched every drawer. Nothing by that name."
+    },
+    "query.empty": {
+      "joke": "Blank faces all round. A tumbleweed went past."
+    },
+    "query.thinking": {
+      "joke": "💭 Deep in thought — somewhere between Aristotle and 'where did I leave my keys.'"
+    },
+    "peek.intro": {
+      "joke": "👀 Ever wondered what your AI actually gets told about you?"
+    },
+    "peek.result": {
+      "joke": "{brain} would pass along {chunks} — a light snack, not the whole fridge."
+    },
+    "peek.result_big": {
+      "joke": "{brain} would pass along {chunks}. Your library's still a toddler, so that's most of it."
+    },
+    "library.empty": {
+      "joke": "Blank faces all round. A tumbleweed went past."
+    },
+    "library.welcome": {
+      "joke": "👋 You've got a headful of brains and they're DYING to show you what they know."
+    },
+    "search.none": {
+      "joke": "The brains looked at each other. Long pause."
+    },
+    "fresh.fresh": {
+      "label": "Fed"
+    },
+    "fresh.ripening": {
+      "label": "Peckish"
+    },
+    "fresh.stale": {
+      "label": "Starving"
+    },
+    "fresh.stale_brain": {
+      "joke": "😴 {brain}'s FADING— hasn't eaten since {date}— monkey's panicking— feed it—"
+    },
+    "fresh.all_good": {
+      "joke": "🍽️ Every brain is fed and smug about it."
+    },
+    "pulse.roster": {
+      "joke": "The brains line up. Each one's carrying something. Here's how they're doing."
+    },
+    "milestone.first_memory": {
+      "joke": "🎉 FIRST memory! {brain} framed it and hung it on the wall."
+    },
+    "milestone.100_memories": {
+      "joke": "🎉 {brain} just hit 100 memories. It's asking for a corner office."
+    },
+    "easter.banana": {
+      "joke": "🍌 BANANA! The monkey did a backflip. Morale is UP."
+    }
+  }
+}

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "munkymind"
-version = "0.2.2"
+version = "0.2.3"
 description = "Your AI tools forget you every conversation. Munkymind remembers everything, across every tool, forever."
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -56,7 +56,7 @@ where = ["."]
 include = ["mm*"]
 
 [tool.setuptools.package-data]
-mm = ["ui/*.html"]
+mm = ["ui/*.html", "voice/*.json", "voice/LICENSE"]
 
 [tool.ruff]
 line-length = 100

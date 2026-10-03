@@ -7,6 +7,12 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [0.2.3] — 2026-10-03
+
+### Changed
+- **Messages moved into `mm/voice/`.** `plain.json` (Apache 2.0) holds the plain-language fact or fix for every event; `catalogue.json` holds the jokes and labels and is licensed **CC BY-NC-ND 4.0** (see `mm/voice/LICENSE`). The CLI and `/ui` both read from here; API and MCP output stays plain
+- `MM_VOICE=plain` turns the jokes off everywhere. Munkymind also runs normally without `catalogue.json`
+
 ## [0.2.2] — 2026-10-03
 
 See what's in your library.

@@ -5,5 +5,8 @@ Licensing at a glance:
 - Source code: Apache License 2.0 (LICENSE).
 - Documentation (docs/, README.md, SECURITY.md, CHANGELOG.md): Creative Commons Attribution 4.0
   International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/
-- Name, logo, characters and branded personality/message packs: not licensed for reuse;
-  see TRADEMARK.md. All rights reserved.
+- Voice catalogue (mm/voice/catalogue.json, the jokes and labels shown in the CLI and
+  viewer): CC BY-NC-ND 4.0, https://creativecommons.org/licenses/by-nc-nd/4.0/ (see
+  mm/voice/LICENSE). Share unchanged, no derivatives, no commercial use. The plain-language
+  messages (mm/voice/plain.json) are Apache 2.0, and Munkymind works without the catalogue.
+- Name, logo and characters: not licensed for reuse; see TRADEMARK.md. All rights reserved.

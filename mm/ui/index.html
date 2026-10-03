@@ -224,89 +224,19 @@ footer.wrap { margin-top: 40px; margin-bottom: 28px; font-size: 13px; color: var
 <script>
 "use strict";
 /* ------------------------------------------------------------------ *
- * Voice. One table, so the copy can be swapped without touching code.
- * Each entry: joke (the personality) + plain (the literal fact or fix).
- * The plain line is never optional: the joke may not hide the fix.
+ * Voice. Messages come from the server (/ui/voice.json): a plain line for
+ * every event, plus jokes and labels from the voice catalogue unless the
+ * server runs with MM_VOICE=plain. The plain line is always shown: a joke
+ * may never hide the fact or the fix.
  * ------------------------------------------------------------------ */
-const VOICE = {
-  "error.auth": {
-    joke: "🔑 The brains don't recognise you. It's not personal.",
-    plain: "Paste your API key (it starts with mm_sk_). Lost it? Run {fix} to make a new one."
-  },
-  "error.auth_bad": {
-    joke: "🔑 Nice try. The brains have never seen that key in their lives.",
-    plain: "That key didn't work. Check you copied all of it, or make a new one with {fix}."
-  },
-  "error.server_down": {
-    joke: "🚬 All brains are on a smoke break.",
-    plain: "The API isn't answering. Start it with {fix} and reload this page."
-  },
-  "error.rate_limit": {
-    joke: "🐌 Whoa — the brains' hands are UP. Too fast.",
-    plain: "Too many requests. Give it {n}s and try again."
-  },
-  "error.crash": {
-    joke: "💥 Brain meeting descended into chaos. A chair was thrown.",
-    plain: "Something went wrong on the server: {detail}"
-  },
-  "error.missing": {
-    joke: "🕳️ The brains searched every drawer. Nothing by that name.",
-    plain: "That page doesn't exist (any more). Head back to your brains."
-  },
-  "query.empty": {
-    joke: "Blank faces all round. A tumbleweed went past.",
-    plain: "Nothing in your library matches that. Feed your brains a note on it and ask again."
-  },
-  "query.thinking": {
-    joke: "💭 Deep in thought — somewhere between Aristotle and 'where did I leave my keys.'",
-    plain: "Finding the most relevant pieces of your library."
-  },
-  "peek.intro": {
-    joke: "👀 Ever wondered what your AI actually gets told about you?",
-    plain: "Type a question. You'll see exactly which pieces of your library would be sent, and how small that is next to the whole thing. No AI is called."
-  },
-  "peek.result": {
-    joke: "{brain} would pass along {chunks} — a light snack, not the whole fridge.",
-    plain: "{sent} tokens sent out of a {total}-token library ({share})."
-  },
-  "peek.result_big": {
-    joke: "{brain} would pass along {chunks}. Your library's still a toddler, so that's most of it.",
-    plain: "{sent} tokens sent out of a {total}-token library ({share}). The share shrinks as you feed your brains more."
-  },
-  "library.empty": {
-    joke: "Blank faces all round. A tumbleweed went past.",
-    plain: "Your brains haven't been fed yet. Add some notes with {fix}, then come back."
-  },
-  "library.welcome": {
-    joke: "👋 You've got a headful of brains and they're DYING to show you what they know.",
-    plain: "Each card is a domain of your library. Pick one, or search everything."
-  },
-  "search.none": {
-    joke: "The brains looked at each other. Long pause.",
-    plain: "No page titles or tags match \"{q}\". Try fewer words, or Peek to search inside pages."
-  },
-  "fresh.fresh": { label: "Fed", plain: "Updated {age}. Fresh for {threshold} days." },
-  "fresh.ripening": { label: "Peckish", plain: "Updated {age}. Gets stale after {threshold} days." },
-  "fresh.stale": { label: "Starving", plain: "Updated {age}, past its {threshold}-day freshness window. Re-feed the source." },
-  "fresh.stale_brain": {
-    joke: "😴 {brain}'s FADING— hasn't eaten since {date}— monkey's panicking— feed it—",
-    plain: "{n} page(s) in {brain} are past their freshness window. Re-run the connector that feeds them."
-  },
-  "fresh.all_good": {
-    joke: "🍽️ Every brain is fed and smug about it.",
-    plain: "Nothing is past its freshness window."
-  },
-  "pulse.roster": {
-    joke: "The brains line up. Each one's carrying something. Here's how they're doing.",
-    plain: "Page counts, freshness and recent feeding, per domain."
-  },
-  "milestone.first_memory": { joke: "🎉 FIRST memory! {brain} framed it and hung it on the wall." },
-  "milestone.100_memories": { joke: "🎉 {brain} just hit 100 memories. It's asking for a corner office." },
-  "easter.banana": {
-    joke: "🍌 BANANA! The monkey did a backflip. Morale is UP.",
-    plain: "You found the banana. That's it. That's the feature."
-  }
+// Used only if the server can't be reached to fetch the messages.
+const FALLBACK = {
+  "error.server_down": { plain: "The API isn't answering. Start it with {fix} and reload this page." },
+  "fresh.fresh": { label: "Fresh", plain: "Updated {age}." },
+  "fresh.ripening": { label: "Ageing", plain: "Updated {age}." },
+  "fresh.stale": { label: "Stale", plain: "Updated {age}." }
 };
+let VOICE = FALLBACK;
 
 function fill(text, vars) {
   return String(text || "").replace(/\{(\w+)\}/g, (m, k) => (vars && k in vars ? String(vars[k]) : m));
@@ -393,9 +323,11 @@ function brainLevel(d) {
   return d.stale || d.ripening ? "ripening" : "fresh";
 }
 
+function lbl(level) { return (VOICE["fresh." + level] || FALLBACK["fresh." + level]).label; }
+
 function hunger(f, updated) {
   const level = (f && f.level) || "stale";
-  const v = VOICE["fresh." + level];
+  const v = VOICE["fresh." + level] || FALLBACK["fresh." + level];
   const lit = { fresh: 3, ripening: 2, stale: 1 }[level];
   const plain = fill(v.plain, { age: ago(updated), threshold: f ? f.threshold_days : 30 });
   return h("span", { class: "hunger " + level, title: plain, "aria-label": `${v.label}: ${plain}` },
@@ -556,7 +488,7 @@ async function viewPage(id) {
   const [p, st] = await Promise.all([api("/pages/" + id.split("/").map(encodeURIComponent).join("/") + "?content=true"), getStatus()]);
   const label = (st.domains.find(d => d.id === p.domain) || {}).label;
   const f = p.freshness || {};
-  const v = VOICE["fresh." + (f.level || "stale")];
+  const v = VOICE["fresh." + (f.level || "stale")] || FALLBACK["fresh." + (f.level || "stale")];
   const tags = (p.tags || "").split(",").map(t => t.trim()).filter(Boolean);
   render(
     h("p", { class: "crumbs" }, h("a", { href: "#/brains/" + encodeURIComponent(p.domain) }, "← " + icon(p.domain) + " " + brainName(p.domain, label))),
@@ -628,9 +560,9 @@ async function viewPulse() {
     h("div", { class: "stats" },
       h("div", { class: "stat" }, h("b", {}, num(st.pages)), h("span", {}, "pages in your library")),
       h("div", { class: "stat" }, h("b", {}, "≈ " + num(st.library_tokens)), h("span", {}, "tokens if you sent it all")),
-      h("div", { class: "stat" }, h("b", {}, num(fresh)), h("span", {}, "🍌🍌🍌 Fed")),
-      h("div", { class: "stat" }, h("b", {}, num(st.ripening)), h("span", {}, "🍌🍌 Peckish")),
-      h("div", { class: "stat" }, h("b", {}, num(st.stale)), h("span", {}, "🍌 Starving"))),
+      h("div", { class: "stat" }, h("b", {}, num(fresh)), h("span", {}, "🍌🍌🍌 " + lbl("fresh"))),
+      h("div", { class: "stat" }, h("b", {}, num(st.ripening)), h("span", {}, "🍌🍌 " + lbl("ripening"))),
+      h("div", { class: "stat" }, h("b", {}, num(st.stale)), h("span", {}, "🍌 " + lbl("stale")))),
     worst
       ? h("div", { class: "bubble" }, say("fresh.stale_brain", { brain: brainName(worst.id, worst.label), date: day(worst.last_fed), n: worst.stale }),
           h("p", {}, h("a", { href: "#/brains/" + encodeURIComponent(worst.id) }, `See ${brainName(worst.id, worst.label)}'s pages →`)))
@@ -711,7 +643,10 @@ document.addEventListener("keydown", e => {
   }
 });
 
-route();
+fetch("/ui/voice.json", { headers: { Accept: "application/json" } })
+  .then(r => (r.ok ? r.json() : null))
+  .then(v => { if (v) VOICE = v; }, () => {})
+  .finally(route);
 </script>
 </body>
 </html>
