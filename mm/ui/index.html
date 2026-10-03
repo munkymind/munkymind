@@ -62,6 +62,7 @@ header.wrap { padding-top: 22px; padding-bottom: 10px; }
 .btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
 .btn:active { transform: translate(2px, 2px); box-shadow: none; }
 .btn.primary { background: var(--banana); color: #1d1530; }
+a.btn { text-decoration: none; color: var(--ink); display: inline-block; }
 .btn.ghost { box-shadow: none; }
 nav.tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 18px 0 6px; }
 nav.tabs a {
@@ -197,9 +198,9 @@ footer.wrap { margin-top: 40px; margin-bottom: 28px; font-size: 13px; color: var
   <div class="top">
     <a class="brand" href="#/brains" aria-label="Munkymind home">
       <span class="mark" aria-hidden="true">🧠</span>
-      <span><b>Your Brains</b><small>Munkymind · read-only library viewer</small></span>
+      <span><b>Your Brains</b><small id="subtitle">Munkymind · read-only library viewer</small></span>
     </a>
-    <div class="top-actions">
+    <div class="top-actions" id="top-actions">
       <button class="btn ghost" id="theme" type="button" aria-label="Switch light or dark theme">🌗</button>
       <button class="btn ghost" id="lock" type="button" hidden>🔒 Lock</button>
     </div>
@@ -216,13 +217,25 @@ footer.wrap { margin-top: 40px; margin-bottom: 28px; font-size: 13px; color: var
 <div id="toast" role="status" aria-live="assertive"></div>
 
 <footer class="wrap">
-  Read-only. Your key and your library stay on this machine. ·
-  <a href="https://github.com/munkymind/munkymind/blob/main/docs/using-munkymind.md" target="_blank" rel="noopener noreferrer">What can I do with this?</a>
+  <span id="footer-note">Read-only. Your key and your library stay on this machine.</span> ·
+  <a id="help-link" href="https://github.com/munkymind/munkymind/blob/main/docs/using-munkymind.md" target="_blank" rel="noopener noreferrer">What can I do with this?</a>
   <span class="monkey" id="monkey" aria-hidden="true">🐒</span>
 </footer>
 
 <script>
 "use strict";
+/* Optional server config (window.MM_CONFIG, injected before this script):
+   { api: "/ui-api", auth: "key" | "basic", product, subtitle, footer, links: [{label, href}],
+     serverFix: "how to start the server", help: "guide URL" | null,
+     plain: { "event.key": "product-specific plain line" } }.
+   Without it the page talks to the API at the site root with an mm_sk_ key. */
+const CFG = Object.assign({
+  api: "", auth: "key", serverFix: "docker compose up -d",
+  help: "https://github.com/munkymind/munkymind/blob/main/docs/using-munkymind.md"
+}, window.MM_CONFIG || {});
+// location.origin never carries user:pass@, which fetch() refuses in relative URLs.
+const ORIGIN = location.origin;
+const BASIC = CFG.auth === "basic";
 /* ------------------------------------------------------------------ *
  * Voice. Messages come from the server (/ui/voice.json): a plain line for
  * every event, plus jokes and labels from the voice catalogue unless the
@@ -275,6 +288,7 @@ function rich(text, vars) {
 
 function say(key, vars, opts) {
   const v = { ...(VOICE[key] || {}) };
+  if (CFG.plain && CFG.plain[key]) v.plain = CFG.plain[key];
   if (Array.isArray(v.joke)) v.joke = v.joke[Math.floor(Math.random() * v.joke.length)];
   return h("div", { class: "say" + (opts && opts.bubble ? " bubble" : "") },
     v.joke ? h("p", { class: "joke" + (opts && opts.thinking ? " thinking" : "") }, rich(v.joke, vars)) : null,
@@ -348,13 +362,14 @@ class ApiError extends Error {
   constructor(kind, info) { super(kind); this.kind = kind; this.info = info || {}; }
 }
 async function api(path, opts) {
-  const key = store.get("mm_key");
-  if (!key) throw new ApiError("auth");
+  const key = BASIC ? null : store.get("mm_key");
+  if (!BASIC && !key) throw new ApiError("auth");
   let res;
   try {
-    res = await fetch(path, {
+    res = await fetch(ORIGIN + CFG.api + path, {
       ...(opts || {}),
-      headers: { "X-API-Key": key, "Content-Type": "application/json", ...((opts && opts.headers) || {}) }
+      credentials: "same-origin",
+      headers: { ...(key ? { "X-API-Key": key } : {}), "Content-Type": "application/json", ...((opts && opts.headers) || {}) }
     });
   } catch (e) {
     throw new ApiError("down");
@@ -372,11 +387,12 @@ async function api(path, opts) {
 
 function showError(err) {
   const kind = err instanceof ApiError ? err.kind : "crash";
+  if ((kind === "auth" || kind === "auth_bad") && BASIC) { location.reload(); return; }  // browser asks again
   if (kind === "auth" || kind === "auth_bad") { store.del("mm_key"); return gate(kind === "auth_bad"); }
   if (kind === "missing") return render(say("error.missing", {}, { bubble: true }),
     h("p", {}, h("a", { href: "#/brains" }, "← Back to your brains")));
   const map = {
-    down: ["error.server_down", { fix: "docker compose up -d" }],
+    down: ["error.server_down", { fix: CFG.serverFix }],
     rate: ["error.rate_limit", { n: err.info.n }],
     crash: ["error.crash", { detail: (err.info && err.info.detail) || String(err.message || err) }]
   };
@@ -539,12 +555,14 @@ async function runPeek(q, out) {
   const pct = r.share ? (r.share * 100 < 1 ? "<1%" : Math.round(r.share * 100) + "%") : "—";
   out.replaceChildren(
     h("div", { class: "bubble", style: "margin-top:18px" },
-      say(r.share > 0.5 ? "peek.result_big" : "peek.result", { brain: brainName(top.domain, label), chunks: `${r.chunks.length} snippet${r.chunks.length === 1 ? "" : "s"}`,
+      say(r.share > 0.5 ? "peek.result_big" : "peek.result", { brain: brainName(top.domain, label), chunks: `${r.chunks.length} ${r.chunks.every(c => c.section === "Whole page") ? "page" : "snippet"}${r.chunks.length === 1 ? "" : "s"}`,
         sent: num(r.tokens_sent), total: num(r.library_tokens), share: pct }),
       h("div", { class: "meter", role: "img", "aria-label": `${pct} of your library would be sent` },
         h("i", { style: `width:${Math.max(1, Math.min(100, (r.share || 0) * 100))}%` })),
       h("p", { class: "plain", style: "font-size:13px;color:var(--muted);margin:4px 0 0" },
-        "No AI was called to make this preview, just one small search of your own library.")),
+        "No AI was called to make this preview, just one small search of your own library."),
+      r.retrieval === "unranked" ? h("p", { class: "plain", style: "font-size:13px;color:var(--muted);margin:4px 0 0" },
+        "Ranking was unavailable" + (r.retrieval_note ? ` (${r.retrieval_note})` : "") + ", so every page would be sent.") : null),
     h("h2", { class: "h" }, "Exactly what would be sent, in order"),
     h("ol", { class: "list", style: "list-style:none" }, r.chunks.map((c, i) => h("li", {},
       h("section", { class: "section chunk" },
@@ -582,7 +600,13 @@ async function viewMoods() {
         h("td", {}, num(d.pages)), h("td", {}, num(d.ripening)), h("td", {}, num(d.stale)),
         h("td", {}, d.last_fed ? ago(d.last_fed) : "never — still hungry")))))),
     h("h2", { class: "h" }, "Feeding log"),
-    st.recent_ingestions.length
+    (st.recent_activity || []).length
+      ? h("div", { class: "table-wrap" }, h("table", {},
+          h("thead", {}, h("tr", {}, ["When", "What", "Page", "Note"].map(t => h("th", { scope: "col" }, t)))),
+          h("tbody", {}, st.recent_activity.map(a => h("tr", {},
+            h("td", { title: a.when }, ago(a.when.replace(" ", "T"))), h("td", {}, a.what),
+            h("td", {}, a.page), h("td", {}, a.note))))))
+      : st.recent_ingestions.length
       ? h("div", { class: "table-wrap" }, h("table", {},
           h("thead", {}, h("tr", {}, ["When", "Connector", "New", "Updated", "Result"].map(t => h("th", { scope: "col" }, t)))),
           h("tbody", {}, st.recent_ingestions.map(i => h("tr", {},
@@ -596,9 +620,9 @@ async function viewMoods() {
  * Router
  * ------------------------------------------------------------------ */
 async function route() {
-  if (!store.get("mm_key")) return gate(false);
+  if (!BASIC && !store.get("mm_key")) return gate(false);
   document.getElementById("tabs").hidden = false;
-  document.getElementById("lock").hidden = false;
+  document.getElementById("lock").hidden = BASIC;
   const [path, query] = (location.hash.replace(/^#/, "") || "/brains").split("?");
   const params = new URLSearchParams(query || "");
   const parts = path.split("/").filter(Boolean);
@@ -650,7 +674,17 @@ document.addEventListener("keydown", e => {
   }
 });
 
-fetch("/ui/voice.json", { headers: { Accept: "application/json" } })
+(function applyConfig() {
+  if (CFG.subtitle) document.getElementById("subtitle").textContent = CFG.subtitle;
+  if (CFG.footer) document.getElementById("footer-note").textContent = CFG.footer;
+  if (CFG.product) document.title = "Your Brains · " + CFG.product;
+  const help = document.getElementById("help-link");
+  if (CFG.help) help.href = CFG.help; else { help.previousSibling.textContent = " "; help.remove(); }
+  const bar = document.getElementById("top-actions");
+  (CFG.links || []).forEach(l => bar.prepend(h("a", { class: "btn ghost", href: l.href }, l.label)));
+})();
+
+fetch(ORIGIN + "/ui/voice.json", { headers: { Accept: "application/json" }, credentials: "same-origin" })
   .then(r => (r.ok ? r.json() : null))
   .then(v => { if (v) VOICE = v; }, () => {})
   .finally(route);
