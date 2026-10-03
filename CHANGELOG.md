@@ -18,6 +18,7 @@ See what's in your library.
   - **Pulse**: freshness per domain (Fed / Peckish / Starving) and the feeding log
 - CLI: `munkymind status`, `munkymind pages` (`--domain`, `--search`, `--stale`), `munkymind show <page>`, `munkymind peek "<question>"`
 - API: `GET /status`, `POST /preview`, `GET /pages?q=&stale=`, `GET /pages/{id}?content=true`
+- Each domain ("brain") has an icon: built-in defaults, an automatic pick for new domains, or your own with `munkymind domain add ... --icon 🌱` (or `icon:` in config.yaml)
 - Every page now reports its freshness (`fresh` / `ripening` / `stale`) against its domain's staleness threshold
 
 ### Changed

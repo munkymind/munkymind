@@ -17,6 +17,21 @@ from mm.embedding.pipeline import CHUNK_OVERLAP_CHARS
 # threshold, then "stale". The UI calls these Fed / Peckish / Starving.
 FRESHNESS_LEVELS = ("fresh", "ripening", "stale")
 
+# Each domain ("brain") gets an icon: its own from config.yaml, a default for the built-in
+# domains, or a stable pick from the pool for anything else.
+DEFAULT_ICONS = {"health": "🫀", "professional": "💼", "personal": "🏡",
+                 "strategic": "♟️", "temporal": "⏰", "projects": "🛠️"}
+ICON_POOL = ("🦉", "🐙", "🦊", "🐝", "🍄", "🌶️", "🎸", "🔭", "🧪", "🎲", "🪐", "🧩")
+
+
+def domain_icon(domain_id: str, configured: str = "") -> str:
+    if configured:
+        return configured
+    if domain_id in DEFAULT_ICONS:
+        return DEFAULT_ICONS[domain_id]
+    return ICON_POOL[sum(map(ord, domain_id)) % len(ICON_POOL)]
+
+
 _CHUNK_PREFIX = re.compile(r"^\[(?:SUMMARY|DETAIL:[^\]]*|CONTENT)\]\s*")
 
 
@@ -172,13 +187,15 @@ def status(store: UserStore, recent: int = 10) -> dict[str, Any]:
     labels = {d.id: d.label for d in cfg.domains}
 
     domains: dict[str, dict] = {
-        d.id: {"id": d.id, "label": d.label, "threshold_days": d.staleness_threshold_days,
+        d.id: {"id": d.id, "label": d.label, "icon": domain_icon(d.id, d.icon),
+               "threshold_days": d.staleness_threshold_days,
                "pages": 0, "stale": 0, "ripening": 0, "last_fed": None}
         for d in cfg.domains
     }
     for page in pages:
         dom = domains.setdefault(page["domain"], {
             "id": page["domain"], "label": labels.get(page["domain"], page["domain"].title()),
+            "icon": domain_icon(page["domain"]),
             "threshold_days": page["freshness"]["threshold_days"], "pages": 0, "stale": 0, "ripening": 0, "last_fed": None})
         dom["pages"] += 1
         level = page["freshness"]["level"]

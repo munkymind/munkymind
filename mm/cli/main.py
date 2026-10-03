@@ -110,6 +110,7 @@ def domain_add(
     label: str = typer.Argument(..., help='Human-readable label'),
     username: str = typer.Option(..., '--user', '-u', help='Username whose config to modify'),
     staleness: int = typer.Option(30, '--staleness', help='Staleness threshold in days'),
+    icon: str = typer.Option('', '--icon', help='Emoji for this brain in the viewer'),
 ):
     """Add a new domain to config.yaml."""
     from mm.config.user import DomainConfig
@@ -121,7 +122,8 @@ def domain_add(
         typer.echo(f"Domain '{domain_id}' already exists.", err=True)
         raise typer.Exit(1)
 
-    cfg.domains.append(DomainConfig(id=domain_id, label=label, staleness_threshold_days=staleness))
+    cfg.domains.append(DomainConfig(id=domain_id, label=label, staleness_threshold_days=staleness,
+                                    icon=icon))
     cfg.save(store.config_path)
     typer.echo(f"✓ Domain '{domain_id}' ({label}) added.")
 
@@ -330,7 +332,7 @@ def status(username: str = typer.Option(..., '--user', '-u', help='Username')):
         table.add_column(col)
     for d in st["domains"]:
         label = d["label"] if d["label"].lower().endswith("brain") else f"{d['label']} Brain"
-        table.add_row(label, str(d["pages"]), str(d["ripening"]), str(d["stale"]),
+        table.add_row(f"{d['icon']} {label}", str(d["pages"]), str(d["ripening"]), str(d["stale"]),
                       (d["last_fed"] or "never")[:10])
     console.print(table)
     hungry = [d for d in st["domains"] if d["stale"]]

@@ -233,3 +233,13 @@ def test_cli_peek(store, tmp_path, monkeypatch):
     with patch("mm.embedding.providers.EmbeddingProvider.from_config", return_value=FakeEmbed()):
         r = CliRunner().invoke(cli.app, ["peek", "budget", "-u", "alice"])
     assert r.exit_code == 0 and "Budget 2026" in r.output and "No AI was called" in r.output
+
+
+def test_every_brain_has_an_icon(store):
+    st = library.status(store)
+    icons = {d["id"]: d["icon"] for d in st["domains"]}
+    assert icons["health"] == library.DEFAULT_ICONS["health"]
+    assert all(icons.values())
+    assert library.domain_icon("gardening") == library.domain_icon("gardening")  # stable
+    assert library.domain_icon("gardening") in library.ICON_POOL
+    assert library.domain_icon("gardening", "🌱") == "🌱"

@@ -90,6 +90,8 @@ nav.tabs a[aria-current="page"] span { color: var(--on-brand); opacity: .85; }
 .brain:nth-child(even) { transform: rotate(.7deg); }
 .brain:hover, .brain:focus-visible { transform: rotate(0) translate(-2px, -2px); }
 .brain[aria-pressed="true"] { background: var(--brand-soft); outline: 3px solid var(--brand); }
+.brain .icon { font-size: 34px; line-height: 1; margin-bottom: 8px; display: inline-block; transition: transform .2s; }
+.brain:hover .icon { transform: rotate(-12deg) scale(1.12); }
 .brain h3 { margin: 0 0 2px; font: 800 19px/1.2 var(--round); }
 .brain .count { color: var(--muted); font-size: 14px; }
 .brain .fed { margin-top: 10px; font-size: 13px; color: var(--muted); }
@@ -186,6 +188,7 @@ footer.wrap { margin-top: 40px; margin-bottom: 28px; font-size: 13px; color: var
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .brain { padding: 11px 12px; }
   .brain h3 { font-size: 16px; }
+  .brain .icon { font-size: 26px; margin-bottom: 4px; }
   .brain .fed { display: none; }
   .hunger { font-size: 12px; }
 }
@@ -361,6 +364,8 @@ const store = {
 /* ------------------------------------------------------------------ *
  * Formatting
  * ------------------------------------------------------------------ */
+let ICONS = {};
+function icon(domain) { return ICONS[domain] || "🧠"; }
 function brainName(domain, label) {
   const l = label || (domain ? domain.charAt(0).toUpperCase() + domain.slice(1) : "Mystery");
   return /brain$/i.test(l) ? l : l + " Brain";
@@ -488,6 +493,7 @@ let cache = { status: null, at: 0 };
 async function getStatus(force) {
   if (!force && cache.status && Date.now() - cache.at < 15000) return cache.status;
   cache = { status: await api("/status"), at: Date.now() };
+  ICONS = Object.fromEntries(cache.status.domains.map(d => [d.id, d.icon]));
   return cache.status;
 }
 
@@ -518,6 +524,7 @@ async function viewBrains(domain, q) {
       class: "brain", type: "button", role: "listitem", "aria-pressed": String(d.id === domain),
       onclick: () => { location.hash = d.id === domain ? "#/brains" : "#/brains/" + encodeURIComponent(d.id); }
     },
+      h("div", { class: "icon", "aria-hidden": "true" }, d.icon || "🧠"),
       h("h3", {}, brainName(d.id, d.label)),
       h("div", { class: "count" }, `${num(d.pages)} page${d.pages === 1 ? "" : "s"}`),
       h("div", { style: "margin-top:8px" }, hunger({ level: brainLevel(d), threshold_days: d.threshold_days }, d.last_fed)),
@@ -529,7 +536,7 @@ async function viewBrains(domain, q) {
         h("a", { class: "row", href: "#/page/" + encodeURIComponent(p.id) },
           h("div", {}, h("div", { class: "t" }, p.title || p.id),
             h("div", { class: "m" }, `${p.connector || p.source || "unknown source"} · updated ${ago(p.updated_at)}`)),
-          h("div", { class: "r" }, domain ? null : h("span", { class: "tag" }, brainName(p.domain, (st.domains.find(d => d.id === p.domain) || {}).label)),
+          h("div", { class: "r" }, domain ? null : h("span", { class: "tag" }, icon(p.domain) + " " + brainName(p.domain, (st.domains.find(d => d.id === p.domain) || {}).label)),
             hunger(p.freshness, p.updated_at))))))
     : say("search.none", { q });
 
@@ -552,7 +559,7 @@ async function viewPage(id) {
   const v = VOICE["fresh." + (f.level || "stale")];
   const tags = (p.tags || "").split(",").map(t => t.trim()).filter(Boolean);
   render(
-    h("p", { class: "crumbs" }, h("a", { href: "#/brains/" + encodeURIComponent(p.domain) }, "← " + brainName(p.domain, label))),
+    h("p", { class: "crumbs" }, h("a", { href: "#/brains/" + encodeURIComponent(p.domain) }, "← " + icon(p.domain) + " " + brainName(p.domain, label))),
     h("div", { class: "page-head" }, h("h2", {}, p.title || p.id), hunger(f, p.updated_at),
       h("span", { class: "m", style: "margin-left:8px;color:var(--muted);font-size:14px" }, fill(v.plain, { age: ago(p.updated_at), threshold: f.threshold_days }))),
     h("dl", { class: "meta" },
@@ -605,7 +612,7 @@ async function runPeek(q, out) {
       h("section", { class: "section chunk" },
         h("h3", {}, h("a", { href: "#/page/" + encodeURIComponent(c.page_id) }, `${i + 1}. ${c.title || c.page_id}`),
           h("small", {}, `${c.section || "—"} · ≈ ${num(c.tokens)} tokens`)),
-        h("div", { class: "why", style: "margin-bottom:8px" }, brainName(c.domain, (st.domains.find(d => d.id === c.domain) || {}).label), " · ",
+        h("div", { class: "why", style: "margin-bottom:8px" }, icon(c.domain) + " " + brainName(c.domain, (st.domains.find(d => d.id === c.domain) || {}).label), " · ",
           hunger(c.freshness, null)),
         h("p", {}, c.text.length > 700 ? c.text.slice(0, 700) + " …" : c.text))))));
 }
@@ -632,7 +639,7 @@ async function viewPulse() {
     h("div", { class: "table-wrap" }, h("table", {},
       h("thead", {}, h("tr", {}, ["Brain", "Pages", "Peckish", "Starving", "Last fed"].map(t => h("th", { scope: "col" }, t)))),
       h("tbody", {}, st.domains.map(d => h("tr", {},
-        h("td", {}, d.pages ? h("a", { href: "#/brains/" + encodeURIComponent(d.id) }, brainName(d.id, d.label)) : brainName(d.id, d.label)),
+        h("td", {}, d.icon + " ", d.pages ? h("a", { href: "#/brains/" + encodeURIComponent(d.id) }, brainName(d.id, d.label)) : brainName(d.id, d.label)),
         h("td", {}, num(d.pages)), h("td", {}, num(d.ripening)), h("td", {}, num(d.stale)),
         h("td", {}, d.last_fed ? ago(d.last_fed) : "never — still hungry")))))),
     h("h2", { class: "h" }, "Feeding log"),
