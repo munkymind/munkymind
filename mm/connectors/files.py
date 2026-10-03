@@ -28,8 +28,26 @@ def _approx_tokens(text: str) -> int:
     return int(len(text) * _APPROX_TOKENS_PER_CHAR)
 
 
-def _detect_domain(path: Path, domain_map: dict[str, list[str]] | None = None) -> str:
-    needle = (path.stem + " " + str(path)).lower()
+def _detect_domain(path: Path, domain_map: dict[str, list[str]] | None = None,
+                   root: Path | None = None, domain_ids: set[str] | None = None) -> str:
+    """Pick a domain for a file.
+
+    1. A folder named after a domain wins (`notes/health/sleep.md` → health).
+    2. Then the user's domain_map keywords, then the built-in keywords.
+    Only the part of the path inside the notes folder counts, so a notes folder that
+    happens to live under e.g. ~/projects/ doesn't push everything into "projects".
+    """
+    rel = path
+    if root is not None:
+        try:
+            rel = path.relative_to(root)
+        except ValueError:
+            rel = Path(path.name)
+    ids = {d.lower() for d in (domain_ids or set(DOMAIN_KEYWORDS))}
+    for folder in rel.parts[:-1]:
+        if folder.lower() in ids:
+            return folder.lower()
+    needle = (path.stem + " " + str(rel)).lower()
 
     # Check user-supplied domain_map first
     if domain_map:
@@ -189,6 +207,8 @@ class FilesConnector(BaseConnector):
         path = Path(self.config.get("path", "")).expanduser()
         extensions = self.config.get("extensions", DEFAULT_EXTENSIONS)
         domain_map = self.config.get("domain_map", {})
+        domain_ids = set(DOMAIN_KEYWORDS) | {
+            d.id for d in getattr(self.user_config, "domains", None) or []}
 
         if path.is_file():
             files = [path]
@@ -213,7 +233,8 @@ class FilesConnector(BaseConnector):
         pages: list[ConnectorPage] = []
         self.skipped: list[str] = []
         for i, f in enumerate(sorted(files)):
-            domain = _detect_domain(f, domain_map)
+            domain = _detect_domain(f, domain_map, root=None if path.is_file() else path,
+                                    domain_ids=domain_ids)
             try:
                 if f.suffix == ".pdf":
                     pages.extend(_ingest_pdf_file(f, domain))

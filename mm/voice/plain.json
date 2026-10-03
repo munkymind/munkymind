@@ -35,7 +35,7 @@
       "plain": "{sent} tokens sent out of a {total}-token library ({share}). The share shrinks as you feed your brains more."
     },
     "library.empty": {
-      "plain": "Your brains haven't been fed yet. Add some notes with {fix}, then come back."
+      "plain": "Your brains haven't been fed yet. Add some notes with {fix}, or try the sample library in examples/sample-notes, then come back."
     },
     "library.welcome": {
       "plain": "Each card is a domain of your library. Pick one, or search everything."

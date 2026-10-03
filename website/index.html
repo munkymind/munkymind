@@ -90,6 +90,7 @@
     <a class="brand" href="./"><img src="logo.svg" alt=""> Munkymind</a>
     <nav>
       <a href="#how" class="hide-sm">How it works</a>
+      <a href="#use" class="hide-sm">Use cases</a>
       <a href="#start">Get started</a>
       <a href="https://github.com/munkymind/munkymind">GitHub</a>
     </nav>
@@ -150,17 +151,36 @@ cd munkymind
 cp .env.example .env      # then put your OPENAI_API_KEY in .env</code></pre></li>
       <li><strong>Add some notes and start it</strong>
 <pre><code>mkdir -p notes &amp;&amp; cp -r ~/path/to/your/notes/* notes/
-docker compose up -d</code></pre></li>
+docker compose up -d</code></pre>
+        <p class="note">No notes handy? Set <code>MM_NOTES_DIR=./examples/sample-notes</code> in <code>.env</code> to try a small made-up library.</p></li>
       <li><strong>Run the setup wizard</strong> (creates your user, ingests your notes, test-queries)
 <pre><code>docker compose exec api munkymind setup</code></pre>
         <p class="note">Save the <code>mm_sk_…</code> key it prints. Then ask: <code>docker compose exec api munkymind query --user yourname "What am I working on?"</code></p></li>
+      <li><strong>See your brains.</strong> Open <code>http://localhost:8000/ui</code> and paste your key to browse what it learned.</li>
       <li><strong>Connect your AI tools.</strong> Claude Desktop works locally. For claude.ai or ChatGPT, give the MCP server a public HTTPS address (a free Cloudflare tunnel works) and add it as a custom connector. <a href="https://github.com/munkymind/munkymind/blob/main/docs/quickstart.md">Step-by-step guide</a>.</li>
     </ol>
   </section>
 
+  <section id="use">
+    <h2>Once it's running</h2>
+    <div class="grid">
+      <div class="card"><h3>🧠 See your brains</h3><p>A local viewer at <code>localhost:8000/ui</code>. Every topic is a brain: Body Brain, Business Brain, Big Picture Brain. Browse and search what each one knows, and see where it came from.</p></div>
+      <div class="card"><h3>👀 Peek</h3><p>Type a question and see exactly which few snippets your AI would be sent, and how small that is next to your whole library. No AI is called.</p></div>
+      <div class="card"><h3>😋 Keep it fresh</h3><p>Brains get hungry. Each one shows a mood, from 😋 fed to 😴 starving, so you know which notes are out of date before your AI relies on them.</p></div>
+    </div>
+    <h3 style="margin-top:28px">What people use it for</h3>
+    <div class="grid">
+      <div class="card"><h3>🏃 Personal coach</h3><p>“Plan my runs this week around my calendar.” Your plan, your rules and your week, without re-explaining them.</p></div>
+      <div class="card"><h3>💼 Work brain</h3><p>“Prep me for my 1:1 with Priya: open actions and what she raised last time.”</p></div>
+      <div class="card"><h3>🧭 Cross-domain planning</h3><p>“Given my goals and this week, what are my top three priorities?” One answer that draws on work, strategy and calendar, with sources.</p></div>
+      <div class="card"><h3>👩‍💻 Developer context</h3><p>Connect GitHub, then ask Cursor or Claude Code: “Which of my repos already solve auth?”</p></div>
+    </div>
+    <p class="note" style="margin-top:16px"><a href="https://github.com/munkymind/munkymind/blob/main/docs/using-munkymind.md">What can I do with it?</a>: a 15-minute tour, use cases and example prompts.</p>
+  </section>
+
   <section id="status">
     <h2>Early days</h2>
-    <p>Munkymind is at v0.2.0 and we're looking for early testers. Install it, try it with your real notes, and <a href="https://github.com/munkymind/munkymind/issues">tell us</a> how long it took and where you got stuck.</p>
+    <p>Munkymind is in early testing (<a href="https://github.com/munkymind/munkymind/releases/latest">latest release</a>). Install it, try the <a href="https://github.com/munkymind/munkymind/blob/main/docs/using-munkymind.md#tester-missions">tester missions</a> with your real notes, and <a href="https://github.com/munkymind/munkymind/issues/new?labels=tester-report&amp;title=Tester%20report%3A%20">tell us</a> how long it took and where you got stuck.</p>
   </section>
 
   <section id="updates">

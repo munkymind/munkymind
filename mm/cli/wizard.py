@@ -239,6 +239,8 @@ def run_wizard() -> None:
     )
     typer.echo(f"   Pages:      {total_pages} ingested across {n_domains} domain(s)")
     typer.echo(f"\n   Try: munkymind query --user {username} \"<your question>\"")
+    typer.echo("   See your brains: http://localhost:8000/ui")
+    typer.echo("   What to try next: https://github.com/munkymind/munkymind/blob/main/docs/using-munkymind.md")
     typer.echo("━" * 60)
 
 

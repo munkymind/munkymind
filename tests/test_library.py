@@ -188,7 +188,8 @@ def test_ui_served_locked_down():
     assert r.headers["x-frame-options"] == "DENY"
     body = r.text
     # No third-party resources and no innerHTML: library content is rendered as text.
-    assert "https://" not in body.split("<script>")[0]
+    import re as _re
+    assert not _re.search(r'<(?:script|link|img|iframe)[^>]+(?:src|href)="https?://', body)
     assert "innerHTML" not in body and "fonts.googleapis" not in body
     assert c.get("/", follow_redirects=False).headers["location"] == "/ui"
 
@@ -306,3 +307,45 @@ def test_brain_cast_names(monkeypatch):
     monkeypatch.setenv("MM_VOICE", "plain")
     assert voice.brain_name("health", "Health") == "Health"
     voice._load.cache_clear()
+
+
+def test_mcp_get_page_falls_back_to_stored_text(store):
+    """Uploaded/moved files have no source on disk; get_page must still return the text."""
+    import json as _json
+
+    with patch("mm.mcp.server._get_store", return_value=store):
+        from mm.mcp.server import get_page
+        result = get_page("health/training")
+    data = _json.loads(result["content"][0]["text"])
+    assert "Sub-25 5k." in data["content"] and "## Goals" in data["content"]
+    assert "raw_path" not in data["metadata"]
+
+
+def test_sample_notes_land_in_the_right_brains():
+    from pathlib import Path
+
+    from mm.config.user import UserConfig
+    from mm.connectors.files import FilesConnector
+
+    root = Path(__file__).resolve().parent.parent / "examples" / "sample-notes"
+    pages = FilesConnector({"path": str(root)}, UserConfig.default("t")).ingest()
+    by_domain = {}
+    for p in pages:
+        by_domain.setdefault(p.domain, []).append(p.title)
+    assert set(by_domain) == {"health", "professional", "personal", "projects", "strategic",
+                              "temporal"}
+    assert len(pages) == 8
+    assert {p.domain for p in pages if "okrs" in p.id or "priya" in p.id} == {"professional"}
+    assert [p.domain for p in pages if "five-year" in p.id] == ["strategic"]
+
+
+def test_domain_folder_wins_and_parent_path_is_ignored(tmp_path):
+    from mm.config.user import UserConfig
+    from mm.connectors.files import FilesConnector
+
+    root = tmp_path / "projects" / "my-notes"  # parent path contains a keyword
+    (root / "health").mkdir(parents=True)
+    (root / "health" / "plan.md").write_text("# Plan\n\nRun.")
+    (root / "misc.md").write_text("# Misc\n\nThings.")
+    pages = FilesConnector({"path": str(root)}, UserConfig.default("t")).ingest()
+    assert {p.title: p.domain for p in pages} == {"plan": "health", "misc": "personal"}

@@ -164,6 +164,14 @@ def get_page(path: str) -> dict:
             except Exception:
                 content_text = ""
 
+    if not content_text:
+        # Uploaded files and moved sources have no file on disk: rebuild from stored chunks.
+        from mm.core import library
+
+        content_text = "\n\n".join(
+            f"## {sec['heading']}\n{sec['text']}" for sec in library.page_sections(store, path))
+
+    page.pop("raw_path", None)  # local filesystem path; not useful to the AI tool
     result = {
         "metadata": page,
         "content": content_text,

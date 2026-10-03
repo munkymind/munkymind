@@ -7,6 +7,19 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [0.2.4] — 2026-10-03
+
+Ready for testers.
+
+### Added
+- **[What can I do with it?](docs/using-munkymind.md)**: a 15-minute tour, use cases with example prompts, tester missions and quick fixes. Linked from the README, the quickstart, the setup wizard, the viewer and the website
+- **Sample library** in `examples/sample-notes` (a made-up person across all six domains): set `MM_NOTES_DIR=./examples/sample-notes` to try Munkymind without your own notes
+- Website: "Once it's running" (viewer, Peek, freshness) and use cases
+
+### Fixed
+- **Domains now follow folder names**, as the docs promised: `notes/strategic/plan.md` goes to *strategic* even without a keyword match. Keywords only look inside the notes folder, so a notes folder under e.g. `~/projects/` no longer puts everything in *projects*. If you ingested before, re-ingest to re-sort pages
+- MCP `get_page` returned empty content for uploaded files or moved sources; it now rebuilds the text from the library. It no longer exposes the local file path
+
 ## [0.2.3] — 2026-10-03
 
 ### Changed
