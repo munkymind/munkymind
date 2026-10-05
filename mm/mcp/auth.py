@@ -30,17 +30,66 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 # ---------------------------------------------------------------------------
-# In-memory stores (lost on restart — DCR re-registration handles clients;
-# users just re-auth after restart which is acceptable for personal use)
+# Stores. Auth codes live in memory (5-minute lifetime). Registered clients are
+# saved under DATA_ROOT/oauth/clients.json: connectors keep their client_id and
+# reuse it when they sign in again, so forgetting it on restart broke re-auth
+# with invalid_client. Registration is open (RFC 7591) but signing in still
+# needs the API key, so the file holds no secrets.
 # ---------------------------------------------------------------------------
 
 # { code: { "client_id", "redirect_uri", "code_challenge", "api_key", "expires_at" } }
 _AUTH_CODES: dict[str, dict[str, Any]] = {}
 
-# { client_id: { "client_secret"?, "redirect_uris": [...], "registered_at" } }
+# { client_id: { "redirect_uris": [...], "client_name", "registered_at" } }
 _CLIENTS: dict[str, dict[str, Any]] = {}
+_CLIENTS_LOADED_FROM: Path | None = None
+MAX_CLIENTS = 500
 
 AUTH_CODE_TTL = 300  # 5 minutes
+# The access token is the API key itself, valid until the key is rotated. A short
+# advertised expiry only made connectors sign in again every day.
+TOKEN_EXPIRES_IN = 365 * 86400
+
+# Known connector callbacks, allowed for clients this server hasn't registered.
+KNOWN_CALLBACKS = {
+    "https://chatgpt.com/aip/mcp/oauth/callback",
+    "https://claude.ai/api/mcp/auth_callback",
+    "https://claude.com/api/mcp/auth_callback",
+}
+# ChatGPT connectors call back to a per-connector path.
+KNOWN_CALLBACK_PREFIXES = ("https://chatgpt.com/connector/oauth/",)
+
+
+def _clients_file(data_root: Path) -> Path:
+    return data_root / "oauth" / "clients.json"
+
+
+def _load_clients(data_root: Path) -> dict[str, dict[str, Any]]:
+    """Registered clients for this data root, read from disk once."""
+    global _CLIENTS_LOADED_FROM
+    if _CLIENTS_LOADED_FROM != data_root:
+        _CLIENTS.clear()
+        try:
+            _CLIENTS.update(json.loads(_clients_file(data_root).read_text(encoding="utf-8")))
+        except (OSError, ValueError):
+            pass
+        _CLIENTS_LOADED_FROM = data_root
+    return _CLIENTS
+
+
+def _save_client(data_root: Path, client_id: str, entry: dict[str, Any]) -> None:
+    clients = _load_clients(data_root)
+    clients[client_id] = entry
+    while len(clients) > MAX_CLIENTS:  # oldest first; registration is unauthenticated
+        clients.pop(min(clients, key=lambda k: clients[k].get("registered_at", 0)))
+    path = _clients_file(data_root)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(clients, indent=1), encoding="utf-8")
+        os.replace(tmp, path)
+    except OSError:
+        pass  # read-only data dir: the client still works until restart
 
 
 # ---------------------------------------------------------------------------
@@ -266,11 +315,11 @@ class OAuthMCPMiddleware:
             return
 
         client_id = f"dyn_{secrets.token_urlsafe(16)}"
-        _CLIENTS[client_id] = {
+        _save_client(self._data_root, client_id, {
             "redirect_uris": redirect_uris,
-            "client_name": meta.get("client_name", ""),
+            "client_name": str(meta.get("client_name", ""))[:100],
             "registered_at": time.time(),
-        }
+        })
 
         await self._send_json(send, 201, {
             "client_id": client_id,
@@ -370,12 +419,11 @@ class OAuthMCPMiddleware:
         if not client_id:
             return "invalid_client"
 
-        client = _CLIENTS.get(client_id)
+        client = _load_clients(self._data_root).get(client_id)
         if client is None:
             # Allow pre-known redirect URIs for unregistered clients
             # (e.g. ChatGPT before DCR, or simple API-key clients)
-            allowed = self._allowed_redirect_uris()
-            if redirect_uri not in allowed:
+            if not self._known_redirect(redirect_uri):
                 return "invalid_client"
             return ""
 
@@ -386,11 +434,13 @@ class OAuthMCPMiddleware:
     def _allowed_redirect_uris(self) -> set[str]:
         """Env-configurable set of pre-approved redirect URIs for non-DCR clients."""
         env = os.environ.get("OAUTH_ALLOWED_REDIRECT_URIS", "")
-        uris = set(filter(None, env.split(",")))
-        # Always include known platform callbacks
-        uris.add("https://chatgpt.com/aip/mcp/oauth/callback")
-        uris.add("https://claude.ai/api/mcp/auth_callback")
-        return uris
+        return set(filter(None, env.split(","))) | KNOWN_CALLBACKS
+
+    def _known_redirect(self, redirect_uri: str) -> bool:
+        if redirect_uri in self._allowed_redirect_uris():
+            return True
+        return (redirect_uri.startswith(KNOWN_CALLBACK_PREFIXES) and "?" not in redirect_uri
+                and "#" not in redirect_uri and ".." not in redirect_uri)
 
     # ------------------------------------------------------------------
     # /token — Client credentials + Authorization code exchange
@@ -426,7 +476,7 @@ class OAuthMCPMiddleware:
         await self._send_json(send, 200, {
             "access_token": client_secret,
             "token_type": "bearer",
-            "expires_in": 86400,
+            "expires_in": TOKEN_EXPIRES_IN,
         })
 
     async def _handle_token_auth_code(self, params: dict, send: Send) -> None:
@@ -461,7 +511,7 @@ class OAuthMCPMiddleware:
         await self._send_json(send, 200, {
             "access_token": entry["api_key"],
             "token_type": "bearer",
-            "expires_in": 86400,
+            "expires_in": TOKEN_EXPIRES_IN,
         })
 
     # ------------------------------------------------------------------

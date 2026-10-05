@@ -140,3 +140,36 @@ class TestOAuthToken:
         token = token_resp.json()["access_token"]
         resp = client.get("/mcp", headers={"Authorization": f"Bearer {token}"})
         assert resp.status_code == 200
+
+
+class TestClientPersistence:
+    """Registered clients survive a restart, so connectors can sign in again."""
+
+    def test_registered_client_survives_restart(self, tmp_path):
+        import mm.mcp.auth as auth
+        client = _make_client(tmp_path)
+        cb = "https://chatgpt.com/connector/oauth/abc123"
+        cid = client.post("/register", json={"redirect_uris": [cb], "client_name": "ChatGPT"}).json()["client_id"]
+        auth._CLIENTS.clear()
+        auth._CLIENTS_LOADED_FROM = None  # a new process
+        resp = client.get("/authorize", params={
+            "response_type": "code", "client_id": cid, "redirect_uri": cb,
+            "code_challenge": "x", "code_challenge_method": "S256"})
+        assert resp.status_code == 200
+        assert (tmp_path / "oauth" / "clients.json").exists()
+
+    def test_chatgpt_connector_callback_allowed_for_unknown_client(self, tmp_path):
+        client = _make_client(tmp_path)
+        q = {"response_type": "code", "client_id": "dyn_unknown", "code_challenge": "x",
+             "code_challenge_method": "S256"}
+        ok = client.get("/authorize", params={**q, "redirect_uri": "https://chatgpt.com/connector/oauth/abc"})
+        assert ok.status_code == 200
+        for bad in ("https://chatgpt.com.evil.example/connector/oauth/x",
+                    "https://chatgpt.com/connector/oauth/x?next=evil",
+                    "https://chatgpt.com/connector/oauth/../../evil"):
+            resp = client.get("/authorize", params={**q, "redirect_uri": bad})
+            assert resp.status_code == 400
+
+    def test_token_lifetime_does_not_force_daily_sign_in(self):
+        import mm.mcp.auth as auth
+        assert auth.TOKEN_EXPIRES_IN >= 30 * 86400
