@@ -129,15 +129,15 @@ jobs:
           import sys, json
           d = json.load(sys.stdin)
           sources = d.get('sources', [])
-          answer = d.get('answer', '') or d.get('response', '') or d.get('result', '')
-          if not sources and not answer:
-              print('❌ Query returned no sources and no answer.')
+          # An answer alone isn't enough: with 0 chunks the model still answers ("no information").
+          if not sources:
+              print('❌ Query returned no sources: the small file produced no retrievable chunks.')
               sys.exit(1)
           print(f'✅ Query returned {len(sources)} source(s).')
           "
 
       # ------------------------------------------------------------------ #
-      # Ingest large file (>8192 tokens — must produce multiple chunks)
+      # Ingest large file (>8192 tokens, i.e. past the embedding limit — must be split to ingest)
       # ------------------------------------------------------------------ #
       - name: Ingest large file
         id: ingest-large
