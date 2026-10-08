@@ -16,7 +16,7 @@ def _split_text(text: str, max_chars: int = MAX_CHUNK_CHARS, overlap: int = CHUN
     if not text:
         return []
     if len(text) <= max_chars:
-        return [text]
+        return []
     chunks = []
     start = 0
     while start < len(text):
