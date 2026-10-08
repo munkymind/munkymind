@@ -24,7 +24,7 @@ def _default_data_root() -> Path:
     return old if old.exists() and not new.exists() else new
 
 
-DATA_ROOT = Path(os.environ.get('DATA_ROOT', str(_default_data_root())))
+DATA_ROOT = Path.home() / '.munkymind'
 load_data_root_env(DATA_ROOT)
 
 
