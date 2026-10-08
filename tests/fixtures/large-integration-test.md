@@ -228,137 +228,268 @@ The Queensland Government's Department of Agriculture and Fisheries (DAF) provid
 
 *End of integration test fixture. Total size intentionally exceeds 10KB to trigger chunker splitting.*
 
-## Regional detail (extended for the large-file gate)
+## Regional detail
 
-### Cairns
+This single long section is deliberately larger than the embedding model's input limit, so ingest only works if the chunker splits it.
+
+**Cairns district.**
 **Water and irrigation.** In the Cairns district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Cairns track these factors weekly and publish advice for members.
 **Pests and disease.** In the Cairns district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Cairns track these factors weekly and publish advice for members.
 **Labour and harvest.** In the Cairns district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Cairns track these factors weekly and publish advice for members.
 **Markets and prices.** In the Cairns district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Cairns track these factors weekly and publish advice for members.
 **Climate and cyclones.** In the Cairns district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Cairns track these factors weekly and publish advice for members.
 
-### Innisfail
+**Innisfail district.**
 **Water and irrigation.** In the Innisfail district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Innisfail track these factors weekly and publish advice for members.
 **Pests and disease.** In the Innisfail district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Innisfail track these factors weekly and publish advice for members.
 **Labour and harvest.** In the Innisfail district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Innisfail track these factors weekly and publish advice for members.
 **Markets and prices.** In the Innisfail district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Innisfail track these factors weekly and publish advice for members.
 **Climate and cyclones.** In the Innisfail district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Innisfail track these factors weekly and publish advice for members.
 
-### Tully
+**Tully district.**
 **Water and irrigation.** In the Tully district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Tully track these factors weekly and publish advice for members.
 **Pests and disease.** In the Tully district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Tully track these factors weekly and publish advice for members.
 **Labour and harvest.** In the Tully district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Tully track these factors weekly and publish advice for members.
 **Markets and prices.** In the Tully district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Tully track these factors weekly and publish advice for members.
 **Climate and cyclones.** In the Tully district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Tully track these factors weekly and publish advice for members.
 
-### Mareeba
+**Mareeba district.**
 **Water and irrigation.** In the Mareeba district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Mareeba track these factors weekly and publish advice for members.
 **Pests and disease.** In the Mareeba district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Mareeba track these factors weekly and publish advice for members.
 **Labour and harvest.** In the Mareeba district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Mareeba track these factors weekly and publish advice for members.
 **Markets and prices.** In the Mareeba district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Mareeba track these factors weekly and publish advice for members.
 **Climate and cyclones.** In the Mareeba district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Mareeba track these factors weekly and publish advice for members.
 
-### Bundaberg
+**Bundaberg district.**
 **Water and irrigation.** In the Bundaberg district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Bundaberg track these factors weekly and publish advice for members.
 **Pests and disease.** In the Bundaberg district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Bundaberg track these factors weekly and publish advice for members.
 **Labour and harvest.** In the Bundaberg district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Bundaberg track these factors weekly and publish advice for members.
 **Markets and prices.** In the Bundaberg district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Bundaberg track these factors weekly and publish advice for members.
 **Climate and cyclones.** In the Bundaberg district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Bundaberg track these factors weekly and publish advice for members.
 
-### Atherton Tablelands
+**Atherton Tablelands district.**
 **Water and irrigation.** In the Atherton Tablelands district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Atherton Tablelands track these factors weekly and publish advice for members.
 **Pests and disease.** In the Atherton Tablelands district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Atherton Tablelands track these factors weekly and publish advice for members.
 **Labour and harvest.** In the Atherton Tablelands district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Atherton Tablelands track these factors weekly and publish advice for members.
 **Markets and prices.** In the Atherton Tablelands district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Atherton Tablelands track these factors weekly and publish advice for members.
 **Climate and cyclones.** In the Atherton Tablelands district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Atherton Tablelands track these factors weekly and publish advice for members.
 
-### Mackay
+**Mackay district.**
 **Water and irrigation.** In the Mackay district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Mackay track these factors weekly and publish advice for members.
 **Pests and disease.** In the Mackay district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Mackay track these factors weekly and publish advice for members.
 **Labour and harvest.** In the Mackay district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Mackay track these factors weekly and publish advice for members.
 **Markets and prices.** In the Mackay district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Mackay track these factors weekly and publish advice for members.
 **Climate and cyclones.** In the Mackay district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Mackay track these factors weekly and publish advice for members.
 
-### Bowen
+**Bowen district.**
 **Water and irrigation.** In the Bowen district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Bowen track these factors weekly and publish advice for members.
 **Pests and disease.** In the Bowen district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Bowen track these factors weekly and publish advice for members.
 **Labour and harvest.** In the Bowen district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Bowen track these factors weekly and publish advice for members.
 **Markets and prices.** In the Bowen district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Bowen track these factors weekly and publish advice for members.
 **Climate and cyclones.** In the Bowen district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Bowen track these factors weekly and publish advice for members.
 
-### Townsville
+**Townsville district.**
 **Water and irrigation.** In the Townsville district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Townsville track these factors weekly and publish advice for members.
 **Pests and disease.** In the Townsville district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Townsville track these factors weekly and publish advice for members.
 **Labour and harvest.** In the Townsville district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Townsville track these factors weekly and publish advice for members.
 **Markets and prices.** In the Townsville district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Townsville track these factors weekly and publish advice for members.
 **Climate and cyclones.** In the Townsville district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Townsville track these factors weekly and publish advice for members.
 
-### Rockhampton
+**Rockhampton district.**
 **Water and irrigation.** In the Rockhampton district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Rockhampton track these factors weekly and publish advice for members.
 **Pests and disease.** In the Rockhampton district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Rockhampton track these factors weekly and publish advice for members.
 **Labour and harvest.** In the Rockhampton district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Rockhampton track these factors weekly and publish advice for members.
 **Markets and prices.** In the Rockhampton district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Rockhampton track these factors weekly and publish advice for members.
 **Climate and cyclones.** In the Rockhampton district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Rockhampton track these factors weekly and publish advice for members.
 
-## More districts (extended for the large-file gate)
 
-### Ingham
+**Ingham district.**
 **Soil and nutrition.** Around Ingham, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Ingham compare notes at monthly field days run by the regional industry body.
 **Transport and cold chain.** Around Ingham, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Ingham compare notes at monthly field days run by the regional industry body.
 **Succession.** In Ingham, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
 **Diversification.** In Ingham, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
 
-### Babinda
+**Babinda district.**
 **Soil and nutrition.** Around Babinda, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Babinda compare notes at monthly field days run by the regional industry body.
 **Transport and cold chain.** Around Babinda, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Babinda compare notes at monthly field days run by the regional industry body.
 **Succession.** In Babinda, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
 **Diversification.** In Babinda, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
 
-### Mission Beach
+**Mission Beach district.**
 **Soil and nutrition.** Around Mission Beach, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Mission Beach compare notes at monthly field days run by the regional industry body.
 **Transport and cold chain.** Around Mission Beach, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Mission Beach compare notes at monthly field days run by the regional industry body.
 **Succession.** In Mission Beach, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
 **Diversification.** In Mission Beach, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
 
-### Lakeland
+**Lakeland district.**
 **Soil and nutrition.** Around Lakeland, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Lakeland compare notes at monthly field days run by the regional industry body.
 **Transport and cold chain.** Around Lakeland, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Lakeland compare notes at monthly field days run by the regional industry body.
 **Succession.** In Lakeland, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
 **Diversification.** In Lakeland, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
 
-### Childers
+**Childers district.**
 **Soil and nutrition.** Around Childers, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Childers compare notes at monthly field days run by the regional industry body.
 **Transport and cold chain.** Around Childers, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Childers compare notes at monthly field days run by the regional industry body.
 **Succession.** In Childers, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
 **Diversification.** In Childers, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
 
-### Gin Gin
+**Gin Gin district.**
 **Soil and nutrition.** Around Gin Gin, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Gin Gin compare notes at monthly field days run by the regional industry body.
 **Transport and cold chain.** Around Gin Gin, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Gin Gin compare notes at monthly field days run by the regional industry body.
 **Succession.** In Gin Gin, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
 **Diversification.** In Gin Gin, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
 
-### Yeppoon
+**Yeppoon district.**
 **Soil and nutrition.** Around Yeppoon, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Yeppoon compare notes at monthly field days run by the regional industry body.
 **Transport and cold chain.** Around Yeppoon, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Yeppoon compare notes at monthly field days run by the regional industry body.
 **Succession.** In Yeppoon, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
 **Diversification.** In Yeppoon, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
 
-### Proserpine
+**Proserpine district.**
 **Soil and nutrition.** Around Proserpine, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Proserpine compare notes at monthly field days run by the regional industry body.
 **Transport and cold chain.** Around Proserpine, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Proserpine compare notes at monthly field days run by the regional industry body.
 **Succession.** In Proserpine, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
 **Diversification.** In Proserpine, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
 
-### Ayr
+**Ayr district.**
 **Soil and nutrition.** Around Ayr, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Ayr compare notes at monthly field days run by the regional industry body.
 **Transport and cold chain.** Around Ayr, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Ayr compare notes at monthly field days run by the regional industry body.
 **Succession.** In Ayr, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
 **Diversification.** In Ayr, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
 
-### Cardwell
+**Cardwell district.**
 **Soil and nutrition.** Around Cardwell, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Cardwell compare notes at monthly field days run by the regional industry body.
 **Transport and cold chain.** Around Cardwell, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Cardwell compare notes at monthly field days run by the regional industry body.
 **Succession.** In Cardwell, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
 **Diversification.** In Cardwell, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
 
+**Cairns district (continued).**
+**Water and irrigation.** In the Cairns district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Cairns track these factors weekly and publish advice for members.
+**Pests and disease.** In the Cairns district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Cairns track these factors weekly and publish advice for members.
+**Labour and harvest.** In the Cairns district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Cairns track these factors weekly and publish advice for members.
+**Markets and prices.** In the Cairns district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Cairns track these factors weekly and publish advice for members.
+**Climate and cyclones.** In the Cairns district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Cairns track these factors weekly and publish advice for members.
+
+**Innisfail district.**
+**Water and irrigation.** In the Innisfail district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Innisfail track these factors weekly and publish advice for members.
+**Pests and disease.** In the Innisfail district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Innisfail track these factors weekly and publish advice for members.
+**Labour and harvest.** In the Innisfail district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Innisfail track these factors weekly and publish advice for members.
+**Markets and prices.** In the Innisfail district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Innisfail track these factors weekly and publish advice for members.
+**Climate and cyclones.** In the Innisfail district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Innisfail track these factors weekly and publish advice for members.
+
+**Tully district.**
+**Water and irrigation.** In the Tully district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Tully track these factors weekly and publish advice for members.
+**Pests and disease.** In the Tully district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Tully track these factors weekly and publish advice for members.
+**Labour and harvest.** In the Tully district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Tully track these factors weekly and publish advice for members.
+**Markets and prices.** In the Tully district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Tully track these factors weekly and publish advice for members.
+**Climate and cyclones.** In the Tully district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Tully track these factors weekly and publish advice for members.
+
+**Mareeba district.**
+**Water and irrigation.** In the Mareeba district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Mareeba track these factors weekly and publish advice for members.
+**Pests and disease.** In the Mareeba district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Mareeba track these factors weekly and publish advice for members.
+**Labour and harvest.** In the Mareeba district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Mareeba track these factors weekly and publish advice for members.
+**Markets and prices.** In the Mareeba district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Mareeba track these factors weekly and publish advice for members.
+**Climate and cyclones.** In the Mareeba district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Mareeba track these factors weekly and publish advice for members.
+
+**Bundaberg district.**
+**Water and irrigation.** In the Bundaberg district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Bundaberg track these factors weekly and publish advice for members.
+**Pests and disease.** In the Bundaberg district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Bundaberg track these factors weekly and publish advice for members.
+**Labour and harvest.** In the Bundaberg district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Bundaberg track these factors weekly and publish advice for members.
+**Markets and prices.** In the Bundaberg district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Bundaberg track these factors weekly and publish advice for members.
+**Climate and cyclones.** In the Bundaberg district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Bundaberg track these factors weekly and publish advice for members.
+
+**Atherton Tablelands district.**
+**Water and irrigation.** In the Atherton Tablelands district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Atherton Tablelands track these factors weekly and publish advice for members.
+**Pests and disease.** In the Atherton Tablelands district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Atherton Tablelands track these factors weekly and publish advice for members.
+**Labour and harvest.** In the Atherton Tablelands district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Atherton Tablelands track these factors weekly and publish advice for members.
+**Markets and prices.** In the Atherton Tablelands district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Atherton Tablelands track these factors weekly and publish advice for members.
+**Climate and cyclones.** In the Atherton Tablelands district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Atherton Tablelands track these factors weekly and publish advice for members.
+
+**Mackay district.**
+**Water and irrigation.** In the Mackay district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Mackay track these factors weekly and publish advice for members.
+**Pests and disease.** In the Mackay district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Mackay track these factors weekly and publish advice for members.
+**Labour and harvest.** In the Mackay district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Mackay track these factors weekly and publish advice for members.
+**Markets and prices.** In the Mackay district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Mackay track these factors weekly and publish advice for members.
+**Climate and cyclones.** In the Mackay district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Mackay track these factors weekly and publish advice for members.
+
+**Bowen district.**
+**Water and irrigation.** In the Bowen district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Bowen track these factors weekly and publish advice for members.
+**Pests and disease.** In the Bowen district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Bowen track these factors weekly and publish advice for members.
+**Labour and harvest.** In the Bowen district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Bowen track these factors weekly and publish advice for members.
+**Markets and prices.** In the Bowen district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Bowen track these factors weekly and publish advice for members.
+**Climate and cyclones.** In the Bowen district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Bowen track these factors weekly and publish advice for members.
+
+**Townsville district.**
+**Water and irrigation.** In the Townsville district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Townsville track these factors weekly and publish advice for members.
+**Pests and disease.** In the Townsville district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Townsville track these factors weekly and publish advice for members.
+**Labour and harvest.** In the Townsville district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Townsville track these factors weekly and publish advice for members.
+**Markets and prices.** In the Townsville district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Townsville track these factors weekly and publish advice for members.
+**Climate and cyclones.** In the Townsville district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Townsville track these factors weekly and publish advice for members.
+
+**Rockhampton district.**
+**Water and irrigation.** In the Rockhampton district, growers rely on a mix of rainfall, bore water and channel irrigation. Dry-season allocations, pump costs and the timing of the wet season decide how much fruit sets and how evenly it sizes. Local co-operatives in Rockhampton track these factors weekly and publish advice for members.
+**Pests and disease.** In the Rockhampton district, panama disease tropical race 4, fruit fly and leaf spot are the main threats. Farms that share machinery or water risk spreading soil-borne disease, so biosecurity zoning and footbaths are now routine. Local co-operatives in Rockhampton track these factors weekly and publish advice for members.
+**Labour and harvest.** In the Rockhampton district, harvest depends on seasonal workers. Accommodation, visa rules and award wages shape whether fruit is picked at the right maturity or left to over-ripen on the plant. Local co-operatives in Rockhampton track these factors weekly and publish advice for members.
+**Markets and prices.** In the Rockhampton district, prices swing with supply from other states and imports. A cyclone that cuts northern supply can double wholesale prices within weeks, while a glut can push them below the cost of picking. Local co-operatives in Rockhampton track these factors weekly and publish advice for members.
+**Climate and cyclones.** In the Rockhampton district, cyclone season runs from November to April. Growers de-leaf and prop plants ahead of forecasts, and some stagger plantings so a single storm doesn't take a whole year's crop. Local co-operatives in Rockhampton track these factors weekly and publish advice for members.
+
+
+**Ingham district.**
+**Soil and nutrition.** Around Ingham, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Ingham compare notes at monthly field days run by the regional industry body.
+**Transport and cold chain.** Around Ingham, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Ingham compare notes at monthly field days run by the regional industry body.
+**Succession.** In Ingham, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
+**Diversification.** In Ingham, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
+
+**Babinda district.**
+**Soil and nutrition.** Around Babinda, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Babinda compare notes at monthly field days run by the regional industry body.
+**Transport and cold chain.** Around Babinda, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Babinda compare notes at monthly field days run by the regional industry body.
+**Succession.** In Babinda, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
+**Diversification.** In Babinda, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
+
+**Mission Beach district.**
+**Soil and nutrition.** Around Mission Beach, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Mission Beach compare notes at monthly field days run by the regional industry body.
+**Transport and cold chain.** Around Mission Beach, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Mission Beach compare notes at monthly field days run by the regional industry body.
+**Succession.** In Mission Beach, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
+**Diversification.** In Mission Beach, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
+
+**Lakeland district.**
+**Soil and nutrition.** Around Lakeland, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Lakeland compare notes at monthly field days run by the regional industry body.
+**Transport and cold chain.** Around Lakeland, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Lakeland compare notes at monthly field days run by the regional industry body.
+**Succession.** In Lakeland, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
+**Diversification.** In Lakeland, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
+
+**Childers district.**
+**Soil and nutrition.** Around Childers, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Childers compare notes at monthly field days run by the regional industry body.
+**Transport and cold chain.** Around Childers, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Childers compare notes at monthly field days run by the regional industry body.
+**Succession.** In Childers, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
+**Diversification.** In Childers, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
+
+**Gin Gin district.**
+**Soil and nutrition.** Around Gin Gin, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Gin Gin compare notes at monthly field days run by the regional industry body.
+**Transport and cold chain.** Around Gin Gin, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Gin Gin compare notes at monthly field days run by the regional industry body.
+**Succession.** In Gin Gin, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
+**Diversification.** In Gin Gin, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
+
+**Yeppoon district.**
+**Soil and nutrition.** Around Yeppoon, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Yeppoon compare notes at monthly field days run by the regional industry body.
+**Transport and cold chain.** Around Yeppoon, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Yeppoon compare notes at monthly field days run by the regional industry body.
+**Succession.** In Yeppoon, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
+**Diversification.** In Yeppoon, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
+
+**Proserpine district.**
+**Soil and nutrition.** Around Proserpine, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Proserpine compare notes at monthly field days run by the regional industry body.
+**Transport and cold chain.** Around Proserpine, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Proserpine compare notes at monthly field days run by the regional industry body.
+**Succession.** In Proserpine, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
+**Diversification.** In Proserpine, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
+
+**Ayr district.**
+**Soil and nutrition.** Around Ayr, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Ayr compare notes at monthly field days run by the regional industry body.
+**Transport and cold chain.** Around Ayr, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Ayr compare notes at monthly field days run by the regional industry body.
+**Succession.** In Ayr, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
+**Diversification.** In Ayr, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
+
+**Cardwell district.**
+**Soil and nutrition.** Around Cardwell, red volcanic soils on the uplands hold water well but leach potassium; coastal sands need regular organic matter. Leaf testing every quarter guides fertiliser so plants don't run short mid-season. Growers near Cardwell compare notes at monthly field days run by the regional industry body.
+**Transport and cold chain.** Around Cardwell, fruit travels more than 1,500 km to southern markets. Ripening rooms, refrigerated trucks and rail timetables decide shelf life, and a delay of a day can turn a premium consignment into seconds. Growers near Cardwell compare notes at monthly field days run by the regional industry body.
+**Succession.** In Cardwell, many farms are run by second- or third-generation families weighing whether the next generation will take on the risk, debt and long hours of tropical fruit growing.
+**Diversification.** In Cardwell, some growers add papaya, avocado or lychee to spread risk across seasons and diseases, accepting extra equipment and marketing work in return.
