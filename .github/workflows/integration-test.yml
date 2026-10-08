@@ -1,15 +1,10 @@
 name: Integration Gate
 
+# Runs on every PR to main so it can be a required check: the full Docker run happens only
+# when app code, packaging or test fixtures changed; otherwise the job passes as "skipped".
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'mm/**'
-      - 'docker-compose.yml'
-      - 'docker-compose*.yml'
-      - 'Dockerfile'
-      - 'requirements.txt'
-      - 'pyproject.toml'
 
 jobs:
   integration:
@@ -23,9 +18,24 @@ jobs:
       # ------------------------------------------------------------------ #
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Detect app changes
+        id: changes
+        run: |
+          CHANGED=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          echo "$CHANGED"
+          if echo "$CHANGED" | grep -qE '^(mm/|tests/fixtures/|docker-compose[^/]*\.yml$|Dockerfile$|requirements[^/]*\.txt$|pyproject\.toml$|uv\.lock$|\.github/workflows/integration-test\.yml$)'; then
+            echo "app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "app=false" >> "$GITHUB_OUTPUT"
+            echo "No app changes: the integration run is skipped."
+          fi
 
       - name: Build and start stack
         id: build
+        if: steps.changes.outputs.app == 'true'
         run: |
           docker compose up --build -d
           echo "Stack started."
@@ -38,6 +48,7 @@ jobs:
       # ------------------------------------------------------------------ #
       - name: Health check
         id: health
+        if: steps.changes.outputs.app == 'true'
         run: |
           echo "Waiting for API to be healthy..."
           for i in $(seq 1 30); do
@@ -59,6 +70,7 @@ jobs:
       # ------------------------------------------------------------------ #
       - name: Create integration test user
         id: create-user
+        if: steps.changes.outputs.app == 'true'
         run: |
           KEY=$(docker compose exec -T api munkymind user create integration-test 2>&1 \
             | grep -oP 'mm_sk_[A-Za-z0-9]+')
@@ -75,6 +87,7 @@ jobs:
       # ------------------------------------------------------------------ #
       - name: Ingest small file
         id: ingest-small
+        if: steps.changes.outputs.app == 'true'
         run: |
           cat > /tmp/test-small.md << 'EOFSMALL'
           # Integration Test Document
@@ -101,6 +114,7 @@ jobs:
       # ------------------------------------------------------------------ #
       - name: Verify small file chunk count
         id: chunk-small
+        if: steps.changes.outputs.app == 'true'
         run: |
           # Query to verify retrieval returns at least one chunk
           RESPONSE=$(curl -s -X POST \
@@ -115,18 +129,19 @@ jobs:
           import sys, json
           d = json.load(sys.stdin)
           sources = d.get('sources', [])
-          answer = d.get('answer', '') or d.get('response', '') or d.get('result', '')
-          if not sources and not answer:
-              print('❌ Query returned no sources and no answer.')
+          # An answer alone isn't enough: with 0 chunks the model still answers ("no information").
+          if not sources:
+              print('❌ Query returned no sources: the small file produced no retrievable chunks.')
               sys.exit(1)
           print(f'✅ Query returned {len(sources)} source(s).')
           "
 
       # ------------------------------------------------------------------ #
-      # Ingest large file (>8192 tokens — must produce multiple chunks)
+      # Ingest large file (>8192 tokens, i.e. past the embedding limit — must be split to ingest)
       # ------------------------------------------------------------------ #
       - name: Ingest large file
         id: ingest-large
+        if: steps.changes.outputs.app == 'true'
         run: |
           BEFORE=$(curl -s -H "X-API-Key: $MM_API_KEY" http://localhost:8000/pages \
             | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('pages', [])))")
@@ -150,6 +165,7 @@ jobs:
       # ------------------------------------------------------------------ #
       - name: Query grounding
         id: query
+        if: steps.changes.outputs.app == 'true'
         run: |
           RESPONSE=$(curl -s -X POST \
             -H "Content-Type: application/json" \
@@ -176,6 +192,7 @@ jobs:
       # ------------------------------------------------------------------ #
       - name: Data persistence check
         id: persistence
+        if: steps.changes.outputs.app == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -222,11 +239,11 @@ jobs:
       # Cleanup
       # ------------------------------------------------------------------ #
       - name: API logs (on failure)
-        if: failure()
+        if: failure() && steps.changes.outputs.app == 'true'
         run: docker compose logs api --tail 200 | sed -E 's/(sk-|mm_sk_)[A-Za-z0-9_-]+/\1[REDACTED]/g'
 
       - name: Cleanup
-        if: always()
+        if: always() && steps.changes.outputs.app == 'true'
         run: docker compose down -v
 
       # ------------------------------------------------------------------ #
@@ -238,6 +255,10 @@ jobs:
         run: |
           echo "## Integration Gate Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.changes.outputs.app }}" != "true" ]; then
+            echo "Skipped: this PR doesn't change app code, packaging or test fixtures." >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
           echo "| Gate | Result |" >> $GITHUB_STEP_SUMMARY
           echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Docker Build & Start | ${{ steps.build.outcome == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
