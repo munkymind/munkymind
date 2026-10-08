@@ -25,7 +25,7 @@ app = FastAPI(
     version=__version__,
 )
 
-DATA_ROOT = Path(os.environ.get("DATA_ROOT", "./data"))
+DATA_ROOT = Path("./data")
 load_data_root_env(DATA_ROOT)
 # Same default as /bootstrap below.
 seed_key_from_env(DATA_ROOT, os.environ.get("USER_ID", "default"), "mm-api")
