@@ -2,7 +2,7 @@
 # Supply chain (v0.2.1): base image pinned by digest, uv pinned, dependencies installed from
 # uv.lock with --require-hashes (a tampered or changed package fails the build), and no
 # dev/test tools in the image. Update the pins deliberately (Dependabot proposes them).
-FROM python:3.11-slim@sha256:bab1b7ef4b450c81002278d035eff85ebe394ae94df904f7a3ba14f7e16e487b
+FROM python:3.12-slim@sha256:05cda9777409a9c3ffddd94a4c476b79f0769a0b4857f0c7ed9226b6800b0d6f
 
 WORKDIR /app
 
