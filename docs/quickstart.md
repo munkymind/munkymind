@@ -6,6 +6,16 @@ Get from `git clone` to working queries in one sitting.
 
 ## Before you start (about 10 minutes of setup)
 
+### Who pays, and how much?
+
+- **Munkymind is free.** There's no Munkymind account, subscription or hosted service: the software runs on your machine.
+- **Your instance calls the AI provider directly, with your key**, and the provider bills you for what you use. Your key stays in your `.env` and is never sent anywhere except that provider.
+- **OpenAI's API is prepaid and separate from a ChatGPT subscription.** Add a few dollars of credit under [Billing](https://platform.openai.com/settings/organization/billing) before you start; without credit, indexing fails.
+- **Typical cost is cents.** With the default models, indexing ~50 notes costs a few cents (embeddings only), and each question costs a fraction of a cent. Check current prices on the provider's pricing page.
+- **Cap it.** Create a dedicated OpenAI *project* for Munkymind, set a monthly budget on that project, and create the key inside it, so the key can't spend beyond the limit or touch your other projects.
+- **Free option:** [Ollama](https://ollama.com/) runs everything locally with no key and no bill (slower; needs a decent machine).
+
+
 Have these ready before step 1. Path A (Docker, recommended) needs only the first four.
 
 | You need | Why | How to get it |
@@ -13,7 +23,7 @@ Have these ready before step 1. Path A (Docker, recommended) needs only the firs
 | **A Mac, Windows or Linux machine** with ~4 GB free RAM and ~3 GB free disk | Runs the Munkymind containers | Windows: use Docker Desktop with WSL 2 (Docker's installer sets it up) |
 | **Docker Desktop** (Mac/Windows) or **Docker Engine + Compose v2** (Linux) | Runs Munkymind | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/). Check with `docker compose version` |
 | **git** | Downloads the code | [git-scm.com/downloads](https://git-scm.com/downloads). Check with `git --version` |
-| **One API key: OpenAI** | Turns your notes into searchable vectors and writes answers | [platform.openai.com/api-keys](https://platform.openai.com/api-keys). Add a few dollars of credit; typical personal use costs cents |
+| **One API key: OpenAI** | Turns your notes into searchable vectors and writes answers | [platform.openai.com/api-keys](https://platform.openai.com/api-keys). Prepaid: add a few dollars of credit first (see *Who pays* above) |
 | A folder of **your notes** (markdown, text or PDF) | What Munkymind learns from | Start small, e.g. 20–50 files, and add more later |
 
 **Optional, depending on how you want to use it:**

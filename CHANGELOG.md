@@ -31,6 +31,9 @@ Versioning: [Semantic Versioning](https://semver.org/)
 ### Changed
 - Key policies are stored next to the hash in `users/<name>/api_key.json`. Existing keys have no policy file and keep working unchanged (read-write, no expiry)
 
+### Documentation
+- README and quickstart now say up front who pays for AI usage and roughly how much: your instance calls the provider with your own key, OpenAI's API is prepaid, typical use costs cents, how to cap spend with a project budget, and Ollama as the free local option
+
 ## [0.2.5] — 2026-10-03
 
 One consistent voice.
