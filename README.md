@@ -205,6 +205,8 @@ Then:
 
 Backward-compatible: the legacy OAuth Client Credentials grant and direct `X-API-Key` header still work for existing integrations. stdio transport (local Claude Desktop config above) is completely unaffected — it never touches the OAuth layer.
 
+How keys, scopes, expiry and rotation work: [SECURITY.md](SECURITY.md#authentication).
+
 ---
 
 ## CLI reference
@@ -220,7 +222,10 @@ munkymind ingest --connector files --user <name>  # Re-ingest after adding notes
 munkymind ingest --connector github --user <name> # Ingest from GitHub connector
 munkymind eval --api-key mm_sk_...                # Run quality eval suite (9 scenarios)
 munkymind user create <name>                      # Create a user + API key only (no connector)
-munkymind user rotate-key <name>                  # Issue a new API key
+munkymind user create <name> --read-only --expires-in 30d   # Key for an agent that only queries
+munkymind user rotate-key <name>                  # New key, same scope and lifetime; old key stops working
+munkymind user keys                               # List keys: scope, created, expiry (never the key)
+munkymind user revoke-key <name>                  # Revoke a key without issuing a new one
 munkymind domain add <id> <label> --user <name>   # Add a domain (optional --icon 🌱 --brain-name "Garden Brain")
 munkymind domain rename <id> <label> --user <name>
 munkymind domain remove <id> --user <name>

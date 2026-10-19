@@ -15,7 +15,7 @@ from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 
 from mm import __version__
-from mm.auth.keys import load_key_hash, seed_key_from_env, verify_key
+from mm.auth.keys import KeyPolicy, check_key, load_key_hash, seed_key_from_env
 from mm.config.env import load_data_root_env
 from mm.core.store import UserStore
 
@@ -36,14 +36,56 @@ API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False)
 # Auth dependency
 # ------------------------------------------------------------------ #
 
+# Every route that changes the library needs a read-write key. Rather than
+# marking write routes one by one, get_user_store treats every authenticated
+# non-GET route as a write unless it is listed here. A new POST route is
+# therefore closed to read-only keys until someone decides otherwise.
+READ_ONLY_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+READ_SCOPE_POST_ROUTES = frozenset({
+    "/query",    # asks a question; nothing is stored
+    "/preview",  # retrieval only
+})
+
+
+def _route_path(request: Optional[Request]) -> str:
+    """The matched route's path template (e.g. /pages/{path:path}), not the raw URL."""
+    if request is None:
+        return ""
+    route = request.scope.get("route")
+    return getattr(route, "path", "") or str(request.url.path)
+
+
+def requires_write(method: str, route_path: str) -> bool:
+    return method.upper() not in READ_ONLY_METHODS and route_path not in READ_SCOPE_POST_ROUTES
+
+
+def _log_auth(store: UserStore, key_hint: str, result: str, endpoint: str, ip: str) -> None:
+    try:
+        con = sqlite3.connect(store.db_path)
+        con.execute(
+            "INSERT INTO auth_log (key_hint, result, endpoint, ip, ts) VALUES (?,?,?,?,?)",
+            (key_hint, result, endpoint, ip, datetime.datetime.utcnow().isoformat()),
+        )
+        con.commit()
+        con.close()
+    except Exception:
+        pass
+
 
 async def get_user_store(
     api_key: Optional[str] = Depends(API_KEY_HEADER),
     request: Request = None,  # type: ignore[assignment]
 ) -> UserStore:
-    """Authenticate via X-API-Key header and return the matching UserStore."""
+    """Authenticate via X-API-Key and return the matching UserStore.
+
+    Also enforces the key's policy: an expired key gets 401, and a read-only
+    key gets 403 on any route that can change the library (see requires_write).
+    """
     users_dir = DATA_ROOT / "users"
     matched_store: Optional[UserStore] = None
+    policy: Optional[KeyPolicy] = None
+    expired = False
+    owner: Optional[str] = None
     endpoint = str(request.url.path) if request else ""
     ip = request.client.host if (request and request.client) else ""
     key_hint = (api_key[:8] + "...") if api_key and len(api_key) >= 8 else (api_key or "")
@@ -52,34 +94,29 @@ async def get_user_store(
         for user_dir in users_dir.iterdir():
             if not user_dir.is_dir():
                 continue
-            stored_hash = load_key_hash(user_dir)
-            if stored_hash and verify_key(api_key, stored_hash):
-                user_id = user_dir.name
-                matched_store = UserStore(DATA_ROOT, user_id)
+            check = check_key(api_key, user_dir)
+            if check.matched:
+                owner = user_dir.name
+                if check.valid:
+                    matched_store = UserStore(DATA_ROOT, user_dir.name)
+                    policy = check.policy
+                expired = check.expired
                 break
 
-    result = "ok" if matched_store else "fail"
+    write = requires_write(request.method if request else "GET", _route_path(request))
+    forbidden = matched_store is not None and write and not policy.can_write  # type: ignore[union-attr]
+    result = "expired" if expired else "forbidden" if forbidden else "ok" if matched_store else "fail"
 
     # Write auth_log — pick a store to write to
-    log_store = matched_store
+    log_store = matched_store or (UserStore(DATA_ROOT, owner) if owner else None)
     if log_store is None and api_key and users_dir.exists():
         # Try to find any valid store to log against (first user)
         for user_dir in users_dir.iterdir():
             if user_dir.is_dir() and (user_dir / "db" / "metadata.sqlite3").exists():
                 log_store = UserStore(DATA_ROOT, user_dir.name)
                 break
-
     if log_store is not None:
-        try:
-            con = sqlite3.connect(log_store.db_path)
-            con.execute(
-                "INSERT INTO auth_log (key_hint, result, endpoint, ip, ts) VALUES (?,?,?,?,?)",
-                (key_hint, result, endpoint, ip, datetime.datetime.utcnow().isoformat()),
-            )
-            con.commit()
-            con.close()
-        except Exception:
-            pass
+        _log_auth(log_store, key_hint, result, endpoint, ip)
 
     if matched_store is None:
         if not api_key:
@@ -95,7 +132,15 @@ async def get_user_store(
                 status_code=401,
                 detail=(
                     "Invalid API key format. Keys must start with 'mm_sk_'. "
-                    "Generate one with: mm keys generate"
+                    "Create one with: munkymind user create <name>"
+                ),
+            )
+        if expired:
+            raise HTTPException(
+                status_code=401,
+                detail=(
+                    "API key expired. Issue a new one with: "
+                    "munkymind user rotate-key <name>"
                 ),
             )
         raise HTTPException(
@@ -103,6 +148,15 @@ async def get_user_store(
             detail=(
                 "Invalid API key. Pass your key via the X-API-Key header: "
                 "X-API-Key: mm_sk_<your-key>"
+            ),
+        )
+
+    if forbidden:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "This API key is read-only and this request would change your library. "
+                "Use a read-write key (munkymind user rotate-key <name> --read-write)."
             ),
         )
 
@@ -132,19 +186,23 @@ async def health():
 
 @app.post("/bootstrap")
 async def bootstrap():
-    """One-time user bootstrap. Creates the USER_ID user and returns an API key.
-    Fails if user already has a key (idempotent-safe)."""
-    from mm.auth.keys import generate_key, save_key_hash
+    """One-time user bootstrap. Creates the USER_ID user and returns a read-write API key.
+    Fails if the user already exists (idempotent-safe). Needs no key, so it is
+    the one non-GET route outside the write-scope check."""
+    from mm.auth.keys import issue_key
 
     user_id = os.environ.get("USER_ID", "default")
     store = UserStore(DATA_ROOT, user_id)
 
-    if load_key_hash(store.user_dir) is not None:
-        raise HTTPException(status_code=409, detail=f"User '{user_id}' already bootstrapped.")
+    # A revoked key leaves config.yaml behind: revoking must not reopen bootstrap.
+    if load_key_hash(store.user_dir) is not None or store.config_path.exists():
+        raise HTTPException(
+            status_code=409,
+            detail=f"User '{user_id}' already bootstrapped. Issue a new key with: "
+                   "munkymind user rotate-key",
+        )
 
-    raw_key, hashed = generate_key()
-    store.user_dir.mkdir(parents=True, exist_ok=True)
-    save_key_hash(store.user_dir, hashed)
+    raw_key = issue_key(store.user_dir)
     # Ensure config exists
     store.get_config()
     return {"user_id": user_id, "api_key": raw_key}

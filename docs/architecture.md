@@ -110,6 +110,7 @@ munkymind user create alice
 → generate cryptographically random 32-byte key
 → encode as base58: mm_sk_{48 chars}
 → bcrypt hash stored in users/alice/api_key.hash
+→ policy stored in users/alice/api_key.json: scope (read | read_write), expires_at, created_at
 → raw key shown ONCE to user — never stored
 ```
 
@@ -119,7 +120,13 @@ X-API-Key: mm_sk_...
 → scan users/ dirs, bcrypt.verify against each api_key.hash
 → match found → scope all queries to that user_id
 → no match → 401, log attempt, no context leaked
+→ key expired → 401
+→ read-only key on a route that can change the library → 403
 ```
+
+A hash with no `api_key.json` (a key issued before scopes existed) is read-write and never expires.
+The write check lives in the auth dependency: every non-GET route counts as a write unless
+it is in `READ_SCOPE_POST_ROUTES` (`/query`, `/preview`). See [SECURITY.md](../SECURITY.md#authentication).
 
 ---
 

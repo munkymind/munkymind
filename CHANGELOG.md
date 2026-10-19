@@ -14,12 +14,22 @@ Versioning: [Semantic Versioning](https://semver.org/)
 - **Smaller image, no compilers:** build tools stay in a separate build stage (the image is roughly 40% smaller)
 - **Image vulnerability scan in CI:** every pull request, every push to `main` and a weekly run scan the built image (OS and Python packages) with Trivy and fail on HIGH/CRITICAL findings that have a fix. Accepted findings are listed with reasons in `.trivyignore`
 - **Fewer known vulnerabilities in the image:** the build now applies pending Debian security updates and drops the base image's unused `pip`/`setuptools`/`wheel`. Fixable HIGH/CRITICAL findings went from 20 to 0
+- **API keys can be read-only and can expire.** `munkymind user create <name> --read-only --expires-in 30d` (also `12h`, `8w`, or `--expires-at YYYY-MM-DD`). A read-only key can query and browse but gets 403 on anything that changes the library; an expired key gets 401 on the API and can't log in or be used by MCP connectors. The write check is central: every non-GET route counts as a write unless it is explicitly allowed for read-only keys
+- `/bootstrap` stays closed for a user that already has a config, so revoking a key can't reopen it
+- SECURITY.md documents the auth model: OAuth 2.1 for connectors, bcrypt-hashed per-user keys for the REST API, scopes, expiry and rotation
 
 ### Upgrading
 - **Docker Compose:** nothing to do. A one-shot `volume-init` service hands your existing data volume to the new user on the next `docker compose up -d`
 - **`docker run`:** start the container once with `--user 0` to repair the data volume's ownership; it then drops to the non-root user by itself
 - **Railway** (volumes are mounted as root): set the service variable `RAILWAY_RUN_UID=0`. The container starts as root only to fix the volume's ownership, then runs as the non-root user
 - If the data volume isn't writable, the container now stops with a message explaining the fix
+
+### Added
+- `munkymind user rotate-key <name>` keeps the old key's scope and lifetime (override with `--read-only`/`--read-write`, `--expires-in`/`--expires-at`, `--no-expiry`); the old key stops working at once
+- `munkymind user keys` lists each user's key scope, creation and expiry (never the key or its hash); `munkymind user revoke-key <name>` revokes a key
+
+### Changed
+- Key policies are stored next to the hash in `users/<name>/api_key.json`. Existing keys have no policy file and keep working unchanged (read-write, no expiry)
 
 ## [0.2.5] — 2026-10-03
 

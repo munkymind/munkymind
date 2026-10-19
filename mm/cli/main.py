@@ -32,22 +32,62 @@ load_data_root_env(DATA_ROOT)
 # user subcommands
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _expiry_from_options(expires_in: str | None, expires_at: str | None):
+    """--expires-in / --expires-at -> UTC datetime or None. Exits on bad input."""
+    import datetime as dt
+    from mm.auth.keys import parse_duration, parse_expiry
+
+    if expires_in and expires_at:
+        typer.echo("Use either --expires-in or --expires-at, not both.", err=True)
+        raise typer.Exit(1)
+    try:
+        if expires_in:
+            return dt.datetime.now(dt.timezone.utc) + parse_duration(expires_in)
+        if expires_at:
+            when = parse_expiry(expires_at)
+            if when <= dt.datetime.now(dt.timezone.utc):
+                typer.echo(f"--expires-at {expires_at} is in the past.", err=True)
+                raise typer.Exit(1)
+            return when
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1)
+    return None
+
+
+def _describe_policy(policy) -> str:
+    access = "read-only" if not policy.can_write else "read-write"
+    expiry = (f"expires {policy.expires_at:%Y-%m-%d %H:%M} UTC" if policy.expires_at
+              else "never expires")
+    return f"{access}, {expiry}"
+
+
+_EXPIRES_IN_HELP = "Key lifetime, e.g. 12h, 30d, 8w"
+_EXPIRES_AT_HELP = "Expiry date (YYYY-MM-DD = 00:00 UTC that day) or ISO date-time"
+
+
 @user_app.command('create')
-def user_create(name: str = typer.Argument(..., help='Username (alphanumeric + hyphens)')):
+def user_create(
+    name: str = typer.Argument(..., help='Username (alphanumeric + hyphens)'),
+    read_only: bool = typer.Option(False, '--read-only', help='Key can query but not change the library'),
+    expires_in: str = typer.Option(None, '--expires-in', help=_EXPIRES_IN_HELP),
+    expires_at: str = typer.Option(None, '--expires-at', help=_EXPIRES_AT_HELP),
+):
     """Create user directory, generate API key, and print it once."""
     from mm.core.store import UserStore
-    from mm.auth.keys import generate_key, save_key_hash
+    from mm.auth.keys import SCOPE_READ, SCOPE_READ_WRITE, issue_key, load_key_policy
 
+    expiry = _expiry_from_options(expires_in, expires_at)
     store = UserStore(DATA_ROOT, name)
     store.init()
     cfg = store.get_config()
     cfg.save(store.config_path)
 
-    raw_key, hashed = generate_key()
-    save_key_hash(store.user_dir, hashed)
+    raw_key = issue_key(store.user_dir, SCOPE_READ if read_only else SCOPE_READ_WRITE, expiry)
 
     typer.echo(f"✓ User '{name}' created.")
-    typer.echo(f"  API key (shown once, store it safely):\n\n  {raw_key}\n")
+    typer.echo(f"  API key ({_describe_policy(load_key_policy(store.user_dir))}; "
+               f"shown once, store it safely):\n\n  {raw_key}\n")
 
 
 @user_app.command('delete')
@@ -72,20 +112,100 @@ def user_delete(
 
 
 @user_app.command('rotate-key')
-def user_rotate_key(name: str = typer.Argument(...)):
-    """Generate a new API key, invalidating the old one."""
+def user_rotate_key(
+    name: str = typer.Argument(...),
+    read_only: bool = typer.Option(None, '--read-only/--read-write',
+                                   help='Change the scope (default: keep the current one)'),
+    expires_in: str = typer.Option(None, '--expires-in', help=_EXPIRES_IN_HELP),
+    expires_at: str = typer.Option(None, '--expires-at', help=_EXPIRES_AT_HELP),
+    no_expiry: bool = typer.Option(False, '--no-expiry', help='New key never expires'),
+):
+    """Issue a new API key and revoke the old one, in one step.
+
+    The new key keeps the old key's scope and lifetime (a 30-day key gets a
+    fresh 30 days) unless you override them.
+    """
+    import datetime as dt
     from mm.core.store import UserStore
-    from mm.auth.keys import generate_key, save_key_hash
+    from mm.auth.keys import (KeyPolicyError, SCOPE_READ, SCOPE_READ_WRITE, issue_key,
+                              load_key_policy)
 
     store = UserStore(DATA_ROOT, name)
     if not store.user_dir.exists():
         typer.echo(f"User '{name}' not found.", err=True)
         raise typer.Exit(1)
+    if no_expiry and (expires_in or expires_at):
+        typer.echo("--no-expiry can't be combined with --expires-in/--expires-at.", err=True)
+        raise typer.Exit(1)
 
-    raw_key, hashed = generate_key()
-    save_key_hash(store.user_dir, hashed)
-    typer.echo(f"✓ API key rotated for '{name}'.")
-    typer.echo(f"  New API key (shown once):\n\n  {raw_key}\n")
+    try:
+        old = load_key_policy(store.user_dir)
+    except KeyPolicyError:
+        if read_only is None or not (no_expiry or expires_in or expires_at):
+            typer.echo("The current key's policy can't be read; pass --read-only or --read-write "
+                       "and --expires-in/--expires-at/--no-expiry explicitly.", err=True)
+            raise typer.Exit(1)
+        old = None
+
+    scope = (SCOPE_READ if read_only else SCOPE_READ_WRITE) if read_only is not None else old.scope
+    expiry = _expiry_from_options(expires_in, expires_at)
+    if expiry is None and not no_expiry and old is not None and old.lifetime is not None:
+        expiry = dt.datetime.now(dt.timezone.utc) + old.lifetime
+
+    raw_key = issue_key(store.user_dir, scope, expiry)
+    typer.echo(f"✓ API key rotated for '{name}'. The old key no longer works.")
+    typer.echo(f"  New API key ({_describe_policy(load_key_policy(store.user_dir))}; "
+               f"shown once):\n\n  {raw_key}\n")
+
+
+@user_app.command('revoke-key')
+def user_revoke_key(name: str = typer.Argument(...)):
+    """Revoke a user's API key without issuing a new one (rotate-key issues a new one later)."""
+    from mm.core.store import UserStore
+    from mm.auth.keys import revoke_key
+
+    store = UserStore(DATA_ROOT, name)
+    if not store.user_dir.exists():
+        typer.echo(f"User '{name}' not found.", err=True)
+        raise typer.Exit(1)
+    if revoke_key(store.user_dir):
+        typer.echo(f"✓ API key revoked for '{name}'.")
+    else:
+        typer.echo(f"User '{name}' has no API key.")
+
+
+@user_app.command('keys')
+def user_keys(name: str = typer.Argument(None, help='Only this user')):
+    """List API keys: scope, created and expiry. Never shows keys or hashes."""
+    from mm.auth.keys import KeyPolicyError, load_key_hash, load_key_policy
+
+    users_dir = DATA_ROOT / "users"
+    dirs = sorted(p for p in users_dir.iterdir() if p.is_dir()) if users_dir.is_dir() else []
+    if name:
+        dirs = [d for d in dirs if d.name == name]
+        if not dirs:
+            typer.echo(f"User '{name}' not found.", err=True)
+            raise typer.Exit(1)
+    if not dirs:
+        typer.echo("No users.")
+        return
+
+    fmt = lambda d: f"{d:%Y-%m-%d %H:%M}" if d else "-"
+    rows = [("USER", "SCOPE", "CREATED (UTC)", "EXPIRES (UTC)", "STATUS")]
+    for d in dirs:
+        if load_key_hash(d) is None:
+            rows.append((d.name, "-", "-", "-", "no key"))
+            continue
+        try:
+            pol = load_key_policy(d)
+        except KeyPolicyError:
+            rows.append((d.name, "?", "-", "-", "invalid policy (refused)"))
+            continue
+        rows.append((d.name, pol.scope, fmt(pol.created_at), fmt(pol.expires_at) if pol.expires_at
+                     else "never", "expired" if pol.is_expired() else "active"))
+    widths = [max(len(r[i]) for r in rows) for i in range(len(rows[0]))]
+    for r in rows:
+        typer.echo("  ".join(c.ljust(w) for c, w in zip(r, widths)).rstrip())
 
 
 # ─────────────────────────────────────────────────────────────────────────────
