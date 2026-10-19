@@ -30,10 +30,16 @@ RUN uv pip install --python /opt/venv/bin/python --no-cache --no-deps .
 # ── Runtime stage ────────────────────────────────────────────────────────────
 FROM python:3.11-slim@sha256:bab1b7ef4b450c81002278d035eff85ebe394ae94df904f7a3ba14f7e16e487b
 
-# curl is used by the compose healthcheck.
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Pick up Debian security fixes released since the base digest was pinned (the image
+# scan in CI fails on fixable HIGH/CRITICAL). curl is used by the compose healthcheck.
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+# The app runs from /opt/venv; the base image's own pip/setuptools/wheel are never used
+# at runtime, so remove them rather than ship (and patch) them.
+RUN python -m pip uninstall -y pip setuptools wheel
 
 RUN groupadd --system --gid 10001 app \
     && useradd --system --uid 10001 --gid app --home-dir /home/app --create-home \
