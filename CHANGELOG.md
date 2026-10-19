@@ -7,6 +7,18 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [Unreleased]
+
+### Security
+- **The container no longer runs as root.** The app runs as an unprivileged user (uid 10001) with every Linux capability dropped and `no-new-privileges` set, so a compromised process has far less reach into the host
+- **Smaller image, no compilers:** build tools stay in a separate build stage (the image is roughly 40% smaller)
+
+### Upgrading
+- **Docker Compose:** nothing to do. A one-shot `volume-init` service hands your existing data volume to the new user on the next `docker compose up -d`
+- **`docker run`:** start the container once with `--user 0` to repair the data volume's ownership; it then drops to the non-root user by itself
+- **Railway** (volumes are mounted as root): set the service variable `RAILWAY_RUN_UID=0`. The container starts as root only to fix the volume's ownership, then runs as the non-root user
+- If the data volume isn't writable, the container now stops with a message explaining the fix
+
 ## [0.2.5] — 2026-10-03
 
 One consistent voice.
