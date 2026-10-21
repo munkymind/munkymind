@@ -1,5 +1,20 @@
 services:
 
+  # One-shot: hands the data volume to the app user (uid 10001). Needed once when upgrading
+  # from a release that ran as root; a no-op afterwards. It is the only service that starts
+  # as root, and it keeps just the capabilities required to change file ownership.
+  volume-init:
+    build: .
+    image: munkymind/api:latest
+    user: "0:0"
+    command: ["true"]
+    volumes:
+      - mm_data:/data
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_READ_SEARCH, SETUID, SETGID]
+    security_opt: ["no-new-privileges:true"]
+    restart: "no"
+
   api:
     build: .
     image: munkymind/api:latest
@@ -18,6 +33,11 @@ services:
       - MM_LLM_PROVIDER=${MM_LLM_PROVIDER:-anthropic}
       - MM_EMBED_PROVIDER=${MM_EMBED_PROVIDER:-openai}
       - MM_VOICE
+    depends_on:
+      volume-init:
+        condition: service_completed_successfully
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -43,6 +63,8 @@ services:
       # Public HTTPS address for claude.ai / ChatGPT connectors (e.g. your tunnel URL).
       # Leave empty for Claude Desktop or local use.
       - MCP_BASE_URL=${MCP_BASE_URL:-}
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     depends_on:
       api:
         condition: service_healthy

@@ -1,0 +1,3 @@
+# Accepted image-scan findings (see .github/workflows/image-scan.yml).
+# One vulnerability ID per line, each with a comment saying why it is accepted, when, and
+# what removes it. Only fixable findings need listing: unfixed ones are reported, not gated.

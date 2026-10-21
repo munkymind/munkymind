@@ -1,0 +1,50 @@
+name: Image Scan
+
+# Known-vulnerability check on the built container image: Debian OS packages plus the
+# Python packages actually in the image. Complements audit.yml (locked Python deps).
+# Fails on HIGH/CRITICAL findings that have a fix available; unfixed ones are reported
+# but don't block, since there is nothing to upgrade to yet.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "30 3 * * 1"   # weekly, catches newly published advisories
+
+permissions:
+  contents: read
+
+env:
+  # Trivy run from its official image, pinned by digest like the base image.
+  # Update the pin deliberately (the vulnerability database itself is fetched fresh).
+  TRIVY_IMAGE: aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
+
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build image
+        run: docker build -t munkymind-scan:ci .
+
+      - name: Report (all HIGH/CRITICAL, including unfixed)
+        run: |
+          {
+            echo '## Image scan'
+            echo '```'
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+              -v "$RUNNER_TEMP/trivy:/root/.cache/trivy" -v "$PWD/.trivyignore:/.trivyignore:ro" \
+              "$TRIVY_IMAGE" image --quiet --scanners vuln --severity HIGH,CRITICAL \
+              --ignorefile /.trivyignore --format table munkymind-scan:ci
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Gate (fail on fixable HIGH/CRITICAL)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$RUNNER_TEMP/trivy:/root/.cache/trivy" -v "$PWD/.trivyignore:/.trivyignore:ro" \
+            "$TRIVY_IMAGE" image --quiet --scanners vuln --severity HIGH,CRITICAL \
+            --ignore-unfixed --ignorefile /.trivyignore --skip-db-update \
+            --exit-code 1 --format table munkymind-scan:ci

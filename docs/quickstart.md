@@ -174,7 +174,7 @@ cloudflared tunnel --url http://localhost:8001
 2. A Munkymind login page opens. Paste the `mm_sk_...` API key the setup wizard printed.
 3. Ask: *"Use Munkymind: what am I working on?"*
 
-The tunnel URL changes every time you restart it (re-add the connector), and it only works while your machine is on. For an always-on connector, deploy to Railway (`railway.toml` is included) or any HTTPS host. If your host rewrites the address, set `MCP_BASE_URL=https://your-host` in `.env` and run `docker compose up -d mcp`.
+The tunnel URL changes every time you restart it (re-add the connector), and it only works while your machine is on. For an always-on connector, deploy to Railway (`railway.toml` is included) or any HTTPS host. On Railway, set the service variable `RAILWAY_RUN_UID=0`: Railway mounts volumes as root, so the container starts as root just long enough to hand the volume to its non-root user. If your host rewrites the address, set `MCP_BASE_URL=https://your-host` in `.env` and run `docker compose up -d mcp`.
 
 > **Make sure `MM_USER_ID` in `.env` matches the username you created in the wizard**, then `docker compose up -d mcp`. The MCP container serves that one user.
 
