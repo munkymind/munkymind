@@ -95,9 +95,15 @@ jobs:
           This is a test document about Australian bananas and tropical fruit farming in Queensland.
           EOFSMALL
 
-          curl -s -X POST -H "X-API-Key: $MM_API_KEY" \
+          INGEST=$(curl -s -X POST -H "X-API-Key: $MM_API_KEY" \
             -F "files=@/tmp/test-small.md" \
-            http://localhost:8000/ingest/files
+            http://localhost:8000/ingest/files)
+          echo "Ingest response: $INGEST"
+          CHUNKS=$(echo "$INGEST" | python3 -c "import sys,json; print(json.load(sys.stdin).get('chunks_total', 0))")
+          if [ "$CHUNKS" -lt 1 ]; then
+            echo "❌ Small file produced $CHUNKS chunks (expected ≥1)."
+            exit 1
+          fi
 
           # Verify pages count
           PAGES=$(curl -s -H "X-API-Key: $MM_API_KEY" http://localhost:8000/pages \
@@ -129,7 +135,7 @@ jobs:
           import sys, json
           d = json.load(sys.stdin)
           sources = d.get('sources', [])
-          # An answer alone isn't enough: with 0 chunks the model still answers ("no information").
+          # An answer alone is not enough: with 0 chunks the model still answers (no information).
           if not sources:
               print('❌ Query returned no sources: the small file produced no retrievable chunks.')
               sys.exit(1)
@@ -146,9 +152,15 @@ jobs:
           BEFORE=$(curl -s -H "X-API-Key: $MM_API_KEY" http://localhost:8000/pages \
             | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('pages', [])))")
 
-          curl -s -X POST -H "X-API-Key: $MM_API_KEY" \
+          INGEST=$(curl -s -X POST -H "X-API-Key: $MM_API_KEY" \
             -F "files=@tests/fixtures/large-integration-test.md" \
-            http://localhost:8000/ingest/files
+            http://localhost:8000/ingest/files)
+          echo "Ingest response: $INGEST"
+          CHUNKS=$(echo "$INGEST" | python3 -c "import sys,json; print(json.load(sys.stdin).get('chunks_total', 0))")
+          if [ "$CHUNKS" -lt 3 ]; then
+            echo "❌ Large file produced $CHUNKS chunks (expected ≥3: one oversized section must be split)."
+            exit 1
+          fi
 
           AFTER=$(curl -s -H "X-API-Key: $MM_API_KEY" http://localhost:8000/pages \
             | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('pages', [])))")
