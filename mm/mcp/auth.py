@@ -110,22 +110,16 @@ def _verify_pkce(code_challenge: str, code_verifier: str) -> bool:
 # Key verification (shared with all auth paths)
 # ---------------------------------------------------------------------------
 
-def _get_hash(data_root: Path, user_id: str) -> str | None:
-    hash_file = data_root / "users" / user_id / "api_key.hash"
-    if hash_file.exists():
-        return hash_file.read_text().strip()
-    return None
-
-
 def _verify_key(raw_key: str, data_root: Path, user_id: str) -> bool:
-    if not raw_key or not raw_key.startswith("mm_sk_"):
-        return False
-    stored = _get_hash(data_root, user_id)
-    if not stored:
-        return False
+    """True if raw_key is user_id's current, unexpired key.
+
+    The MCP tools only read, so any scope is accepted here; expiry is checked
+    on every request because the OAuth access token is the key itself.
+    """
+    from mm.auth.keys import check_key
+
     try:
-        import bcrypt
-        return bcrypt.checkpw(raw_key.encode(), stored.encode())
+        return check_key(raw_key, data_root / "users" / user_id).valid
     except Exception:
         return False
 
