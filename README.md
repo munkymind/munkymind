@@ -48,6 +48,15 @@ Cross-domain answers. Traced to sources. No hallucination.
 
 **Prerequisites:** Docker + Docker Compose and **one API key**: an OpenAI key covers both embeddings and answers. (Prefer Claude for answers? Add an Anthropic key too. Want it fully local? Use Ollama and no key.) About 10–15 minutes. Full checklist: [Before you start](docs/quickstart.md#before-you-start-about-10-minutes-of-setup).
 
+**Who pays, and how much?**
+
+- **Munkymind is free.** There's no Munkymind account, subscription or hosted service: the software runs on your machine.
+- **Your instance calls the AI provider directly, with your key**, and the provider bills you for what you use. Your key stays in your `.env` and is never sent anywhere except that provider.
+- **OpenAI's API is prepaid and separate from a ChatGPT subscription.** Add a few dollars of credit under [Billing](https://platform.openai.com/settings/organization/billing) before you start; without credit, indexing fails.
+- **Typical cost is cents.** With the default models, indexing ~50 notes costs a few cents (embeddings only), and each question costs a fraction of a cent. Check current prices on the provider's pricing page.
+- **Cap it.** Create a dedicated OpenAI *project* for Munkymind, set a monthly budget on that project, and create the key inside it, so the key can't spend beyond the limit or touch your other projects.
+- **Free option:** [Ollama](https://ollama.com/) runs everything locally with no key and no bill (slower; needs a decent machine).
+
 ```bash
 # 1. Clone and configure
 git clone https://github.com/munkymind/munkymind.git
