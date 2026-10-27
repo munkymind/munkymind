@@ -38,13 +38,17 @@ def run_wizard() -> None:
         raise typer.Exit(1)
 
     from mm.core.store import UserStore
-    from mm.auth.keys import generate_key, save_key_hash
+    from mm.auth.keys import generate_key, load_key_hash, save_key_hash
     from mm.config.user import UserConfig, LLMConfig, EmbedConfig
 
     store = UserStore(DATA_ROOT, username)
 
     # ── Step 2: Check for existing user — warn and offer abort ───────────────
-    user_already_exists = store.config_path.exists()
+    # A saved key counts too: an earlier setup may have stopped after creating the key but
+    # before saving the config, and issuing a new key then would silently kill the old one.
+    has_config = store.config_path.exists()
+    has_key = load_key_hash(store.user_dir) is not None if store.user_dir.exists() else False
+    user_already_exists = has_config or has_key
     if user_already_exists:
         typer.echo(
             f"\n⚠️  Warning: User '{username}' already exists.",
@@ -62,16 +66,25 @@ def run_wizard() -> None:
 
     # ── Create user / load config, generate API key for new users ────────────
     raw_key: str | None = None
-    if user_already_exists:
+    if has_config:
         cfg = UserConfig.load(store.config_path)
         typer.echo(f"\n✓ Reconfiguring existing user: '{username}'")
+    elif has_key:
+        cfg = UserConfig.default(username)
+        cfg.save(store.config_path)
+        typer.echo(f"\n✓ Found the API key from an earlier, unfinished setup for '{username}'. Keeping it.")
+        typer.echo("  (Lost it? Run `mm rotate-key` to issue a new one.)")
     else:
         cfg = UserConfig.default(username)
         raw_key, hashed = generate_key()
         save_key_hash(store.user_dir, hashed)
+        # Save the config straight away, so an interrupted setup still leaves a complete user
+        cfg.save(store.config_path)
         typer.echo(f"\n✓ User '{username}' created.")
         typer.echo("━" * 60)
-        typer.echo("  Save this API key — it is shown ONCE and cannot be recovered:")
+        typer.echo("  Your API key signs you in to the API, the library UI and AI tools")
+        typer.echo("  (Claude, ChatGPT) over MCP. Save it in a password manager.")
+        typer.echo("  It is shown ONCE and cannot be recovered (rotate-key issues a new one):")
         typer.echo(f"\n    {raw_key}\n")
         typer.echo("━" * 60)
 
