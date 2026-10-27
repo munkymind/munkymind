@@ -23,16 +23,27 @@ def _default_data_root() -> Path:
 DATA_ROOT = Path(os.environ.get('DATA_ROOT', str(_default_data_root())))
 
 
-def run_wizard() -> None:
-    """Walk user through initial configuration interactively."""
+# Answers supplied up front (`mm setup --username ... --yes`, used by the host-side setup.sh).
+# Any prompt with an answer here is skipped; keys then come from the environment.
+_ANSWERS: dict = {}
+
+
+def _given(key: str):
+    return _ANSWERS.get(key)
+
+
+def run_wizard(answers: dict | None = None) -> None:
+    """Walk user through initial configuration interactively (or from `answers`)."""
+    global _ANSWERS
+    _ANSWERS = {k: v for k, v in (answers or {}).items() if v not in (None, "")}
     typer.echo("\n🐒 Welcome to Munkymind Setup Wizard\n")
 
     # ── Step 1: Username ─────────────────────────────────────────────────────
     system_user = os.environ.get("USER", os.environ.get("LOGNAME", "user"))
-    username = typer.prompt(
+    username = (_given("username") or typer.prompt(
         "Step 1 · Enter username (alphanumeric + hyphens)",
         default=system_user,
-    ).strip()
+    )).strip()
     if not username:
         typer.echo("Username cannot be empty.", err=True)
         raise typer.Exit(1)
@@ -54,7 +65,7 @@ def run_wizard() -> None:
             f"\n⚠️  Warning: User '{username}' already exists.",
             err=False,
         )
-        choice = typer.confirm(
+        choice = bool(_given("yes")) or typer.confirm(
             "  Continue and reconfigure? (API key will NOT be regenerated)",
             default=False,
         )
@@ -105,13 +116,16 @@ def run_wizard() -> None:
         default_llm = "2"
     else:
         default_llm = "3" if _ollama_available() else "1"
-    llm_choice = typer.prompt("Choose [1-3]", default=default_llm)
+    if _given("llm") in llm_providers:
+        llm_choice = str(llm_providers.index(_given("llm")) + 1)
+    else:
+        llm_choice = typer.prompt("Choose [1-3]", default=default_llm)
     try:
         llm_provider = llm_providers[int(llm_choice) - 1]
     except (ValueError, IndexError):
         llm_provider = "anthropic"
 
-    if llm_provider != "ollama":
+    if llm_provider != "ollama" and not _given("yes"):
         llm_key = typer.prompt(f"Enter {llm_provider} API key", hide_input=True, default="")
         if llm_key:
             _set_env_var(f"{llm_provider.upper()}_API_KEY", llm_key)
@@ -129,7 +143,11 @@ def run_wizard() -> None:
     typer.echo("\nEmbedding provider")
     for i, p in enumerate(embed_providers, 1):
         typer.echo(f"  {i}. {p}")
-    embed_choice = typer.prompt("Choose [1-2]", default=default_embed)
+    want_embed = {"openai": "openai", "ollama": "local (ollama)"}.get(_given("embed") or "")
+    if want_embed in embed_providers:
+        embed_choice = str(embed_providers.index(want_embed) + 1)
+    else:
+        embed_choice = typer.prompt("Choose [1-2]", default=default_embed)
     try:
         embed_choice_name = embed_providers[int(embed_choice) - 1]
     except (ValueError, IndexError):
@@ -138,7 +156,7 @@ def run_wizard() -> None:
     if "openai" in embed_choice_name:
         embed_provider_name = "openai"
         embed_model = "text-embedding-3-small"
-        embed_key = typer.prompt(
+        embed_key = "" if _given("yes") else typer.prompt(
             "Enter OpenAI API key (or leave blank if already set)", hide_input=True, default=""
         )
         if embed_key:
@@ -154,7 +172,7 @@ def run_wizard() -> None:
     typer.echo("  1. Local files (directory of markdown / text files)")
     typer.echo("  2. GitHub repository")
     typer.echo("  3. Both")
-    connector_choice = typer.prompt("Choose [1-3]", default="1")
+    connector_choice = "1" if _given("notes") else typer.prompt("Choose [1-3]", default="1")
 
     if connector_choice == "2":
         connector_ids = ["github"]
@@ -267,7 +285,7 @@ def run_wizard() -> None:
     )
     typer.echo(f"   Pages:      {total_pages} ingested across {n_domains} domain(s)")
     typer.echo(f"\n   Try: munkymind query --user {username} \"<your question>\"")
-    typer.echo("   See your brains: http://localhost:8000/ui")
+    typer.echo(f"   See your brains: http://localhost:{os.environ.get('API_PORT') or '8000'}/ui")
     typer.echo("   What to try next: https://github.com/munkymind/munkymind/blob/main/docs/using-munkymind.md")
     typer.echo("━" * 60)
 
@@ -310,12 +328,19 @@ def _configure_files_connector() -> dict:
     """Prompt for files connector config, validate path."""
     typer.echo("\nFile connector — local directory of markdown/text files")
     while True:
-        dir_path = typer.prompt("Enter directory path to ingest").strip()
+        dir_path = (_given("notes") or typer.prompt("Enter directory path to ingest")).strip()
         p = Path(dir_path).expanduser()
         if p.exists() and p.is_dir():
             typer.echo(f"  ✓ Path exists: {p}")
             return {"connector": "files", "path": str(p)}
-        typer.echo(f"  ✗ Not a directory: {p}. Please try again.", err=True)
+        if _given("notes"):
+            typer.echo(f"  ✗ Not a directory: {p}.", err=True)
+            raise typer.Exit(2)
+        if Path("/notes").is_dir() and not str(p).startswith("/notes"):
+            typer.echo(f"  ✗ Not a directory: {p}. Inside Docker your notes folder is /notes "
+                       "(set MM_NOTES_DIR in .env to choose which folder that is).", err=True)
+        else:
+            typer.echo(f"  ✗ Not a directory: {p}. Please try again.", err=True)
 
 
 def _configure_github_connector() -> dict:
