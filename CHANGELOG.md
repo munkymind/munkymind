@@ -25,8 +25,16 @@ Versioning: [Semantic Versioning](https://semver.org/)
 - If the data volume isn't writable, the container now stops with a message explaining the fix
 
 ### Added
+- **One-command setup: `./setup.sh`.** Asks for the AI provider, your API key (checked with one call before anything starts), a username and your notes folder; writes `.env`, picks free ports if 8000/8001 are taken, starts Docker and runs the setup wizard with those answers, so nothing is asked twice. Safe to re-run
+- `munkymind setup` takes its answers as flags (`--username`, `--llm`, `--embed`, `--notes`, `--yes`) for scripted installs
 - `munkymind user rotate-key <name>` keeps the old key's scope and lifetime (override with `--read-only`/`--read-write`, `--expires-in`/`--expires-at`, `--no-expiry`); the old key stops working at once
 - `munkymind user keys` lists each user's key scope, creation and expiry (never the key or its hash); `munkymind user revoke-key <name>` revokes a key
+
+### Fixed
+- **Re-ingesting syncs with your notes folder.** Unchanged notes are skipped (nothing re-embedded), edited notes replace their old chunks, and deleted or renamed notes are removed. Removal is limited to the connector's own folder and never happens when the folder comes back empty (e.g. not mounted)
+- **Search finds exact words as well as meaning.** Retrieval combines keyword and vector search, so names, codes and rare terms are found; weak matches are cut off, so an unrelated question gets "not in your library" instead of loosely related notes; the same chunk is never returned twice
+- **Re-running setup never replaces your API key.** An interrupted or repeated setup keeps the existing key for that username
+- The library address printed after setup uses the real API port
 
 ### Changed
 - Key policies are stored next to the hash in `users/<name>/api_key.json`. Existing keys have no policy file and keep working unchanged (read-write, no expiry)
