@@ -32,8 +32,8 @@ Have these ready before step 1. Path A (Docker, recommended) needs only the firs
 |---|---|
 | Claude to write the answers (instead of OpenAI) | An Anthropic API key: [console.anthropic.com](https://console.anthropic.com/) |
 | Fully local, no API key | [Ollama](https://ollama.com/) with a chat model and `nomic-embed-text` pulled (slower; needs a decent machine) |
-| To use it from **Claude Desktop** | [Claude Desktop](https://claude.ai/download) (step 6) |
-| To use it from **claude.ai or ChatGPT** | `cloudflared` for a free tunnel, or a hosted deploy (step 7). Connectors need a public HTTPS address |
+| To use it from **Claude Desktop** | [Claude Desktop](https://claude.ai/download) (step 3) |
+| To use it from **claude.ai or ChatGPT** | `cloudflared` for a free tunnel, or a hosted deploy (step 4). Connectors need a public HTTPS address |
 | Path B (local install, no Docker) | Python 3.11+ (with `pip`) |
 
 Never paste your API keys into a chat or commit them; they go only in `.env` or the setup wizard.
@@ -42,70 +42,51 @@ Never paste your API keys into a chat or commit them; they go only in `.env` or 
 
 ## Path A: Docker Compose (recommended for production)
 
-### 1. Clone and configure
+### 1. Run the setup script
 
 ```bash
 git clone https://github.com/munkymind/munkymind.git
 cd munkymind
-cp .env.example .env
+./setup.sh
 ```
 
-Edit `.env`:
-```bash
-OPENAI_API_KEY=sk-...         # One key is enough: OpenAI does embeddings and answers
-ANTHROPIC_API_KEY=            # Optional: add it if you want Claude to write the answers
-MM_USER_ID=yourname           # The username you'll create in the wizard (the MCP container serves it)
-```
+It asks a few questions and does the rest:
 
-### 2. Start services
+| Question | Answer |
+|----------|--------|
+| Who should write the answers? | `1` OpenAI (one key does everything) or `2` Claude (needs an Anthropic key too) |
+| OpenAI API key | paste it (hidden); it is checked with one API call before anything starts |
+| Username | anything, e.g. `myname` |
+| Where are your notes? | any folder of `.md`/`.txt`/`.pdf`; an Obsidian vault works as is. Press Enter for `./notes` |
 
-```bash
-docker compose up -d
-```
+It then writes `.env`, picks free ports if 8000 (API) or 8001 (MCP) are taken, starts Docker, creates your user, prints your API key (**save it — shown once**), indexes your notes and runs a test question. You should see `🎉 Your context library is ready!` and the addresses of the library UI and MCP endpoint.
 
-Wait ~30 seconds for startup. Check health:
-```bash
-curl http://localhost:8000/health
-# → {"status": "ok"}
-```
+Re-running `./setup.sh` is safe: your current answers are offered as defaults and the existing API key for your username is kept. Windows: run it from WSL or Git Bash.
 
-### 3. Add your notes
-
-The API container reads notes from `./notes` (mounted read-only at `/notes`). Point `MM_NOTES_DIR` in `.env` at another folder if you prefer.
-
-```bash
-mkdir -p notes
-cp -r ~/path/to/your/notes/* notes/
-```
-
-No notes handy, or just kicking the tyres? Set `MM_NOTES_DIR=./examples/sample-notes` in `.env` to use a small made-up library instead.
+No notes handy, or just kicking the tyres? Answer `./examples/sample-notes` for the notes folder to use a small made-up library.
 
 Domains (health, professional, strategic, projects, temporal, personal) are detected from file and folder names, so `notes/health/sleep.md` lands in *health*. Anything unmatched goes to *personal*.
 
-**Cost and time:** indexing about 50 notes takes a minute or two and a few cents of OpenAI usage. After that, each question costs a fraction of a cent.
+**Cost and time:** the first Docker build takes a few minutes. Indexing about 50 notes takes a minute or two and a few cents of OpenAI usage. After that, each question costs a fraction of a cent.
 
-### 4. Run the setup wizard
+#### Manual setup
+
+Prefer to do each step yourself (or use Ollama)?
 
 ```bash
+cp .env.example .env
+# Edit .env: OPENAI_API_KEY, MM_USER_ID=yourname, MM_NOTES_DIR=/path/to/notes
+# Ports: API_PORT (default 8000) and MCP_PORT (default 8001) if those are taken
+docker compose up -d
+curl http://localhost:8000/health     # → {"status": "ok"}
 docker compose exec api munkymind setup
 ```
 
-Answer the prompts:
+The wizard asks for a username, the LLM provider, keys (press **Enter**: Docker already has them from `.env`), where your context is (`1`, local files) and the directory (`/notes`). The same answers can be given as flags: `munkymind setup --username myname --llm openai --embed openai --notes /notes --yes`.
 
-| Prompt | Answer |
-|--------|--------|
-| Username | anything, e.g. `myname` |
-| LLM provider | `1` (anthropic) or `2` (openai) |
-| API key prompts | press **Enter** — Docker already has the keys from `.env` |
-| Where is your context? | `1` (local files) |
-| Directory path | `/notes` |
-
-The wizard creates your user, prints your API key (**save it — shown once**), ingests `/notes`, and runs a test query. You should see `🎉 Your context library is ready!`
-
-> The wizard needs an interactive terminal. `docker compose exec` gives you one; don't add `-T`.
 > `munkymind user create` only creates a user and key — it does **not** configure a connector, so `ingest` will say "No connector 'files' configured". Use `setup`.
 
-### 5. Query your context
+### 2. Query your context
 
 From the CLI:
 ```bash
@@ -143,7 +124,7 @@ docker compose exec api munkymind show <page-id> -u myname  # read one page
 docker compose exec api munkymind peek -u myname "What should I focus on this week?"
 ```
 
-### 6. Connect to Claude Desktop (MCP)
+### 3. Connect to Claude Desktop (MCP)
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
 
@@ -162,15 +143,15 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 }
 ```
 
-Set `MM_USER_ID=myname` in `.env` and run `docker compose up -d mcp` so the MCP container serves your user (it defaults to `default`).
+`setup.sh` already sets `MM_USER_ID` to your username. Set up by hand? Set `MM_USER_ID=myname` in `.env` and run `docker compose up -d mcp` so the MCP container serves your user (it defaults to `default`).
 
 Or for local install (Path B), use the simpler config from the README.
 
 ---
 
-### 7. Connect claude.ai or ChatGPT (remote connector)
+### 4. Connect claude.ai or ChatGPT (remote connector)
 
-Claude Desktop (step 6) talks to Munkymind locally. **claude.ai and ChatGPT** connect over the internet, so they need a public HTTPS address for the MCP container (port 8001).
+Claude Desktop (step 3) talks to Munkymind locally. **claude.ai and ChatGPT** connect over the internet, so they need a public HTTPS address for the MCP container (port 8001, or the `MCP_PORT` setup.sh chose).
 
 **Quick test (free, no account):** a Cloudflare quick tunnel.
 
@@ -186,7 +167,7 @@ cloudflared tunnel --url http://localhost:8001
 
 The tunnel URL changes every time you restart it (re-add the connector), and it only works while your machine is on. For an always-on connector, deploy to Railway (`railway.toml` is included) or any HTTPS host. On Railway, set the service variable `RAILWAY_RUN_UID=0`: Railway mounts volumes as root, so the container starts as root just long enough to hand the volume to its non-root user. If your host rewrites the address, set `MCP_BASE_URL=https://your-host` in `.env` and run `docker compose up -d mcp`.
 
-> **Make sure `MM_USER_ID` in `.env` matches the username you created in the wizard**, then `docker compose up -d mcp`. The MCP container serves that one user.
+> **Set up by hand? Make sure `MM_USER_ID` in `.env` matches the username you created in the wizard**, then `docker compose up -d mcp`. The MCP container serves that one user.
 
 ---
 
@@ -295,7 +276,7 @@ munkymind domain remove projects --user myname             # Remove domain
 
 - **One notes folder.** Docker mounts a single folder (`MM_NOTES_DIR`, default `./notes`) at `/notes`. To ingest several folders, put them under one parent folder and point `MM_NOTES_DIR` there, or use the GitHub connector for repos (no mount needed). Changing `MM_NOTES_DIR` needs `docker compose up -d`.
 - **Unreadable files are skipped.** A corrupt PDF (or any file that can't be read) is skipped with a warning; the rest of the folder still ingests.
-- **Remote connectors need a public URL.** See step 7 (tunnel or a hosted deploy).
+- **Remote connectors need a public URL.** See step 4 (tunnel or a hosted deploy).
 
 
 **"Collection not found" on first query**

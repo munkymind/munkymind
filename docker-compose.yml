@@ -33,6 +33,8 @@ services:
       - MM_LLM_PROVIDER=${MM_LLM_PROVIDER:-anthropic}
       - MM_EMBED_PROVIDER=${MM_EMBED_PROVIDER:-openai}
       - MM_VOICE
+      # The host port, so links printed inside the container point at the right place
+      - API_PORT=${API_PORT:-8000}
     depends_on:
       volume-init:
         condition: service_completed_successfully

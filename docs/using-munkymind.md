@@ -34,7 +34,7 @@ You'll see the exact snippets your AI would be sent, in order, and what share of
 ### 3. Ask from your AI tool (5 min)
 Munkymind plugs into your AI tools through **MCP**, the standard way Claude, ChatGPT and Cursor call outside tools. Connect one tool (setup steps are in the [quickstart](quickstart.md)):
 - **Claude Desktop / Cursor:** run `bash setup-mcp.sh`, or use the manual config in the README
-- **claude.ai or ChatGPT:** add Munkymind as a custom connector (quickstart step 7)
+- **claude.ai or ChatGPT:** add Munkymind as a custom connector (quickstart step 4)
 
 Then ask something that needs your context:
 > *"Using Munkymind, what should I focus on this week?"*

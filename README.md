@@ -58,34 +58,26 @@ Cross-domain answers. Traced to sources. No hallucination.
 - **Free option:** [Ollama](https://ollama.com/) runs everything locally with no key and no bill (slower; needs a decent machine).
 
 ```bash
-# 1. Clone and configure
 git clone https://github.com/munkymind/munkymind.git
 cd munkymind
-cp .env.example .env
-# Edit .env — add OPENAI_API_KEY (and ANTHROPIC_API_KEY only if you want Claude for answers)
+./setup.sh
+```
 
-# 2. Put some notes in ./notes (markdown, text or PDF)
-mkdir -p notes && cp -r ~/path/to/your/notes/* notes/
+`setup.sh` asks for your key (and checks it works), a username and your notes folder (an Obsidian vault works as is), picks free ports if 8000/8001 are taken, starts Docker, indexes your notes and runs a test question. **Save the `mm_sk_...` API key it prints: it is shown once.** On Windows, run it from WSL or Git Bash.
 
-# 3. Start
-docker compose up -d
+Then ask a question:
 
-# 4. Run the setup wizard (creates your user, connects /notes, ingests, test-queries)
-docker compose exec api munkymind setup
-#    - username: pick one
-#    - API key prompts: press Enter (Docker already has them from .env)
-#    - "Where is your context?": 1 (local files), path: /notes
-#    - SAVE the mm_sk_... API key it prints — it is shown once
-
-# 5. Ask a question
+```bash
 docker compose exec api munkymind query --user yourname "What should I focus on this week?"
 
-# ...or over the REST API
+# ...or over the REST API (use the port setup.sh printed)
 curl -X POST http://localhost:8000/query \
   -H "X-API-Key: mm_sk_YOUR_KEY_HERE" \
   -H "Content-Type: application/json" \
   -d '{"query": "What should I focus on this week?"}'
 ```
+
+Prefer to do it by hand? See [the manual steps](docs/quickstart.md#manual-setup).
 
 Added more notes later? `docker compose exec api munkymind ingest --connector files --user yourname`
 

@@ -293,10 +293,16 @@ def domain_remove(
 # ─────────────────────────────────────────────────────────────────────────────
 
 @app.command()
-def setup():
-    """Interactive setup wizard — zero to working context library in < 30 minutes."""
+def setup(
+    username: str = typer.Option("", "--username", help="Skip the username prompt"),
+    llm: str = typer.Option("", "--llm", help="Answer model: anthropic | openai | ollama"),
+    embed: str = typer.Option("", "--embed", help="Embeddings: openai | ollama"),
+    notes: str = typer.Option("", "--notes", help="Notes folder to index (in Docker: /notes)"),
+    yes: bool = typer.Option(False, "--yes", help="No questions: reuse an existing user and take API keys from the environment"),
+):
+    """Setup wizard: zero to working context library in < 30 minutes. Flags skip the matching prompts."""
     from mm.cli.wizard import run_wizard
-    run_wizard()
+    run_wizard({"username": username, "llm": llm, "embed": embed, "notes": notes, "yes": yes})
 
 
 # ─────────────────────────────────────────────────────────────────────────────
