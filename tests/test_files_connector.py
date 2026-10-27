@@ -148,9 +148,11 @@ def test_ingestion_idempotent(tmp_path):
     assert result1["pages_updated"] == 0
     assert result1["status"] == "ok"
 
-    # Second run — same files, should all be updates
+    # Second run — same files, nothing changed: nothing re-embedded
     connector2 = FilesConnector(config={"path": str(files_dir)}, user_config=None)
     result2 = run_connector(connector2, store, mock_embed)
     assert result2["pages_created"] == 0
-    assert result2["pages_updated"] == 2
+    assert result2["pages_updated"] == 0
+    assert result2["pages_unchanged"] == 2
+    assert result2["chunks_total"] == 0
     assert result2["status"] == "ok"

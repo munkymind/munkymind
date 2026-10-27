@@ -357,11 +357,10 @@ def ingest(
     if dry_run:
         typer.echo(f"✓ Dry run: {result['chunks_total']} chunk(s) built, nothing written.")
     else:
-        pages_n = result["pages_created"] + result["pages_updated"]
         typer.echo(
-            f"✓ Ingested {pages_n} page(s) via '{connector}' "
-            f"({result['pages_created']} new, {result['pages_updated']} updated, "
-            f"{result['chunks_total']} chunks)."
+            f"✓ Synced via '{connector}': {result.get('pages_created', 0)} new, "
+            f"{result.get('pages_updated', 0)} updated, {result.get('pages_removed', 0)} removed, "
+            f"{result.get('pages_unchanged', 0)} unchanged ({result.get('chunks_total', 0)} chunks embedded)."
         )
 
 

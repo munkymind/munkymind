@@ -1,6 +1,7 @@
 """FilesConnector — ingest markdown, text, and PDF files from a local path."""
 from __future__ import annotations
 
+import datetime
 import hashlib
 import re
 from pathlib import Path
@@ -60,6 +61,14 @@ def _detect_domain(path: Path, domain_map: dict[str, list[str]] | None = None,
             return domain
 
     return "personal"
+
+
+def _mtime(path: Path) -> str | None:
+    """The file's modification time (UTC ISO): what freshness should reflect, not the ingest time."""
+    try:
+        return datetime.datetime.fromtimestamp(path.stat().st_mtime, datetime.UTC).replace(tzinfo=None).isoformat()
+    except OSError:
+        return None
 
 
 def _page_id(path: Path) -> str:
@@ -136,6 +145,7 @@ def _ingest_text_file(path: Path, domain: str) -> ConnectorPage:
         source_ref=str(path),
         connector="files",
         tags=list(meta.keys()),
+        source_updated_at=_mtime(path),
     )
 
 
@@ -165,6 +175,7 @@ def _ingest_pdf_file(path: Path, domain: str) -> list[ConnectorPage]:
                 source="files",
                 source_ref=str(path),
                 connector="files",
+                source_updated_at=_mtime(path),
             )
 
         group_token_count = 0

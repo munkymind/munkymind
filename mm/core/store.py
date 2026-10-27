@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS pages (
     staleness_threshold_days INTEGER DEFAULT 30,
     confidence TEXT DEFAULT 'medium',
     tags TEXT,
-    raw_path TEXT
+    raw_path TEXT,
+    content_hash TEXT
 );
 
 CREATE TABLE IF NOT EXISTS ingestions (
@@ -63,6 +64,10 @@ class UserStore:
             d.mkdir(parents=True, exist_ok=True)
         con = sqlite3.connect(self.db_path)
         con.executescript(_SCHEMA)
+        # Libraries created before content_hash existed: add the column in place
+        cols = {r[1] for r in con.execute("PRAGMA table_info(pages)")}
+        if "content_hash" not in cols:
+            con.execute("ALTER TABLE pages ADD COLUMN content_hash TEXT")
         con.commit()
         con.close()
 
