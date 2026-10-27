@@ -101,10 +101,10 @@
     <h1>Your context, in every AI tool.</h1>
     <p class="lede">Your AI tools forget you every conversation. Munkymind is an open-source personal context library: point it at your notes, and Claude, ChatGPT and other tools can draw on them whenever they need to.</p>
     <div class="cta">
-      <a class="btn primary" href="#start">Get started in 15 minutes</a>
+      <a class="btn primary" href="#start">Get started in 10 minutes</a>
       <a class="btn ghost" href="https://github.com/munkymind/munkymind">View on GitHub</a>
     </div>
-    <p class="note">Needs Docker and one OpenAI API key. Setup costs a few cents.</p>
+    <p class="note">One command to set up. Needs Docker and one OpenAI API key. Setup costs a few cents.</p>
   </div>
 
   <section id="how">
@@ -112,7 +112,7 @@
     <div class="flow" role="img" aria-label="Your notes flow into Munkymind on your machine, which your AI tools query over MCP">
       <div class="node">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>
-        <h3>Your notes</h3><p>Markdown, text, PDFs and GitHub repos you choose</p>
+        <h3>Your notes</h3><p>Markdown, text, PDFs, an Obsidian vault as is, and GitHub repos you choose</p>
       </div>
       <div class="link"><svg viewBox="0 0 56 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 10h50M44 3l8 7-8 7"/></svg><span>Ingest</span></div>
       <div class="node hub">
@@ -127,8 +127,8 @@
     </div>
     <div class="roundtrip">
       <div>You ask a question in your AI tool</div>
-      <div>Munkymind finds the notes that matter</div>
-      <div>A short answer comes back, with its sources</div>
+      <div>Munkymind finds the notes that matter, by meaning and by exact words</div>
+      <div>A short answer comes back with its sources, or a plain “not in your library”</div>
     </div>
     <p class="privacy-line">Your library stays on your machine. Note text goes only to the AI provider you choose, under your own key, or nowhere at all with Ollama.</p>
   </section>
@@ -138,6 +138,8 @@
     <div class="grid">
       <div class="card"><h3>Runs on your machine</h3><p>Self-host with Docker. Your library is stored on your computer, and only reachable from it unless you choose to connect a remote tool.</p></div>
       <div class="card"><h3>Bring your own key</h3><p>Note text is sent only to the AI provider you choose (OpenAI or Anthropic), under your own key, to index it and write answers. Want nothing to leave your machine? Use Ollama, with no key at all.</p></div>
+      <div class="card"><h3>Keys you control</h3><p>Give an agent or tool a read-only key, make it expire in 30 days, rotate it with one command. Expired keys are refused everywhere, including by connected AI tools, and a rotated key stops working at once.</p></div>
+      <div class="card"><h3>Locked-down container</h3><p>Runs as an unprivileged user with every Linux capability dropped, and every release is scanned for known vulnerabilities before it ships.</p></div>
       <div class="card"><h3>Open source</h3><p>Apache 2.0 licensed. Read the code, change it, add your own connectors.</p></div>
     </div>
   </section>
@@ -146,18 +148,14 @@
     <h2>Get started</h2>
     <p class="note">You need Docker, git and one OpenAI API key. Indexing 50 notes takes a minute or two and costs a few cents of OpenAI usage; each question costs a fraction of a cent. Full checklist: <a href="https://github.com/munkymind/munkymind/blob/main/docs/quickstart.md#before-you-start-about-10-minutes-of-setup">Before you start</a>.</p>
     <ol class="steps">
-      <li><strong>Download and add your key</strong>
+      <li><strong>Download and run setup</strong>
 <pre><code>git clone https://github.com/munkymind/munkymind.git
 cd munkymind
-cp .env.example .env      # then put your OPENAI_API_KEY in .env</code></pre></li>
-      <li><strong>Add some notes and start it</strong>
-<pre><code>mkdir -p notes &amp;&amp; cp -r ~/path/to/your/notes/* notes/
-docker compose up -d</code></pre>
-        <p class="note">No notes handy? Set <code>MM_NOTES_DIR=./examples/sample-notes</code> in <code>.env</code> to try a small made-up library.</p></li>
-      <li><strong>Run the setup wizard</strong> (creates your user, ingests your notes, test-queries)
-<pre><code>docker compose exec api munkymind setup</code></pre>
-        <p class="note">Save the <code>mm_sk_…</code> key it prints. Then ask: <code>docker compose exec api munkymind query --user yourname "What am I working on?"</code></p></li>
-      <li><strong>See your brains.</strong> Open <code>http://localhost:8000/ui</code> and paste your key to browse what it learned.</li>
+./setup.sh</code></pre>
+        <p class="note">It asks for your key (and checks it works), a username and your notes folder, then starts everything, indexes your notes and runs a test question. Ports already in use? It picks free ones. Windows: run it from WSL or Git Bash. No notes handy? Answer <code>./examples/sample-notes</code> to try a small made-up library.</p></li>
+      <li><strong>Save your key and ask a question.</strong> Keep the <code>mm_sk_…</code> key it prints (it is shown once), then:
+<pre><code>docker compose exec api munkymind query --user yourname "What am I working on?"</code></pre></li>
+      <li><strong>See your brains.</strong> Open the library address setup printed (usually <code>http://localhost:8000/ui</code>) and paste your key to browse what it learned.</li>
       <li><strong>Connect your AI tools.</strong> Munkymind plugs in through MCP, the standard way Claude, ChatGPT and Cursor call outside tools. Claude Desktop works locally. For claude.ai or ChatGPT, give the MCP server a public HTTPS address (a free Cloudflare tunnel works) and add it as a custom connector. <a href="https://github.com/munkymind/munkymind/blob/main/docs/quickstart.md">Step-by-step guide</a>.</li>
     </ol>
   </section>
@@ -167,7 +165,7 @@ docker compose up -d</code></pre>
     <div class="grid">
       <div class="card"><h3>🧠 See your brains</h3><p>A local viewer at <code>localhost:8000/ui</code>. Every topic is a brain (Body Brain, Business Brain, Big Picture Brain), and your AI tools are their senses. Browse what each brain knows, and see where it came from.</p></div>
       <div class="card"><h3>👀 Peek</h3><p>Type a question and see exactly which few snippets your AI would be sent, and how small that is next to your whole library. No AI is called.</p></div>
-      <div class="card"><h3>😋 Moods: keep it fresh</h3><p>Brains get hungry. Each one shows a mood, from 😋 fed to 😴 starving, so you know which notes are out of date before your AI relies on them.</p></div>
+      <div class="card"><h3>😋 Moods: keep it fresh</h3><p>Brains get hungry. Each one shows a mood, from 😋 fed to 😴 starving, so you know which notes are out of date before your AI relies on them. Re-index any time: edited notes are refreshed, deleted ones dropped, unchanged ones skipped at no cost.</p></div>
     </div>
     <h3 style="margin-top:28px">What people use it for</h3>
     <div class="grid">
