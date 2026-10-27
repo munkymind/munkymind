@@ -163,7 +163,7 @@ class TestIngest:
         # Regression: ingest must write to the store, not just read pages
         assert mock_run.called
         assert mock_run.call_args.kwargs["dry_run"] is False
-        assert "2 page(s)" in result.output
+        assert "2 new" in result.output
 
     def test_ingest_unknown_connector_fails(self, tmp_data_root):
         _make_user(tmp_data_root, "jim")

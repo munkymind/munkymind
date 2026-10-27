@@ -178,11 +178,12 @@ def run_wizard() -> None:
 
         for conn_cfg in connector_configs:
             result = _do_ingest(conn_cfg, store, embed_provider)
-            pages_n = result.get("pages_created", 0) + result.get("pages_updated", 0)
+            pages_n = (result.get("pages_created", 0) + result.get("pages_updated", 0)
+                       + result.get("pages_unchanged", 0))
             total_pages += pages_n
             typer.echo(
-                f"  ✓ '{conn_cfg['connector']}' — {pages_n} page(s) ingested "
-                f"({result['chunks_total']} chunks)."
+                f"  ✓ '{conn_cfg['connector']}' — {pages_n} page(s) in the library "
+                f"({result.get('chunks_total', 0)} chunks embedded this run)."
             )
             domains_seen.update(_collect_domains(conn_cfg))
 

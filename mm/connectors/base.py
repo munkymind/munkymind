@@ -17,6 +17,7 @@ class ConnectorPage:
     confidence: str = 'medium'
     tags: list[str] = field(default_factory=list)
     staleness_threshold_days: int = 30
+    source_updated_at: str | None = None  # when the source last changed (e.g. file mtime, UTC ISO)
 
 
 @dataclass

@@ -358,7 +358,8 @@ async def ingest_files(
             "api_key": os.environ.get("OPENAI_API_KEY"),
         })
 
-        result = run_connector(connector, store, embed_provider)
+        # Uploads add to the library; they never prune pages from other sources
+        result = run_connector(connector, store, embed_provider, sync=False)
         return {"status": "ok", **result}
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
