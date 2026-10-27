@@ -20,6 +20,7 @@ from pathlib import Path
 import chromadb
 
 from mm.connectors.base import BaseConnector, ConnectorPage
+from mm.core import keyword_index
 from mm.core.store import UserStore
 from mm.embedding.pipeline import build_chunks, upsert_chunks
 from mm.embedding.providers import EmbeddingProvider
@@ -120,8 +121,10 @@ def run_connector(
             stale_ids = [p.id for p in changed] + removed
             for i in range(0, len(stale_ids), 100):
                 collection.delete(where={"page_id": {"$in": stale_ids[i:i + 100]}})
+            keyword_index.delete_pages(user_store.db_path, stale_ids)
             if chunks:
                 upsert_chunks(chunks, collection, embed_provider.embed)
+                keyword_index.upsert(user_store.db_path, chunks)
 
             now = datetime.datetime.now(datetime.UTC).replace(tzinfo=None).isoformat()
             for page in new + changed:

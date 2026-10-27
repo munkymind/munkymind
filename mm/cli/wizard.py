@@ -203,10 +203,20 @@ def run_wizard() -> None:
         try:
             from mm.api.query import QueryEngine
 
+            import sqlite3
+
+            # Search for one of the user's own page titles: a generic question can rightly
+            # match nothing now that weak matches are filtered out.
+            con = sqlite3.connect(store.db_path)
+            try:
+                row = con.execute("SELECT title FROM pages WHERE title != '' LIMIT 1").fetchone()
+            finally:
+                con.close()
+            probe = row[0] if row else "What is this context about?"
             engine = QueryEngine()
-            chunks = engine.retrieve(store, "What is this context about?", limit=3)
+            chunks = engine.retrieve(store, probe, limit=3)
             if chunks:
-                typer.echo(f"  ✓ Retrieval works — {len(chunks)} chunk(s) returned.")
+                typer.echo(f"  ✓ Retrieval works — searching for “{probe}” found {len(chunks)} chunk(s).")
                 query_ok = True
             else:
                 typer.echo(

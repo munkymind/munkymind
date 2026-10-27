@@ -24,6 +24,71 @@ SYSTEM_PROMPT = (
 _NOT_IN_REPO = "This information is not in your context library."
 
 
+_RRF_K = 60
+# Default cut-off for OpenAI embeddings (unit-length vectors, L2 distance): above about 1.3
+# (cosine similarity below ~0.35) matches are unrelated in practice. Other providers use
+# different scales, so they have no default cut-off; set MM_MAX_DISTANCE to choose one.
+_DEFAULT_MAX_DISTANCE = {"openai": 1.3}
+
+
+def max_distance(provider: str | None) -> float | None:
+    import os
+
+    env = os.environ.get("MM_MAX_DISTANCE", "").strip()
+    if env:
+        try:
+            return float(env)
+        except ValueError:
+            pass
+    return _DEFAULT_MAX_DISTANCE.get((provider or "").lower())
+
+
+def _norm(text: str) -> str:
+    return " ".join((text or "").split()).lower()
+
+
+def _dedupe(chunks: list[dict]) -> list[dict]:
+    """Drop repeated text, and summary chunks whose text a selected section of the same page contains."""
+    out: list[dict] = []
+    seen: set[str] = set()
+    for c in chunks:
+        t = _norm(c["text"])
+        if t in seen:
+            continue
+        seen.add(t)
+        out.append(c)
+    sections: dict[str, list[str]] = {}
+    for c in out:
+        meta = c.get("metadata") or {}
+        if meta.get("chunk_type") != "summary":
+            sections.setdefault(meta.get("page_id", ""), []).append(_norm(c["text"]))
+    kept = []
+    for c in out:
+        meta = c.get("metadata") or {}
+        if meta.get("chunk_type") == "summary":
+            body = _norm(c["text"])
+            if body and any(body in s for s in sections.get(meta.get("page_id", ""), [])):
+                continue
+        kept.append(c)
+    return kept
+
+
+def _backfill_keywords(collection, db_path) -> None:
+    from mm.core import keyword_index
+
+    offset, batch = 0, 500
+    while True:
+        got = collection.get(include=["documents", "metadatas"], limit=batch, offset=offset)
+        ids = got.get("ids") or []
+        if not ids:
+            break
+        keyword_index.backfill(db_path, [
+            (cid, (meta or {}).get("page_id", ""), (meta or {}).get("domain", ""), doc or "")
+            for cid, doc, meta in zip(ids, got["documents"], got["metadatas"])
+        ])
+        offset += len(ids)
+
+
 class QueryEngine:
     # ------------------------------------------------------------------ #
     # Retrieval
@@ -35,7 +100,15 @@ class QueryEngine:
         domains: list[str] | None = None,
         limit: int = 10,
     ) -> list[dict]:
-        """Embed query, search ChromaDB, filter by domains, return chunks."""
+        """Hybrid retrieval: vector search + keyword (FTS5) search, fused by rank.
+
+        A chunk is only returned if it is semantically close (distance within the cut-off)
+        or matches the question's keywords. When nothing qualifies the result is empty, and
+        callers answer "not in your context library" instead of passing on unrelated text.
+        Duplicates are dropped: a page's summary chunk when a section of the same page that
+        contains it is also returned, and repeated identical text.
+        """
+        from mm.core import keyword_index
         from mm.embedding.providers import EmbeddingProvider
 
         cfg = user_store.get_config()
@@ -63,24 +136,51 @@ class QueryEngine:
             else:
                 where = {"domain": {"$in": domains}}
 
+        pool = max(limit * 3, limit)
         kwargs: dict[str, Any] = {
             "query_embeddings": [query_embedding],
-            "n_results": limit,
+            "n_results": pool,
             "include": ["documents", "metadatas", "distances"],
         }
         if where:
             kwargs["where"] = where
-
         results = collection.query(**kwargs)
 
-        chunks: list[dict] = []
-        for doc, meta, dist in zip(
+        found: dict[str, dict] = {}
+        vector_rank: dict[str, int] = {}
+        for rank, (cid, doc, meta, dist) in enumerate(zip(
+            results["ids"][0],
             results["documents"][0],
             results["metadatas"][0],
             results["distances"][0],
-        ):
-            chunks.append({"text": doc, "metadata": meta, "distance": dist})
-        return chunks
+        )):
+            found[cid] = {"text": doc, "metadata": meta, "distance": dist}
+            vector_rank[cid] = rank
+
+        # Keyword side: backfill the index for libraries built before it existed
+        db = user_store.db_path
+        if keyword_index.count(db) == 0 and collection.count() > 0:
+            _backfill_keywords(collection, db)
+        keyword_ids = keyword_index.search(db, query, pool, domains)
+        keyword_rank = {cid: rank for rank, cid in enumerate(keyword_ids)}
+        missing = [cid for cid in keyword_ids if cid not in found]
+        if missing:
+            got = collection.get(ids=missing, include=["documents", "metadatas"])
+            for cid, doc, meta in zip(got["ids"], got["documents"], got["metadatas"]):
+                found[cid] = {"text": doc, "metadata": meta, "distance": None}
+
+        cutoff = max_distance(cfg.embedding.provider)
+        scored = []
+        for cid, chunk in found.items():
+            close = chunk["distance"] is not None and (cutoff is None or chunk["distance"] <= cutoff)
+            if not close and cid not in keyword_rank:
+                continue
+            score = sum(1.0 / (_RRF_K + r[cid]) for r in (vector_rank, keyword_rank) if cid in r)
+            chunk["match"] = ("both" if cid in vector_rank and cid in keyword_rank and close
+                              else "keyword" if cid in keyword_rank else "vector")
+            scored.append((score, cid, chunk))
+        scored.sort(key=lambda x: -x[0])
+        return _dedupe([c for _, _, c in scored])[:limit]
 
     # ------------------------------------------------------------------ #
     # Synthesis
