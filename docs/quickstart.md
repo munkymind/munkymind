@@ -65,7 +65,14 @@ Re-running `./setup.sh` is safe: your current answers are offered as defaults an
 
 No notes handy, or just kicking the tyres? Answer `./examples/sample-notes` for the notes folder to use a small made-up library.
 
-Domains (health, professional, strategic, projects, temporal, personal) are detected from file and folder names, so `notes/health/sleep.md` lands in *health*. Anything unmatched goes to *personal*.
+Each note goes to a domain (health, professional, strategic, projects, temporal, personal). Most explicit first: `domain: health` in the note's frontmatter, a folder named after a domain (`notes/health/sleep.md`), your own folder mappings, keywords in file and folder names, frontmatter tags, then the note's own text. Anything unmatched goes to *personal*. If most of your notes end up there, setup tells you; map your folders and re-index:
+
+```bash
+docker compose exec api munkymind domain map professional "Work" "Meetings" --user myname
+docker compose exec api munkymind ingest -c files --user myname
+```
+
+Obsidian's `.obsidian` settings and `.trash` folder are skipped.
 
 **Cost and time:** the first Docker build takes a few minutes. Indexing about 50 notes takes a minute or two and a few cents of OpenAI usage. After that, each question costs a fraction of a cent.
 
@@ -126,7 +133,13 @@ docker compose exec api munkymind peek -u myname "What should I focus on this we
 
 ### 3. Connect to Claude Desktop (MCP)
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+Add to Claude Desktop's config file (Claude Desktop → Settings → Developer → Edit Config opens it):
+
+| System | Config file |
+|--------|-------------|
+| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json` (Microsoft Store install: `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\`) |
+| Linux (community builds) | `~/.config/Claude/claude_desktop_config.json` |
 
 ```json
 {
@@ -134,14 +147,13 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
     "munkymind": {
       "command": "docker",
       "args": ["compose", "-f", "/path/to/munkymind/docker-compose.yml",
-               "exec", "-T", "mcp", "python", "-m", "mm.mcp.server"],
-      "env": {
-        "USER_ID": "myname"
-      }
+               "exec", "-T", "-e", "USER_ID=myname", "mcp", "python", "-m", "mm.mcp.server"]
     }
   }
 }
 ```
+
+Replace `myname` with your username. It goes in `args` as `-e USER_ID=...`: an `"env"` block only reaches the `docker` command, not the container. On Windows with Munkymind in WSL, use `"command": "wsl.exe"` and put `"-e", "docker",` in front of the args, keeping the Linux path. `bash setup-mcp.sh` writes all of this for you on macOS, Windows (WSL or Git Bash) and Linux.
 
 `setup.sh` already sets `MM_USER_ID` to your username. Set up by hand? Set `MM_USER_ID=myname` in `.env` and run `docker compose up -d mcp` so the MCP container serves your user (it defaults to `default`).
 
@@ -296,6 +308,9 @@ munkymind domain remove projects --user myname             # Remove domain
 
 **Slow embeddings**
 → `text-embedding-3-small` is fast. If using Ollama, ensure the model is pulled: `ollama pull nomic-embed-text`.
+
+**Ollama in Docker: connection refused on localhost:11434**
+→ Inside a container, `localhost` is the container itself. The containers reach Ollama on your computer at `OLLAMA_URL` (default `http://host.docker.internal:11434`). Running Ollama elsewhere? Set `OLLAMA_URL` in `.env` and run `docker compose up -d`. On Linux, Ollama must listen beyond loopback: `OLLAMA_HOST=0.0.0.0 ollama serve`.
 
 **MCP server not connecting**
 → Ensure `USER_ID` and `DATA_ROOT` env vars are set correctly in your MCP config.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# setup-mcp.sh — Munkymind MCP installer for Claude Desktop (Mac-first)
+# setup-mcp.sh — Munkymind MCP installer for Claude Desktop (macOS, Windows via WSL or Git Bash, Linux)
 # Usage: bash setup-mcp.sh
 # Detects Claude Desktop config, injects the Munkymind MCP server entry.
 
@@ -20,18 +20,33 @@ echo "│   Munkymind — Claude Desktop Setup    │"
 echo "└─────────────────────────────────────────┘"
 echo -e "${RESET}"
 
-# ── Platform check ────────────────────────────────────────────────────────────
-if [[ "$(uname)" != "Darwin" ]]; then
-  fail "This script is Mac-only for now. Windows/Linux setup is coming."
-fi
-
 # ── Detect Claude Desktop config path ────────────────────────────────────────
 hdr "Step 1: Finding Claude Desktop config..."
-CONFIG_DIR="$HOME/Library/Application Support/Claude"
+# On Windows, Claude Desktop runs as a Windows app: from Git Bash it gets Windows paths;
+# from WSL it starts docker inside WSL through wsl.exe, where the project lives.
+to_host_path() { printf '%s' "$1"; }
+LAUNCHER=docker
+case "$(uname -s)" in
+  Darwin)
+    CONFIG_DIR="$HOME/Library/Application Support/Claude" ;;
+  MINGW*|MSYS*|CYGWIN*)
+    CONFIG_DIR="$(cygpath -u "$APPDATA")/Claude"
+    to_host_path() { cygpath -w "$1"; } ;;
+  Linux)
+    if grep -qi microsoft /proc/version 2>/dev/null && command -v wslpath >/dev/null; then
+      WIN_APPDATA="$(cmd.exe /c 'echo %APPDATA%' 2>/dev/null | tr -d '\r')"
+      [[ -n "$WIN_APPDATA" ]] || fail "Couldn't find your Windows AppData folder from WSL."
+      CONFIG_DIR="$(wslpath -u "$WIN_APPDATA")/Claude"
+      LAUNCHER=wsl
+    else
+      CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/Claude"   # community Linux builds
+    fi ;;
+  *) fail "Unsupported platform: $(uname -s). See docs/quickstart.md for the manual config." ;;
+esac
 CONFIG_FILE="$CONFIG_DIR/claude_desktop_config.json"
 
 if [[ ! -d "$CONFIG_DIR" ]]; then
-  fail "Claude Desktop config directory not found at:\n  $CONFIG_DIR\n\nIs Claude Desktop installed? Download from https://claude.ai/download"
+  fail "Claude Desktop config directory not found at:\n  $CONFIG_DIR\n\nIs Claude Desktop installed and opened once? Download from https://claude.ai/download\n(Microsoft Store installs keep it elsewhere: see docs/quickstart.md, step 3.)"
 fi
 ok "Config directory found: $CONFIG_DIR"
 
@@ -68,8 +83,9 @@ fi
 ok "Project path: $PROJECT_PATH"
 
 # ── Prompt for username ───────────────────────────────────────────────────────
-DEFAULT_USER="$(whoami)"
-echo -e "\n  What username did you create with 'munkymind user create'?"
+DEFAULT_USER="$(grep -E '^MM_USER_ID=' "$PROJECT_PATH/.env" 2>/dev/null | tail -n1 | cut -d= -f2 | cut -d'#' -f1 | tr -d ' "' || true)"
+[[ -n "$DEFAULT_USER" && "$DEFAULT_USER" != "default" ]] || DEFAULT_USER="$(whoami)"
+echo -e "\n  What username did you create with 'munkymind setup'?"
 echo -e "  Press Enter to use: ${BOLD}$DEFAULT_USER${RESET}"
 read -r -p "  Username: " MM_USER
 MM_USER="${MM_USER:-$DEFAULT_USER}"
@@ -99,16 +115,7 @@ fi
 # ── Build the MCP config block ────────────────────────────────────────────────
 hdr "Step 5: Injecting MCP config..."
 
-MCP_ENTRY=$(cat <<EOF
-{
-  "command": "docker",
-  "args": ["compose", "-f", "$PROJECT_PATH/docker-compose.yml", "exec", "-T", "mcp", "python", "-m", "mm.mcp.server"],
-  "env": {
-    "USER_ID": "$MM_USER"
-  }
-}
-EOF
-)
+COMPOSE_FILE="$(to_host_path "$PROJECT_PATH/docker-compose.yml")"
 
 # Create config file if it doesn't exist
 if [[ ! -f "$CONFIG_FILE" ]]; then
@@ -122,16 +129,22 @@ cp "$CONFIG_FILE" "$BACKUP"
 ok "Backed up existing config to: $(basename "$BACKUP")"
 
 # Merge using Python (ships with macOS, handles JSON safely)
-python3 - "$CONFIG_FILE" "$MCP_ENTRY" <<'PYEOF'
+python3 - "$CONFIG_FILE" "$COMPOSE_FILE" "$MM_USER" "$LAUNCHER" <<'PYEOF'
 import json, sys
 
 config_path = sys.argv[1]
-new_entry_str = sys.argv[2]
+compose_file, user, launcher = sys.argv[2], sys.argv[3], sys.argv[4]
 
 with open(config_path) as f:
     config = json.load(f)
 
-new_entry = json.loads(new_entry_str)
+# USER_ID goes to the container with -e: an "env" block would only reach the docker CLI
+args = ["compose", "-f", compose_file, "exec", "-T", "-e", f"USER_ID={user}",
+        "mcp", "python", "-m", "mm.mcp.server"]
+if launcher == "wsl":
+    new_entry = {"command": "wsl.exe", "args": ["-e", "docker", *args]}
+else:
+    new_entry = {"command": "docker", "args": args}
 
 if "mcpServers" not in config:
     config["mcpServers"] = {}
@@ -158,7 +171,7 @@ echo -e "${GREEN}${BOLD}✓ Setup complete!${RESET}"
 echo ""
 echo -e "  ${BOLD}Next step (important):${RESET}"
 echo "  Fully quit Claude Desktop and relaunch it."
-echo "  'Close window' is not enough — use Cmd+Q or quit from the menu bar icon."
+echo "  'Close window' is not enough: use Cmd+Q (macOS) or quit from the tray icon (Windows)."
 echo ""
 echo "  Then ask Claude: \"What do you know about my work?\""
 echo "  It should draw from your Munkymind library."

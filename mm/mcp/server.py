@@ -28,6 +28,11 @@ from typing import Any, Optional
 
 from mcp.server.mcpserver import MCPServer
 
+from mm.config.env import load_data_root_env
+
+# What setup saved (USER_ID, API keys); real environment variables win
+load_data_root_env(Path(os.environ.get("DATA_ROOT", "./data")))
+
 # ------------------------------------------------------------------ #
 # Server init
 # ------------------------------------------------------------------ #

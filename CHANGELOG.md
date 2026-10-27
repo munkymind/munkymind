@@ -31,6 +31,13 @@ Versioning: [Semantic Versioning](https://semver.org/)
 - `munkymind user keys` lists each user's key scope, creation and expiry (never the key or its hash); `munkymind user revoke-key <name>` revokes a key
 
 ### Fixed
+- **Notes land in the right domain more often.** A note's frontmatter `domain:` and tags, and its own text, now count, not only file and folder names; keywords match whole words (a "Labelling" note is no longer *health* because of "lab"). An Obsidian vault used to put most notes in *personal*. Re-index to re-sort
+- `munkymind domain map <domain> <words...>` sends notes whose folder or file name contains those words to a domain; setup and ingest suggest it when most notes land in *personal*
+- Obsidian's `.trash` (deleted notes) and `.obsidian` folders are skipped
+- **Ollama works from Docker:** the Ollama address is configurable (`OLLAMA_URL`); Compose points the containers at Ollama on your computer
+- `docker compose up` no longer waits ~30s for the first health check before starting the MCP container
+- Setup warns when the MCP container serves a different user than the one you just set up (`MM_USER_ID`), and a local install saves the username for the MCP server
+- Claude Desktop: config paths for Windows and Linux; the username is now passed to the container (`-e USER_ID=...`; an `env` block never reached it); `setup-mcp.sh` works on Windows (WSL or Git Bash) and Linux
 - **Re-ingesting syncs with your notes folder.** Unchanged notes are skipped (nothing re-embedded), edited notes replace their old chunks, and deleted or renamed notes are removed. Removal is limited to the connector's own folder and never happens when the folder comes back empty (e.g. not mounted)
 - **Search finds exact words as well as meaning.** Retrieval combines keyword and vector search, so names, codes and rare terms are found; weak matches are cut off, so an unrelated question gets "not in your library" instead of loosely related notes; the same chunk is never returned twice
 - **Re-running setup never replaces your API key.** An interrupted or repeated setup keeps the existing key for that username

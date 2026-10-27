@@ -157,7 +157,13 @@ bash test-mcp.sh
 
 ### Manual config (if you prefer)
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+Add to Claude Desktop's config file (Claude Desktop → Settings → Developer → Edit Config opens it):
+
+| System | Config file |
+|--------|-------------|
+| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json` (Microsoft Store install: `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\`) |
+| Linux (community builds) | `~/.config/Claude/claude_desktop_config.json` |
 
 ```json
 {
@@ -165,18 +171,17 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
     "munkymind": {
       "command": "docker",
       "args": ["compose", "-f", "/path/to/munkymind/docker-compose.yml",
-               "exec", "-T", "mcp", "python", "-m", "mm.mcp.server"],
-      "env": {
-        "USER_ID": "yourname"
-      }
+               "exec", "-T", "-e", "USER_ID=yourname", "mcp", "python", "-m", "mm.mcp.server"]
     }
   }
 }
 ```
 
+Replace `yourname` with your username. It goes in `args` as `-e USER_ID=...`: an `"env"` block only reaches the `docker` command, not the container. On Windows with Munkymind in WSL, use `"command": "wsl.exe"` and put `"-e", "docker",` in front of the args, keeping the Linux path. `bash setup-mcp.sh` writes all of this for you on macOS, Windows (WSL or Git Bash) and Linux.
+
 With Docker, also set `MM_USER_ID=yourname` in `.env` and run `docker compose up -d mcp` so the MCP container serves your user.
 
-> **npx / PATH gotcha:** Claude Desktop launches with a minimal PATH — it may not find `docker` even if your terminal can. If you get a connection error, use the full path to docker: run `which docker` in your terminal and paste that path into the `"command"` field (e.g. `"/usr/local/bin/docker"`).
+> **PATH gotcha:** Claude Desktop launches with a minimal PATH — it may not find `docker` even if your terminal can. If you get a connection error, use the full path to docker: run `which docker` in your terminal and paste that path into the `"command"` field (e.g. `"/usr/local/bin/docker"`).
 
 Then ask Claude: *"What should I focus on this week?"* — and it will draw from your health, work, and strategic domains simultaneously.
 

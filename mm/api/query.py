@@ -286,6 +286,7 @@ class QueryEngine:
 
         elif provider == "ollama":
             import requests
+            from mm.config.env import ollama_url
 
             payload = {
                 "model": model,
@@ -295,7 +296,7 @@ class QueryEngine:
                 ],
                 "stream": False,
             }
-            resp = requests.post("http://localhost:11434/api/chat", json=payload, timeout=60)
+            resp = requests.post(f"{ollama_url()}/api/chat", json=payload, timeout=60)
             resp.raise_for_status()
             return resp.json()["message"]["content"]
 
