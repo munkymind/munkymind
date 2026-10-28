@@ -116,13 +116,21 @@ GitHub connectors aren't synced automatically; re-run `ingest --connector github
 
 ### See your brains (what's in your library)
 
-Open **http://localhost:8000/ui** and paste your API key. Three tabs:
+Open the sign-in link `setup.sh` printed, or open **http://localhost:8000/ui** and paste your API key. Three tabs:
 
 - **🧠 Brains**: your library by domain. Search titles and tags, open any page to read it, with where it came from and how fresh it is.
 - **👀 Peek**: type a question and see exactly which snippets an AI tool would be sent, and how small that is next to your whole library. No AI is called.
 - **😋 Moods**: how fed each brain is, freshness per domain (😋 Fed / 😐 Peckish / 😴 Starving) and the feeding log.
 
 The page is read-only. Your key is kept in the browser tab (or on the device, if you tick "remember") and only sent to your own server.
+
+**Key in a password manager?** Get a sign-in link instead of pasting it:
+
+```bash
+docker compose exec api munkymind login-link --user <you>
+```
+
+The link works once, within 10 minutes, and keeps that browser signed in (read-only) for 30 days. The lock button signs it out; `--sign-out-all` signs out every browser. If you reach the API at another address than `localhost:8000` (another port, a server), set `MM_PUBLIC_URL` in `.env` or pass `--url`.
 
 The same from the terminal:
 ```bash

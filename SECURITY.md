@@ -30,7 +30,7 @@ Munkymind has two ways in, both tied to your `mm_sk_…` key.
 | Client | How it authenticates |
 |---|---|
 | **MCP connectors** (claude.ai, ChatGPT) | **OAuth 2.1** with PKCE. You enter your key once on the login page; the connector then sends it as its bearer token. Redirects only go to known connector callbacks |
-| **REST API** (scripts, agents, the viewer) | The key in the `X-API-Key` header |
+| **REST API** (scripts, agents, the viewer) | The key in the `X-API-Key` header. The viewer can instead use a read-only session from a one-time login link (below) |
 | **MCP over stdio** (local desktop apps) | No network auth: it runs as a local process with your user's data |
 
 **Keys.** Each user has one key: `mm_sk_` plus 32 random bytes. Only a bcrypt hash is stored (`users/<name>/api_key.hash`); the key itself is printed once, when it is issued, and never logged. A key only reaches its owner's library.
@@ -54,6 +54,8 @@ munkymind user revoke-key my-agent                            # revoke without a
 ```
 
 **Recommendation:** give an agent or script that only needs to ask questions its own **read-only key with an expiry**, and rotate it on a schedule. Keep a read-write key for ingesting.
+
+**Login links (the viewer).** `munkymind login-link --user <name>` prints a link to the viewer carrying a one-time token (`mm_lt_` plus 32 random bytes). It works once, within 10 minutes; the token sits in the URL fragment, so it isn't sent in the request or logged by the server, and the page removes it from the address bar and history straight away. Opening it gives that browser a **read-only session** (`mm_ss_…`, 30 days), not your API key, so the key can stay in a password manager. Only SHA-256 hashes of tokens and sessions are stored (`users/<name>/ui_sessions.json`, mode 600). The viewer's lock button ends its session on the server; `munkymind login-link --user <name> --sign-out-all` ends every session, and rotating or revoking the API key does the same. Sessions only work on the REST API, not for MCP.
 
 **Upgrading.** Keys issued before scopes existed have no policy file and keep working exactly as before: read-write, no expiry. Rotate them to add a scope or expiry. A key set with `MM_OSS_API_KEY` is read-write with no expiry. If a key's policy file is unreadable, the key is refused rather than given full access.
 

@@ -413,7 +413,7 @@ function toast(key, vars) {
 /* ------------------------------------------------------------------ *
  * Views
  * ------------------------------------------------------------------ */
-function gate(bad) {
+function gate(bad, linkUsed) {
   document.getElementById("tabs").hidden = true;
   document.getElementById("lock").hidden = true;
   const input = h("input", { type: "password", id: "key", autocomplete: "off", spellcheck: "false",
@@ -436,9 +436,15 @@ function gate(bad) {
   input.addEventListener("input", () => input.setCustomValidity(""));
   render(h("section", { class: "gate bubble", "aria-labelledby": "gate-title" },
     h("div", { id: "gate-title" }, say(bad ? "error.auth_bad" : "error.auth", { fix: "munkymind user rotate-key <you>" })),
+    linkUsed ? h("p", { class: "plain", role: "alert" },
+      "That sign-in link has already been used or has expired (links work once, for 10 minutes). Get a new one with ",
+      h("code", {}, "munkymind login-link --user <you>"), ".") : null,
     form,
     h("p", { class: "plain", id: "key-help", style: "font-size:13px;color:var(--muted);margin:12px 0 0" },
-      "Your key is only sent to this Munkymind server, never anywhere else. This page can look but never change anything.")));
+      "Your key is only sent to this Munkymind server, never anywhere else. This page can look but never change anything."),
+    h("p", { class: "plain", style: "font-size:13px;color:var(--muted);margin:8px 0 0" },
+      "Key in a password manager? Run ", h("code", {}, "munkymind login-link --user <you>"),
+      " for a one-time link that signs this browser in without it.")));
   input.focus();
 }
 
@@ -639,7 +645,15 @@ async function route() {
 }
 window.addEventListener("hashchange", () => { route(); main.focus({ preventScroll: true }); window.scrollTo(0, 0); });
 
-document.getElementById("lock").addEventListener("click", () => { store.del("mm_key"); cache = { status: null, at: 0 }; gate(false); });
+document.getElementById("lock").addEventListener("click", () => {
+  const key = store.get("mm_key");
+  // A login-link session is ended on the server too, so it can't be reused from this device
+  if (key && key.startsWith("mm_ss_")) {
+    fetch(ORIGIN + CFG.api + "/ui/session", { method: "DELETE", credentials: "same-origin", headers: { "X-API-Key": key } })
+      .catch(() => {});
+  }
+  store.del("mm_key"); cache = { status: null, at: 0 }; gate(false);
+});
 
 (function theme() {
   const btn = document.getElementById("theme");
@@ -684,10 +698,33 @@ document.addEventListener("keydown", e => {
   (CFG.links || []).forEach(l => bar.prepend(h("a", { class: "btn ghost", href: l.href }, l.label)));
 })();
 
+/* A login link (munkymind login-link) opens /ui#login=mm_lt_…. The token works once:
+   trade it for a read-only browser session, then drop it from the address bar and history. */
+async function redeemLoginLink() {
+  const m = location.hash.match(/^#login=(mm_lt_[1-9A-HJ-NP-Za-km-z]+)$/);
+  if (!m) return null;
+  history.replaceState(null, "", location.pathname + location.search + "#/brains");
+  try {
+    const res = await fetch(ORIGIN + CFG.api + "/ui/session", {
+      method: "POST", credentials: "same-origin",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: m[1] })
+    });
+    if (!res.ok) return "used";
+    const j = await res.json();
+    store.set("mm_key", j.session, true);
+    return null;
+  } catch (e) { return "down"; }
+}
+
 fetch(ORIGIN + "/ui/voice.json", { headers: { Accept: "application/json" }, credentials: "same-origin" })
   .then(r => (r.ok ? r.json() : null))
   .then(v => { if (v) VOICE = v; }, () => {})
-  .finally(route);
+  .then(() => (BASIC ? null : redeemLoginLink()))
+  .then(problem => {
+    if (problem === "down") return showError(new ApiError("down"));
+    if (problem === "used") { store.del("mm_key"); return gate(false, true); }
+    return route();
+  });
 </script>
 </body>
 </html>

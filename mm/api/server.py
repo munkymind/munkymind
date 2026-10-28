@@ -17,6 +17,7 @@ from pydantic import BaseModel
 
 from mm import __version__
 from mm.auth.keys import KeyPolicy, check_key, load_key_hash, seed_key_from_env
+from mm.auth.sessions import SESSION_PREFIX, check_session
 from mm.config.env import load_data_root_env
 from mm.core.store import UserStore
 
@@ -106,6 +107,15 @@ async def get_user_store(
         for user_dir in users_dir.iterdir():
             if not user_dir.is_dir():
                 continue
+            if api_key.startswith(SESSION_PREFIX):
+                # A browser session from a login link: read-only, never the API key itself
+                session_policy = check_session(user_dir, api_key)
+                if session_policy is not None:
+                    owner = user_dir.name
+                    matched_store = UserStore(DATA_ROOT, user_dir.name)
+                    policy = session_policy
+                    break
+                continue
             check = check_key(api_key, user_dir)
             if check.matched:
                 owner = user_dir.name
@@ -138,6 +148,12 @@ async def get_user_store(
                     "Missing API key. Pass your key via the X-API-Key header: "
                     "X-API-Key: mm_sk_<your-key>"
                 ),
+            )
+        if api_key.startswith(SESSION_PREFIX):
+            raise HTTPException(
+                status_code=401,
+                detail="Signed out: this browser session has ended or expired. "
+                       "Get a new link with: munkymind login-link --user <name>",
             )
         if not api_key.startswith("mm_sk_"):
             raise HTTPException(
@@ -316,6 +332,43 @@ async def ui():
             "frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
         ),
     })
+
+
+class LoginLinkRequest(BaseModel):
+    token: str
+
+
+@app.post("/ui/session", include_in_schema=False)
+async def ui_session_start(body: LoginLinkRequest):
+    """Trade a one-time login link token for a read-only browser session.
+    Needs no key (the token is the proof), like /bootstrap."""
+    from mm.auth.sessions import LINK_PREFIX, redeem_link
+
+    users_dir = DATA_ROOT / "users"
+    if body.token.startswith(LINK_PREFIX) and users_dir.is_dir():
+        for user_dir in users_dir.iterdir():
+            if user_dir.is_dir() and (user_dir / "ui_sessions.json").exists():
+                session = redeem_link(user_dir, body.token)
+                if session:
+                    return {"session": session, "user_id": user_dir.name}
+    raise HTTPException(
+        status_code=401,
+        detail="This login link has been used or has expired. Links work once, for 10 minutes. "
+               "Get a new one with: munkymind login-link --user <name>",
+    )
+
+
+@app.delete("/ui/session", include_in_schema=False)
+async def ui_session_end(api_key: Optional[str] = Depends(API_KEY_HEADER)):
+    """Sign this browser out (ends its session; an API key is left alone)."""
+    from mm.auth.sessions import end_session
+
+    users_dir = DATA_ROOT / "users"
+    if api_key and api_key.startswith(SESSION_PREFIX) and users_dir.is_dir():
+        for user_dir in users_dir.iterdir():
+            if user_dir.is_dir() and end_session(user_dir, api_key):
+                break
+    return {"status": "signed_out"}
 
 
 @app.get("/ui/voice.json", include_in_schema=False)

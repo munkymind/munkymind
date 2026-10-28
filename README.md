@@ -228,6 +228,7 @@ munkymind ingest --connector files --user <name>  # Re-index now (the API also d
 munkymind watch --user <name>                     # Re-index on change, without the API server
 munkymind ingest --connector github --user <name> # Ingest from GitHub connector
 munkymind eval --api-key mm_sk_...                # Run quality eval suite (9 scenarios)
+munkymind login-link --user <name>                # One-time link that signs a browser in to the viewer
 munkymind user create <name>                      # Create a user + API key only (no connector)
 munkymind user create <name> --read-only --expires-in 30d   # Key for an agent that only queries
 munkymind user rotate-key <name>                  # New key, same scope and lifetime; old key stops working

@@ -244,7 +244,8 @@ class TestRestAuth:
 
 
 # Non-GET routes that need no key at all. Anything here must justify itself.
-PUBLIC_WRITE_ROUTES = {"/bootstrap"}
+# /ui/session: POST's proof is a one-time login-link token; DELETE only ends the session presented.
+PUBLIC_WRITE_ROUTES = {"/bootstrap", "/ui/session"}
 
 
 def _depends_on(dependant, target) -> bool:
