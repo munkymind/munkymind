@@ -431,6 +431,42 @@ def watch(
         typer.echo("\nStopped.")
 
 
+@app.command()
+def doctor(
+    username: str = typer.Option('', '--user', '-u',
+                                 help='Username (default: MM_USER_ID, or the only user)'),
+):
+    """Check that everything is working right now, with a fix for anything that isn't.
+
+    Read-only and safe to run any time; never prints keys. Exit code 1 if anything failed.
+    """
+    from mm.cli import doctor as doc
+
+    if not username:
+        username = os.environ.get('MM_USER_ID', '')
+        users_dir = DATA_ROOT / 'users'
+        if (not username or username == 'default') and users_dir.is_dir():
+            users = [p.name for p in users_dir.iterdir() if (p / 'config.yaml').exists()]
+            if len(users) == 1:
+                username = users[0]
+        username = username or 'default'
+    typer.echo(f"Checking Munkymind for '{username}'…\n")
+    checks = doc.run(DATA_ROOT, username)
+    for c in checks:
+        typer.echo(f"{doc.ICONS[c.status]} {c.label}")
+        if c.fix and c.status in (doc.FAIL, doc.WARN):
+            typer.echo(f"  → Fix: {c.fix}")
+    failed = sum(c.status == doc.FAIL for c in checks)
+    warned = sum(c.status == doc.WARN for c in checks)
+    typer.echo("")
+    if failed:
+        typer.echo(f"{failed} problem{'s' if failed != 1 else ''} found"
+                   + (f", {warned} warning{'s' if warned != 1 else ''}" if warned else "") + ".")
+        raise typer.Exit(1)
+    typer.echo("Everything's working." if not warned else
+               f"Working, with {warned} warning{'s' if warned != 1 else ''}.")
+
+
 @app.command('login-link')
 def login_link(
     username: str = typer.Option(..., '--user', '-u', help='Username'),

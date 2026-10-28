@@ -295,6 +295,23 @@ munkymind domain remove projects --user myname             # Remove domain
 
 ## Troubleshooting
 
+**Start here:** run the doctor. It checks every part (servers, your key, notes folder, library and sync, AI provider keys, Claude Desktop) and gives a fix for anything that's wrong. It's read-only and safe to run any time:
+
+```bash
+docker compose exec api munkymind doctor
+```
+
+```
+✓ API running (localhost:8000)
+✓ MCP server running (for Claude Desktop, claude.ai, ChatGPT, Cursor)
+✓ API key valid (read-write, no expiry)
+✓ Notes folder /notes: 128 notes
+✓ Library: 128 pages, last indexed 3 minutes ago
+✓ Automatic sync on (every 5 min)
+✗ Answers (openai/gpt-4o-mini): key rejected (401)
+  → Fix: Check the key in .env (typo, revoked, or no credit)
+```
+
 ### Known limitations (v0.2.0)
 
 - **One notes folder.** Docker mounts a single folder (`MM_NOTES_DIR`, default `./notes`) at `/notes`. To ingest several folders, put them under one parent folder and point `MM_NOTES_DIR` there, or use the GitHub connector for repos (no mount needed). Changing `MM_NOTES_DIR` needs `docker compose up -d`.
