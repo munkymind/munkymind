@@ -1,6 +1,7 @@
 """FastAPI REST server for Munkymind."""
 from __future__ import annotations
 
+import contextlib
 import datetime
 import os
 import shutil
@@ -19,10 +20,21 @@ from mm.auth.keys import KeyPolicy, check_key, load_key_hash, seed_key_from_env
 from mm.config.env import load_data_root_env
 from mm.core.store import UserStore
 
+@contextlib.asynccontextmanager
+async def _lifespan(app: FastAPI):
+    # Keep libraries in step with their notes folders (MM_SYNC_INTERVAL=0 turns it off)
+    from mm.ingestion.sync import start_background
+    stop = start_background(DATA_ROOT)
+    yield
+    if stop:
+        stop.set()
+
+
 app = FastAPI(
     title="Munkymind",
     description="Personal context library API",
     version=__version__,
+    lifespan=_lifespan,
 )
 
 DATA_ROOT = Path(os.environ.get("DATA_ROOT", "./data"))

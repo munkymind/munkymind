@@ -54,7 +54,7 @@ Answers cite the pages they used. If a note is stale, the answer says so.
 ### 4. Keep it fresh with 😋 Moods (2 min)
 Open **😋 Moods**. Each brain has a mood: 😋 Fed, 😐 Peckish, 😴 Starving. Every domain has a freshness window (temporal notes go stale in 3 days, personal ones in 60).
 
-After you add or edit notes, re-feed:
+Brains feed themselves: every 5 minutes Munkymind checks your notes folder and re-indexes whatever you added, edited or deleted. Can't wait? Feed them now:
 ```bash
 docker compose exec api munkymind ingest --connector files --user <you>
 ```

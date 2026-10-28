@@ -11,6 +11,7 @@ Re-running a connector syncs the library with its source:
 """
 from __future__ import annotations
 
+import contextlib
 import datetime
 import hashlib
 import json
@@ -84,6 +85,28 @@ def run_connector(
     if not ok:
         raise ValueError(f"Connector validation failed: {msg}")
 
+    # One ingest per library at a time: automatic sync, the CLI and uploads can overlap
+    with _ingest_lock(user_store):
+        return _run(connector, user_store, embed_provider, dry_run, sync)
+
+
+@contextlib.contextmanager
+def _ingest_lock(user_store: UserStore):
+    try:
+        import fcntl
+    except ImportError:  # Windows without Docker: no cross-process lock
+        yield
+        return
+    user_store.user_dir.mkdir(parents=True, exist_ok=True)
+    with open(user_store.user_dir / ".ingest.lock", "w") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+
+
+def _run(connector, user_store, embed_provider, dry_run, sync) -> dict:
     pages: list[ConnectorPage] = connector.ingest()
     hashes = {p.id: content_hash(p) for p in pages}
 

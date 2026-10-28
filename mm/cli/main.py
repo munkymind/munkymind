@@ -399,6 +399,27 @@ def ingest(
                 typer.echo(hint)
 
 
+@app.command()
+def watch(
+    username: str = typer.Option('', '--user', '-u', help='Only this user (default: every user)'),
+    every: int = typer.Option(60, '--interval', help='Seconds between checks'),
+):
+    """Keep the library in step with your notes folder: re-index whenever notes change.
+
+    Only needed without Docker: the API server already does this every MM_SYNC_INTERVAL
+    seconds (default 300). Stop with Ctrl+C.
+    """
+    import threading
+    from mm.ingestion.sync import run_forever
+
+    typer.echo(f"Watching {'notes for ' + username if username else 'every library'} "
+               f"(checking every {every}s; Ctrl+C to stop)…")
+    try:
+        run_forever(DATA_ROOT, max(every, 5), threading.Event(), user_id=username or None)
+    except KeyboardInterrupt:
+        typer.echo("\nStopped.")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # query
 # ─────────────────────────────────────────────────────────────────────────────
