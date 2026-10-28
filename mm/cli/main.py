@@ -154,8 +154,18 @@ def user_rotate_key(
 
     raw_key = issue_key(store.user_dir, scope, expiry)
     typer.echo(f"✓ API key rotated for '{name}'. The old key no longer works.")
+    _end_browser_sessions(store)
     typer.echo(f"  New API key ({_describe_policy(load_key_policy(store.user_dir))}; "
                f"shown once):\n\n  {raw_key}\n")
+
+
+def _end_browser_sessions(store) -> None:
+    """A new or revoked key means 'lock everything', so login-link sessions end too."""
+    from mm.auth.sessions import end_all
+
+    n = end_all(store.user_dir)
+    if n:
+        typer.echo(f"  Signed out {n} browser{'' if n == 1 else 's'} that used a login link.")
 
 
 @user_app.command('revoke-key')
@@ -170,6 +180,7 @@ def user_revoke_key(name: str = typer.Argument(...)):
         raise typer.Exit(1)
     if revoke_key(store.user_dir):
         typer.echo(f"✓ API key revoked for '{name}'.")
+        _end_browser_sessions(store)
     else:
         typer.echo(f"User '{name}' has no API key.")
 
@@ -418,6 +429,40 @@ def watch(
         run_forever(DATA_ROOT, max(every, 5), threading.Event(), user_id=username or None)
     except KeyboardInterrupt:
         typer.echo("\nStopped.")
+
+
+@app.command('login-link')
+def login_link(
+    username: str = typer.Option(..., '--user', '-u', help='Username'),
+    url: str = typer.Option('', '--url', help='Address of the API as your browser sees it '
+                            '(default: MM_PUBLIC_URL, else http://localhost:API_PORT)'),
+    sign_out_all: bool = typer.Option(False, '--sign-out-all',
+                                      help='Sign every browser out and cancel unused links instead'),
+):
+    """Print a link that opens the library UI signed in, without pasting your API key.
+
+    The link works once, within 10 minutes. The browser then gets a read-only session
+    for 30 days (the API key never reaches the browser). Rotating or revoking the API
+    key also signs every browser out.
+    """
+    from mm.auth.sessions import LINK_TTL, SESSION_TTL, create_link, end_all
+    from mm.core.store import UserStore
+
+    store = UserStore(DATA_ROOT, username)
+    if not store.user_dir.exists():
+        typer.echo(f"User '{username}' not found.", err=True)
+        raise typer.Exit(1)
+    if sign_out_all:
+        n = end_all(store.user_dir)
+        typer.echo(f"✓ Signed out {n} browser{'' if n == 1 else 's'} and cancelled unused links for '{username}'.")
+        return
+    base = (url or os.environ.get('MM_PUBLIC_URL')
+            or f"http://localhost:{os.environ.get('API_PORT') or 8000}").rstrip('/')
+    token = create_link(store.user_dir)
+    typer.echo(f"Open this link to sign in to the library UI (works once, for "
+               f"{int(LINK_TTL.total_seconds() // 60)} minutes):\n\n  {base}/ui#login={token}\n")
+    typer.echo(f"The browser stays signed in, read-only, for {SESSION_TTL.days} days. "
+               f"Sign every browser out with: munkymind login-link --user {username} --sign-out-all")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

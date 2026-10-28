@@ -26,6 +26,7 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ### Added
 - **The library keeps itself in sync.** Every 5 minutes the API checks each notes folder (file names, sizes and change times only) and, when something changed, re-indexes just the added, edited or deleted notes. `MM_SYNC_INTERVAL` sets the interval in seconds; `0` turns it off. Without the API server, `munkymind watch --user <name>` does the same. GitHub connectors are not synced automatically
+- **Sign in to the viewer without pasting your key.** `munkymind login-link --user <name>` prints a link that works once, within 10 minutes, and gives that browser a read-only session for 30 days (never the API key itself). `setup.sh` prints one at the end. The lock button signs the browser out; `--sign-out-all`, `user rotate-key` and `user revoke-key` sign out every browser. `MM_PUBLIC_URL` sets the address used in the link
 - Ingests of the same library never overlap (automatic sync, the CLI and uploads take turns)
 - **One-command setup: `./setup.sh`.** Asks for the AI provider, your API key (checked with one call before anything starts), a username and your notes folder; writes `.env`, picks free ports if 8000/8001 are taken, starts Docker and runs the setup wizard with those answers, so nothing is asked twice. Safe to re-run
 - `munkymind setup` takes its answers as flags (`--username`, `--llm`, `--embed`, `--notes`, `--yes`) for scripted installs

@@ -19,7 +19,7 @@ No notes handy? Use the made-up library in [`examples/sample-notes`](../examples
 ## Your first 15 minutes
 
 ### 1. See your brains (2 min)
-Open **http://localhost:8000/ui** and paste your API key (the `mm_sk_…` key from setup).
+Open **http://localhost:8000/ui** and paste your API key (the `mm_sk_…` key from setup). Or skip the pasting: `docker compose exec api munkymind login-link --user <you>` prints a one-time link that signs this browser in.
 
 - **🧠 Brains** shows one card per domain: Body Brain (health), Business Brain (work), Big Picture Brain (strategy) and so on. Click one to see its pages, then open a page to read it, with where it came from and how fresh it is.
 - Search finds titles and tags. Press `/` to jump to the search box.

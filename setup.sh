@@ -179,8 +179,11 @@ docker compose up -d mcp >/dev/null 2>&1 || true
 
 say ""
 say "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-say "  Library UI:    http://localhost:$api_port/ui   (sign in with the API key above)"
+say "  Library UI:    http://localhost:$api_port/ui   (sign in with the API key above, or the link below)"
 say "  MCP endpoint:  http://localhost:$mcp_port/mcp  (Claude Desktop: see docs/quickstart.md, step 3)"
 say "  Edited notes are re-indexed automatically every few minutes. To do it now:"
 say "    docker compose exec api munkymind ingest -c files --user $username"
 say "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+say ""
+# A one-time sign-in link, so the key can go straight into a password manager
+docker compose exec "${tty_flag[@]}" api munkymind login-link --user "$username" || true
