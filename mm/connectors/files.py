@@ -5,7 +5,7 @@ import datetime
 import hashlib
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from mm.connectors.base import BaseConnector, ConnectorPage
 
@@ -18,7 +18,8 @@ DOMAIN_KEYWORDS: dict[str, list[str]] = {
     "projects": ["project", "build", "ship", "launch", "feature", "repo"],
 }
 
-SKIP_DIRS = {".venv", "__pycache__", ".git", "node_modules", ".mypy_cache"}
+# .trash holds notes deleted in Obsidian; .obsidian is the app's own settings
+SKIP_DIRS = {".venv", "__pycache__", ".git", "node_modules", ".mypy_cache", ".obsidian", ".trash"}
 
 DEFAULT_EXTENSIONS = [".md", ".txt", ".pdf"]
 
@@ -29,15 +30,58 @@ def _approx_tokens(text: str) -> int:
     return int(len(text) * _APPROX_TOKENS_PER_CHAR)
 
 
-def _detect_domain(path: Path, domain_map: dict[str, list[str]] | None = None,
-                   root: Path | None = None, domain_ids: set[str] | None = None) -> str:
-    """Pick a domain for a file.
+def _word_re(word: str) -> str:
+    """`word` as a whole word or a simple inflection (plan → plans, planning), never inside
+    another word ("lab" must not match "label" or "collaboration")."""
+    return r"(?<![a-z0-9])" + re.escape(word.lower()) + r"(?:s|es|ed|ing|ned|ning)?(?![a-z0-9])"
 
-    1. A folder named after a domain wins (`notes/health/sleep.md` → health).
-    2. Then the user's domain_map keywords, then the built-in keywords.
+
+def _has_word(text: str, word: str) -> bool:
+    return re.search(_word_re(word), text) is not None
+
+
+def _content_domain(text: str, keywords: dict[str, list[str]]) -> str | None:
+    """The domain whose keywords appear most often in the note, if it clearly leads.
+
+    Needs at least two hits and a lead over the runner-up, so a passing mention
+    doesn't decide where a note goes.
+    """
+    sample = text[:4000].lower()
+    scores = {}
+    for domain, kws in keywords.items():
+        n = sum(len(re.findall(_word_re(kw), sample)) for kw in kws)
+        if n:
+            scores[domain] = n
+    if not scores:
+        return None
+    ranked = sorted(scores.items(), key=lambda kv: -kv[1])
+    best, n = ranked[0]
+    if n >= 2 and (len(ranked) == 1 or n > ranked[1][1]):
+        return best
+    return None
+
+
+def _tag_list(meta: dict[str, str]) -> list[str]:
+    raw = meta.get("tags") or meta.get("tag") or ""
+    return [t.strip(" #'\"").lower() for t in re.split(r"[,\s\[\]]+", raw) if t.strip(" #'\"")]
+
+
+def _detect_domain(path: Path, domain_map: dict[str, list[str]] | None = None,
+                   root: Path | None = None, domain_ids: set[str] | None = None,
+                   meta: dict[str, str] | None = None, text: str = "") -> str:
+    """Pick a domain for a file, most explicit signal first.
+
+    1. `domain:` in the note's frontmatter.
+    2. A folder named after a domain (`notes/health/sleep.md` → health).
+    3. The user's domain_map: keywords or folder names matched against the path.
+    4. Built-in keywords in the file or folder names.
+    5. Frontmatter tags (`tags: [health]`).
+    6. The note's own text, when one domain's keywords clearly lead.
+    7. Otherwise "personal".
     Only the part of the path inside the notes folder counts, so a notes folder that
     happens to live under e.g. ~/projects/ doesn't push everything into "projects".
     """
+    meta = meta or {}
     rel = path
     if root is not None:
         try:
@@ -45,22 +89,35 @@ def _detect_domain(path: Path, domain_map: dict[str, list[str]] | None = None,
         except ValueError:
             rel = Path(path.name)
     ids = {d.lower() for d in (domain_ids or set(DOMAIN_KEYWORDS))}
+
+    declared = meta.get("domain", "").strip(" '\"").lower()
+    if declared in ids:
+        return declared
     for folder in rel.parts[:-1]:
         if folder.lower() in ids:
             return folder.lower()
-    needle = (path.stem + " " + str(rel)).lower()
+    needle = " ".join([path.stem, *rel.parts]).lower()
 
-    # Check user-supplied domain_map first
     if domain_map:
         for domain, keywords in domain_map.items():
-            if any(kw.lower() in needle for kw in keywords):
+            if any(_has_word(needle, kw) for kw in keywords):
                 return domain
 
     for domain, keywords in DOMAIN_KEYWORDS.items():
-        if any(kw in needle for kw in keywords):
+        if any(_has_word(needle, kw) for kw in keywords):
             return domain
 
-    return "personal"
+    tags = _tag_list(meta)
+    for tag in tags:
+        if tag in ids:
+            return tag
+    keywords = {**DOMAIN_KEYWORDS, **(domain_map or {})}
+    for tag in tags:
+        for domain, kws in keywords.items():
+            if any(_has_word(tag, kw) for kw in kws):
+                return domain
+
+    return _content_domain(text, keywords) or "personal"
 
 
 def _mtime(path: Path) -> str | None:
@@ -83,10 +140,15 @@ def _parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
         end = text.find("\n---", 3)
         if end != -1:
             fm_block = text[3:end].strip()
+            key = None
             for line in fm_block.splitlines():
-                if ":" in line:
+                item = line.strip()
+                if item.startswith("- ") and key:  # YAML list item under the last key
+                    meta[key] = ", ".join(x for x in (meta[key], item[2:].strip()) if x)
+                elif ":" in line:
                     k, _, v = line.partition(":")
-                    meta[k.strip()] = v.strip()
+                    key = k.strip()
+                    meta[key] = v.strip()
             text = text[end + 4:].lstrip()
     return meta, text
 
@@ -118,7 +180,8 @@ def _summary(text: str, max_tokens: int = 200) -> str:
     return " ".join(words[:max_tokens])
 
 
-def _ingest_text_file(path: Path, domain: str) -> ConnectorPage:
+def _ingest_text_file(path: Path, domain: str | Callable[[dict, str], str]) -> ConnectorPage:
+    """`domain` is a domain id, or a function of (frontmatter, text) that picks one."""
     raw = path.read_text(encoding="utf-8", errors="replace")
 
     if path.suffix == ".md":
@@ -133,6 +196,8 @@ def _ingest_text_file(path: Path, domain: str) -> ConnectorPage:
         sections = {"Content": body}
 
     summary = _summary(body)
+    if callable(domain):
+        domain = domain(meta, title + "\n" + body)
 
     return ConnectorPage(
         id=_page_id(path),
@@ -245,13 +310,16 @@ class FilesConnector(BaseConnector):
         pages: list[ConnectorPage] = []
         self.skipped: list[str] = []
         for i, f in enumerate(sorted(files)):
-            domain = _detect_domain(f, domain_map, root=None if path.is_file() else path,
-                                    domain_ids=domain_ids)
+            root = None if path.is_file() else path
+
+            def detect(meta, text, f=f, root=root):
+                return _detect_domain(f, domain_map, root=root, domain_ids=domain_ids, meta=meta, text=text)
+
             try:
                 if f.suffix == ".pdf":
-                    pages.extend(_ingest_pdf_file(f, domain))
+                    pages.extend(_ingest_pdf_file(f, detect({}, "")))
                 else:
-                    pages.append(_ingest_text_file(f, domain))
+                    pages.append(_ingest_text_file(f, detect))
             except ImportError:
                 raise  # a missing dependency is a setup problem, not one bad file
             except Exception as exc:  # one corrupt or unreadable file must not stop the folder

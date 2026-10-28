@@ -29,10 +29,11 @@ class EmbeddingProvider:
             return [item.embedding for item in response.data]
         elif self._provider == 'ollama':
             import requests
+            from mm.config.env import ollama_url
             embeddings = []
             for text in texts:
                 resp = requests.post(
-                    'http://localhost:11434/api/embeddings',
+                    f'{ollama_url()}/api/embeddings',
                     json={'model': self._model, 'prompt': text},
                 )
                 resp.raise_for_status()

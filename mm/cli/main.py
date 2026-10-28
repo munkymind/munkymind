@@ -288,6 +288,30 @@ def domain_remove(
     typer.echo(f"✓ Domain '{domain_id}' removed.")
 
 
+@domain_app.command('map')
+def domain_map(
+    domain_id: str = typer.Argument(..., help='Domain the matching notes go to (e.g. professional)'),
+    words: list[str] = typer.Argument(..., help='Folder names or words in file names, e.g. "Day Job" meetings'),
+    username: str = typer.Option(..., '--user', '-u', help='Username whose config to modify'),
+):
+    """Send notes whose folder or file name contains these words to a domain.
+
+    Applies on the next ingest: munkymind ingest -c files --user <name>
+    """
+    cfg, store = _load_user_config(username)
+    files = [c for c in cfg.connectors if c.get('connector') == 'files']
+    if not files:
+        typer.echo("No 'files' connector configured. Run 'munkymind setup' first.", err=True)
+        raise typer.Exit(1)
+    for conn in files:
+        mapping = conn.setdefault('domain_map', {})
+        current = mapping.setdefault(domain_id, [])
+        current.extend(w for w in words if w.lower() not in {c.lower() for c in current})
+    cfg.save(store.config_path)
+    typer.echo(f"✓ Notes matching {', '.join(repr(w) for w in words)} will go to '{domain_id}'.")
+    typer.echo(f"  Re-sort now: munkymind ingest -c files --user {username}")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # setup
 # ─────────────────────────────────────────────────────────────────────────────
@@ -368,6 +392,11 @@ def ingest(
             f"{result.get('pages_updated', 0)} updated, {result.get('pages_removed', 0)} removed, "
             f"{result.get('pages_unchanged', 0)} unchanged ({result.get('chunks_total', 0)} chunks embedded)."
         )
+        if connector == 'files':
+            from mm.cli.hints import domain_skew_hint
+            hint = domain_skew_hint(store, username)
+            if hint:
+                typer.echo(hint)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

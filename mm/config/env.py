@@ -20,3 +20,9 @@ def load_data_root_env(data_root: Path) -> None:
             continue
         key, value = line.split("=", 1)
         os.environ.setdefault(key.strip(), value.strip())
+
+
+def ollama_url() -> str:
+    """Base URL of the Ollama server. In Docker, localhost is the container itself, so
+    Compose sets OLLAMA_URL to the host (http://host.docker.internal:11434)."""
+    return (os.environ.get("OLLAMA_URL") or "http://localhost:11434").rstrip("/")

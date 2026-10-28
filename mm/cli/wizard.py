@@ -219,6 +219,10 @@ def run_wizard(answers: dict | None = None) -> None:
             domains_seen.update(_collect_domains(conn_cfg))
 
         ingest_ok = True
+        from mm.cli.hints import domain_skew_hint
+        hint = domain_skew_hint(store, username)
+        if hint:
+            typer.echo(hint)
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"\n  ✗ Ingestion failed: {exc}", err=True)
         typer.echo(
@@ -263,6 +267,17 @@ def run_wizard(answers: dict | None = None) -> None:
             err=True,
         )
 
+    # ── Which user the MCP server serves ─────────────────────────────────────
+    served = os.environ.get("MM_USER_ID")  # set by Docker Compose from .env
+    if served is None:
+        _set_env_var("USER_ID", username)  # a local MCP server reads it from the data folder
+    elif served != username:
+        typer.echo(
+            f"\n  ⚠ Your AI tools connect as '{served}', not '{username}'. In .env set\n"
+            f"    MM_USER_ID={username}, then run: docker compose up -d mcp",
+            err=True,
+        )
+
     # ── Summary ──────────────────────────────────────────────────────────────
     try:
         from mm.core.library import list_pages
@@ -296,7 +311,8 @@ def _ollama_available() -> bool:
     """Return True if local Ollama server responds."""
     try:
         import requests
-        resp = requests.get("http://localhost:11434/api/tags", timeout=2)
+        from mm.config.env import ollama_url
+        resp = requests.get(f"{ollama_url()}/api/tags", timeout=2)
         return resp.ok
     except Exception:
         return False
