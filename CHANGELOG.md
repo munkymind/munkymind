@@ -9,6 +9,10 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-10-28
+
+Setup, search and sync, rebuilt from tester feedback: one command from a fresh clone to a running library, search that finds exact words as well as meaning, a library that keeps itself in step with your notes, and a locked-down container.
+
 ### Security
 - **The container no longer runs as root.** The app runs as an unprivileged user (uid 10001) with every Linux capability dropped and `no-new-privileges` set, so a compromised process has far less reach into the host
 - **Smaller image, no compilers:** build tools stay in a separate build stage (the image is roughly 40% smaller)
