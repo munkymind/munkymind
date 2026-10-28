@@ -33,6 +33,8 @@ services:
       - MM_LLM_PROVIDER=${MM_LLM_PROVIDER:-anthropic}
       - MM_EMBED_PROVIDER=${MM_EMBED_PROVIDER:-openai}
       - MM_VOICE
+      # Re-index changed notes every N seconds (0 = off; then run `munkymind ingest` yourself)
+      - MM_SYNC_INTERVAL=${MM_SYNC_INTERVAL:-300}
       # The host port, so links printed inside the container point at the right place
       - API_PORT=${API_PORT:-8000}
       # The user the MCP container serves, so setup can tell you if it doesn't match

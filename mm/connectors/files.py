@@ -262,6 +262,30 @@ def _ingest_pdf_file(path: Path, domain: str) -> list[ConnectorPage]:
     return pages_out
 
 
+def list_files(path: Path, extensions: list[str] | None = None) -> list[Path]:
+    """The files a folder contributes: matching extensions, outside SKIP_DIRS."""
+    extensions = extensions or DEFAULT_EXTENSIONS
+    if path.is_file():
+        return [path]
+    files = []
+    _walk = path.rglob("*")
+    while True:
+        try:
+            f = next(_walk)
+        except StopIteration:
+            break
+        except PermissionError as exc:
+            import warnings
+            warnings.warn(f"Skipping unreadable path: {exc}")
+            continue
+        # Skip hidden / noise dirs
+        if any(part in SKIP_DIRS for part in f.parts):
+            continue
+        if f.is_file() and f.suffix in extensions:
+            files.append(f)
+    return files
+
+
 class FilesConnector(BaseConnector):
     connector_id = "files"
     display_name = "File / Directory"
@@ -287,25 +311,7 @@ class FilesConnector(BaseConnector):
         domain_ids = set(DOMAIN_KEYWORDS) | {
             d.id for d in getattr(self.user_config, "domains", None) or []}
 
-        if path.is_file():
-            files = [path]
-        else:
-            files = []
-            _walk = path.rglob("*")
-            while True:
-                try:
-                    f = next(_walk)
-                except StopIteration:
-                    break
-                except PermissionError as exc:
-                    import warnings
-                    warnings.warn(f"Skipping unreadable path: {exc}")
-                    continue
-                # Skip hidden / noise dirs
-                if any(part in SKIP_DIRS for part in f.parts):
-                    continue
-                if f.is_file() and f.suffix in extensions:
-                    files.append(f)
+        files = list_files(path, extensions)
 
         pages: list[ConnectorPage] = []
         self.skipped: list[str] = []

@@ -108,10 +108,11 @@ curl -X POST http://localhost:8000/query \
   -d '{"query": "What should I focus on this week?"}'
 ```
 
-Added or edited notes? Re-ingest (existing pages are updated, not duplicated):
+Added, edited or deleted notes? Nothing to do: every 5 minutes Munkymind checks your notes folder and, if anything changed, re-indexes just those notes. Change the interval with `MM_SYNC_INTERVAL` in `.env` (seconds; `0` turns it off), then `docker compose up -d`. To re-index right now:
 ```bash
 docker compose exec api munkymind ingest --connector files --user myname
 ```
+GitHub connectors aren't synced automatically; re-run `ingest --connector github` when you want fresh repo content.
 
 ### See your brains (what's in your library)
 
@@ -228,6 +229,8 @@ munkymind query --user myname "What should I focus on this week?"
 export DATA_ROOT=~/.munkymind
 uvicorn mm.api.server:app --host 0.0.0.0 --port 8000
 ```
+
+The API server re-indexes changed notes every 5 minutes (`MM_SYNC_INTERVAL`). Not running it? `munkymind watch --user myname` does the same in a terminal.
 
 ### 4. Start the MCP server (separate terminal)
 

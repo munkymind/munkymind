@@ -79,7 +79,7 @@ curl -X POST http://localhost:8000/query \
 
 Prefer to do it by hand? See [the manual steps](docs/quickstart.md#manual-setup).
 
-Added more notes later? `docker compose exec api munkymind ingest --connector files --user yourname`
+Added or edited notes later? They're picked up automatically within 5 minutes (`MM_SYNC_INTERVAL`). To re-index now: `docker compose exec api munkymind ingest --connector files --user yourname`
 
 That's it. Full setup guide: **[docs/quickstart.md](docs/quickstart.md)**
 
@@ -224,7 +224,8 @@ munkymind status --user <name>                    # Pages, freshness, recent ing
 munkymind pages --user <name> [--stale]           # List pages (also --domain, --search)
 munkymind show <page-id> --user <name>            # Read one page and its provenance
 munkymind peek --user <name> "<question>"         # What an AI would be sent (no LLM call)
-munkymind ingest --connector files --user <name>  # Re-ingest after adding notes
+munkymind ingest --connector files --user <name>  # Re-index now (the API also does it every 5 min)
+munkymind watch --user <name>                     # Re-index on change, without the API server
 munkymind ingest --connector github --user <name> # Ingest from GitHub connector
 munkymind eval --api-key mm_sk_...                # Run quality eval suite (9 scenarios)
 munkymind user create <name>                      # Create a user + API key only (no connector)
