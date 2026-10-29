@@ -183,6 +183,8 @@ say "  Library UI:    http://localhost:$api_port/ui   (sign in with the API key 
 say "  MCP endpoint:  http://localhost:$mcp_port/mcp  (Claude Desktop: see docs/quickstart.md, step 3)"
 say "  Edited notes are re-indexed automatically every few minutes. To do it now:"
 say "    docker compose exec api munkymind ingest -c files --user $username"
+say "  Something not working later? Check everything with:"
+say "    docker compose exec api munkymind doctor"
 say "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 say ""
 # A one-time sign-in link, so the key can go straight into a password manager

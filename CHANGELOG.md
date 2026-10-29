@@ -9,6 +9,9 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ## [Unreleased]
 
+### Added
+- **`munkymind doctor`: is everything working, and if not, how to fix it.** One read-only command checks the API and MCP servers, which user your AI tools connect as, your API key, the notes folder, the library and automatic sync, your AI provider keys (or Ollama and its models) and, outside Docker, the Claude Desktop config. Every problem comes with a one-line fix; exit code 1 when anything fails. Run it with `docker compose exec api munkymind doctor`
+
 ## [0.3.0] — 2026-10-28
 
 Setup, search and sync, rebuilt from tester feedback: one command from a fresh clone to a running library, search that finds exact words as well as meaning, a library that keeps itself in step with your notes, and a locked-down container.
