@@ -13,7 +13,8 @@ A personal context library. Notes go in (files or GitHub), get a two-tier embedd
 | `mm/api/` | FastAPI server (`server.py`) and the query endpoint (`query.py`) |
 | `mm/mcp/` | MCP server (`server.py`, HTTP + stdio transports) and its OAuth/auth layer (`auth.py`) |
 | `mm/auth/` | API keys (`mm_sk_…`), creation and rotation |
-| `mm/cli/` | Typer CLI: `setup`, `ingest`, `watch`, `doctor`, `login-link`, `query`, `status`, `pages`, `show`, `peek`, `eval`; the setup wizard (`wizard.py`) |
+| `mm/cli/` | Typer CLI: `setup`, `ingest`, `watch`, `doctor`, `login-link`, `query`, `status`, `pages`, `show`, `peek`, `review`, `eval`; the setup wizard (`wizard.py`) |
+| `mm/review/` | The Review queue (`queue.py`: proposals, page-changed conflict, approve/reject), `capture.py` (MCP `capture`, `POST /capture`) and the capture check (`check.py`) |
 | `mm/core/` | The library model (`library.py`) and the ChromaDB store (`store.py`) |
 | `mm/embedding/` | Two-tier embedding pipeline and providers (OpenAI, Anthropic) |
 | `mm/ingestion/` | Ingest runner: connector → pages → embeddings → store |
@@ -67,3 +68,4 @@ Bump `version` in `pyproject.toml`, move `## [Unreleased]` in `CHANGELOG.md` (Ke
 | A new source type | `docs/connector-dev-guide.md`, `mm/connectors/base.py` |
 | Wording a user sees | `mm/voice/` |
 | Viewer | `mm/ui/index.html` |
+| Capture, Review, approvals | `mm/review/`, `tests/test_review.py` |

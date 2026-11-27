@@ -11,8 +11,10 @@ app = typer.Typer(
 
 user_app = typer.Typer(help="Manage Munkymind users.")
 domain_app = typer.Typer(help="Manage knowledge domains in config.yaml.")
+review_app = typer.Typer(help="The Review queue: approve or reject proposed changes to your library.")
 app.add_typer(user_app, name="user")
 app.add_typer(domain_app, name="domain")
+app.add_typer(review_app, name="review")
 
 import os
 from mm import __version__
@@ -715,6 +717,112 @@ def peek(
 # ─────────────────────────────────────────────────────────────────────────────
 # eval
 # ─────────────────────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────────────────
+# review
+# ─────────────────────────────────────────────────────────────────────────────
+
+@review_app.command('list')
+def review_list(
+    username: str = typer.Option(..., '--user', '-u', help='Username'),
+    status: str = typer.Option('pending', '--status', help='pending, approved, rejected, superseded (comma-separated)'),
+):
+    """What's waiting for you (or what you decided)."""
+    from rich.console import Console
+    from rich.markup import escape
+    from mm.review import queue
+
+    console = Console()
+    store = _open_store(username)
+    rows = queue.items(store, status)
+    if not rows:
+        _say(console, "review.empty" if status == "pending" else "review.none")
+        return
+    for d in rows:
+        flags = "".join(f" [yellow]🔄 {escape(c)}[/yellow]" for c in (d.get("flags") or {}).get("changes", []))
+        console.print(f"[bold]{d['id']}[/bold]  {escape(d['path'])}  [dim]{escape(d.get('change_note') or '')}"
+                      f" · {d['status']} {d.get('decided_at') or d.get('created_at') or ''}[/dim]{flags}",
+                      highlight=False)
+    if status == "pending":
+        console.print(f"\n[dim]Look closer: munkymind review show <id> -u {username} · "
+                      f"decide: munkymind review approve|reject <id> -u {username}[/dim]")
+
+
+@review_app.command('show')
+def review_show(
+    pid: str = typer.Argument(..., help='Proposal ID (from review list)'),
+    username: str = typer.Option(..., '--user', '-u', help='Username'),
+):
+    """One proposal: why it was proposed, any change of mind, and the change itself."""
+    from rich.console import Console
+    from rich.markup import escape
+    from mm.review import queue
+
+    console = Console()
+    try:
+        d = queue.get(_open_store(username), pid)
+    except queue.ReviewError as exc:
+        typer.echo(f"✗ {exc}", err=True)
+        raise typer.Exit(1)
+    console.print(f"[bold]{escape(d['title'])}[/bold]  [dim]{escape(d['path'])} · {d['status']}[/dim]", highlight=False)
+    if d.get("change_note"):
+        console.print(escape(d["change_note"]), highlight=False)
+    for c in d.get("changes") or []:
+        console.print(f"[yellow]🔄 Changes your mind: {escape(c['point'])}: \"{escape(c['previous'])}\" → "
+                      f"\"{escape(c['new'])}\" ({escape(c.get('page_title') or '')})[/yellow]", highlight=False)
+    console.print("")
+    for line in queue.diff(d):
+        style = {"+": "green", "-": "red", "@": "dim"}.get(line["op"], "")
+        text = "⋯" if line["op"] == "@" else f"{line['op']} {line['text']}"
+        console.print(f"[{style}]{escape(text)}[/{style}]" if style else escape(text), highlight=False)
+
+
+def _decide(pid: str, username: str, action: str, force: bool = False) -> None:
+    from mm.review import queue
+
+    store = _open_store(username)
+    try:
+        r = queue.decide(store, pid, action, force=force, via="cli")
+    except queue.ReviewConflict as exc:
+        typer.echo(f"✗ {exc}. To replace it: munkymind review approve {pid} -u {username} --force", err=True)
+        raise typer.Exit(1)
+    except queue.ReviewError as exc:
+        typer.echo(f"✗ {exc}", err=True)
+        raise typer.Exit(1)
+    if action == "approve":
+        typer.echo(f"✓ Approved: {r['path']} is in your library ({r.get('chunks_total', 0)} chunks indexed).")
+    else:
+        typer.echo("✓ Rejected: nothing in your library changed.")
+
+
+@review_app.command('approve')
+def review_approve(
+    pid: str = typer.Argument(..., help='Proposal ID'),
+    username: str = typer.Option(..., '--user', '-u', help='Username'),
+    force: bool = typer.Option(False, '--force', help='Replace the page even if it changed after the proposal was made'),
+):
+    """Write the proposed page to your library and index it."""
+    _decide(pid, username, "approve", force)
+
+
+@review_app.command('reject')
+def review_reject(
+    pid: str = typer.Argument(..., help='Proposal ID'),
+    username: str = typer.Option(..., '--user', '-u', help='Username'),
+):
+    """Drop a proposal. Nothing in your library changes."""
+    _decide(pid, username, "reject")
+
+
+@review_app.command('reindex')
+def review_reindex(username: str = typer.Option(..., '--user', '-u', help='Username')):
+    """Re-index the pages you approved (e.g. after editing or deleting them on disk)."""
+    from mm.review import queue
+
+    r = queue.index_library(_open_store(username))
+    typer.echo(f"✓ Approved pages: {r.get('pages_created', 0)} new, {r.get('pages_updated', 0)} updated, "
+               f"{r.get('pages_removed', 0)} removed, {r.get('pages_unchanged', 0)} unchanged.")
+
 
 @app.command()
 def eval(

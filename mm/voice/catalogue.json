@@ -279,6 +279,21 @@
         "Pick a sense. ChatGPT natters, Claude Desktop ponders, Claude Code just gets on with it. Same brains behind all of them.",
         "Your brains need senses to hear you an' answer: ChatGPT (chatty), Claude Desktop (thoughtful), Claude Code (does the work). One set of brains, your pick of senses."
       ]
+    },
+    "review.intro": {
+      "joke": "🍌 Fresh food for your brains. Taste it before they eat it?"
+    },
+    "review.empty": {
+      "joke": [
+        "🎉 Plate's clean.",
+        "🙈 Nothing to check. Go outside."
+      ]
+    },
+    "review.approved": {
+      "joke": "😋 Nom."
+    },
+    "review.rejected": {
+      "joke": "🙅 Spat out."
     }
   }
 }

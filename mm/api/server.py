@@ -316,6 +316,73 @@ async def preview(body: PreviewRequest, store: UserStore = Depends(get_user_stor
     return library.preview(store, body.query, domains=body.domains, limit=body.limit)
 
 
+# ------------------------------------------------------------------ #
+# Capture and the Review queue
+# ------------------------------------------------------------------ #
+
+
+class CaptureRequest(BaseModel):
+    text: str
+    kind: str = "fact"
+    source_client: str = "other"
+    title: str = ""
+    domain: str = ""
+
+
+@app.post("/capture")
+def capture(body: CaptureRequest, store: UserStore = Depends(get_user_store)):
+    """Save an idea, decision, preference or fact to the Review queue (never straight to the library)."""
+    from mm.review import capture as cap
+
+    store.init()
+    try:
+        return cap.add(store, body.text, kind=body.kind, source_client=body.source_client,
+                       title=body.title, domain=body.domain)
+    except cap.CaptureError as exc:
+        raise HTTPException(status_code=429 if isinstance(exc, cap.RateLimited) else 400, detail=str(exc))
+
+
+@app.get("/review")
+async def review_list(status: str = "pending", store: UserStore = Depends(get_user_store)):
+    """Proposals with the given status (pending, approved, rejected, superseded; comma-separated)."""
+    from mm.review import queue
+
+    return {"proposals": [queue.summary(d) for d in queue.items(store, status)],
+            **queue.counts(store)}
+
+
+@app.get("/review/{pid}")
+async def review_one(pid: str, store: UserStore = Depends(get_user_store)):
+    from mm.review import queue
+
+    try:
+        return queue.detail(queue.get(store, pid))
+    except queue.ReviewError:
+        raise HTTPException(status_code=404, detail="Proposal not found")
+
+
+class ReviewDecision(BaseModel):
+    action: str
+    force: bool = False
+
+
+@app.post("/review/{pid}")
+def review_decide(pid: str, body: ReviewDecision, store: UserStore = Depends(get_user_store)):
+    """Approve (write the page and index it) or reject a pending proposal. Needs a read-write key."""
+    from mm.review import queue
+
+    try:
+        queue.get(store, pid)
+    except queue.ReviewError:
+        raise HTTPException(status_code=404, detail="Proposal not found")
+    try:
+        return queue.decide(store, pid, body.action, force=body.force, via="api")
+    except queue.ReviewConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+    except queue.ReviewError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
 _UI_DIR = Path(__file__).resolve().parent.parent / "ui"
 
 
@@ -389,7 +456,29 @@ async def ingest_files(
     files: list[UploadFile] = File(...),
     store: UserStore = Depends(get_user_store),
 ):
-    """Accept uploaded files and ingest them into the user's context library."""
+    """Accept uploaded files. By default each one waits in the Review queue
+    (MM_REVIEW_UPLOADS=off indexes them at once, as before v0.4)."""
+    from mm.review import queue
+
+    if queue.uploads_need_review():
+        store.init()
+        proposals, errors = [], []
+        for upload in files:
+            try:
+                p = queue.propose_upload(store, upload.filename or "file.md", await upload.read())
+                proposals.append({"id": p["id"], "path": p["path"], "title": p["title"]})
+            except Exception as exc:  # noqa: BLE001 - one bad file must not lose the others
+                errors.append(f"{upload.filename}: {exc}")
+        if not proposals:
+            raise HTTPException(status_code=400, detail="; ".join(errors) or "No files received")
+        return {"status": "queued", "proposals": proposals, "errors": errors,
+                "pages_created": 0, "pages_updated": 0, "chunks_total": 0,
+                "message": f"{len(proposals)} file(s) are waiting in Review. Approve them in the viewer "
+                           "(/ui#/review), with POST /review/{id}, or with: munkymind review approve"}
+    return await _ingest_now(files, store)
+
+
+async def _ingest_now(files: list[UploadFile], store: UserStore):
     from mm.connectors.files import FilesConnector
     from mm.config.user import UserConfig
     from mm.embedding.providers import EmbeddingProvider

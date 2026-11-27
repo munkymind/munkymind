@@ -141,6 +141,27 @@
     },
     "moods.intro": {
       "plain": "How fed each brain is: page counts, freshness and the feeding log."
+    },
+    "review.intro": {
+      "plain": "What your AI tools saved and the files you uploaded. Nothing reaches your library until you approve it here."
+    },
+    "review.empty": {
+      "plain": "Nothing waiting for review."
+    },
+    "review.none": {
+      "plain": "Nothing here yet."
+    },
+    "review.readonly": {
+      "plain": "This sign-in can look but not decide. To approve or reject, lock and sign in with a read-write API key, or run {fix}."
+    },
+    "review.approved": {
+      "plain": "Approved: {page} is in your library now."
+    },
+    "review.rejected": {
+      "plain": "Rejected: nothing in your library changed."
+    },
+    "review.conflict": {
+      "plain": "This page changed after the proposal was made. Approve anyway to replace it with this version, or reject it."
     }
   }
 }
