@@ -9,6 +9,10 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-11-27
+
+Review before it's remembered: AI tools can now save to your library, but nothing reaches it until you approve it. Captures, uploads and proposed pages wait in a Review queue, a change of mind is flagged before it lands, and the clean ones can be approved in one go, on a phone as easily as on a desktop.
+
 ### Added
 - **`munkymind doctor`: is everything working, and if not, how to fix it.** One read-only command checks the API and MCP servers, which user your AI tools connect as, your API key, the notes folder, the library and automatic sync, your AI provider keys (or Ollama and its models) and, outside Docker, the Claude Desktop config. Every problem comes with a one-line fix; exit code 1 when anything fails. Run it with `docker compose exec api munkymind doctor`
 - **Review queue: nothing changes your library without your OK.** Proposed pages wait in a queue until you approve or reject them, in the viewer's new ✅ Review tab (with a waiting count) or with `munkymind review list / show / approve / reject`. Approving writes the page to your own `context-repo/` folder and indexes it; rejecting changes nothing. If the page changed after a proposal was made, approval stops and asks whether to replace it
