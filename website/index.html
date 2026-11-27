@@ -99,7 +99,7 @@
   <div class="hero">
     <img src="logo.svg" alt="Munkymind logo">
     <h1>Your context, in every AI tool.</h1>
-    <p class="lede">Your AI tools forget you every conversation. Munkymind is an open-source personal context library: point it at your notes, and Claude, ChatGPT and other tools can draw on them whenever they need to.</p>
+    <p class="lede">Your AI tools forget you every conversation. Munkymind is an open-source personal context library: point it at your notes, and Claude, ChatGPT and other tools can draw on them whenever they need to. They can save to it too, but nothing is remembered until you approve it.</p>
     <div class="cta">
       <a class="btn primary" href="#start">Get started in 10 minutes</a>
       <a class="btn ghost" href="https://github.com/munkymind/munkymind">View on GitHub</a>
@@ -129,6 +129,12 @@
       <div>You ask a question in your AI tool</div>
       <div>Munkymind finds the notes that matter, by meaning and by exact words</div>
       <div>A short answer comes back with its sources, or a plain “not in your library”</div>
+    </div>
+    <h3 style="margin-top:28px">And the other way: saving</h3>
+    <div class="roundtrip">
+      <div>Your AI tool saves a decision, idea or fact you mention</div>
+      <div>Munkymind checks it against your library and flags a change of mind (“you said X before, this says Y”)</div>
+      <div>It waits in Review until you approve it. Nothing changes without you</div>
     </div>
     <p class="privacy-line">Your library stays on your machine. Note text goes only to the AI provider you choose, under your own key, or nowhere at all with Ollama.</p>
   </section>
@@ -166,6 +172,8 @@ cd munkymind
       <div class="card"><h3>🧠 See your brains</h3><p>A local viewer at <code>localhost:8000/ui</code>. Every topic is a brain (Body Brain, Business Brain, Big Picture Brain), and your AI tools are their senses. Browse what each brain knows, and see where it came from.</p></div>
       <div class="card"><h3>👀 Peek</h3><p>Type a question and see exactly which few snippets your AI would be sent, and how small that is next to your whole library. No AI is called.</p></div>
       <div class="card"><h3>😋 Moods: keep it fresh</h3><p>Brains get hungry. Each one shows a mood, from 😋 fed to 😴 starving, so you know which notes are out of date before your AI relies on them. And they feed themselves: edit, add or delete a note and it's picked up within minutes, re-indexing only what changed.</p></div>
+      <div class="card"><h3>💬 Save from any AI tool</h3><p>Tell Claude or ChatGPT “remember that I've switched to running mornings” and it saves it to Munkymind. Anything that looks like a secret, or like instructions to an AI, is held back.</p></div>
+      <div class="card"><h3>✅ Review: nothing changes without you</h3><p>Saves and uploads wait in Review with a one-line peek of each change. Approve the clean ones in one go; a change of mind, or two edits to the same page, is set aside for a proper look. Works one-handed on your phone.</p></div>
     </div>
     <h3 style="margin-top:28px">What people use it for</h3>
     <div class="grid">
