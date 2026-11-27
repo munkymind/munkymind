@@ -11,6 +11,18 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ### Added
 - **`munkymind doctor`: is everything working, and if not, how to fix it.** One read-only command checks the API and MCP servers, which user your AI tools connect as, your API key, the notes folder, the library and automatic sync, your AI provider keys (or Ollama and its models) and, outside Docker, the Claude Desktop config. Every problem comes with a one-line fix; exit code 1 when anything fails. Run it with `docker compose exec api munkymind doctor`
+- **Review queue: nothing changes your library without your OK.** Proposed pages wait in a queue until you approve or reject them, in the viewer's new ✅ Review tab (with a waiting count) or with `munkymind review list / show / approve / reject`. Approving writes the page to your own `context-repo/` folder and indexes it; rejecting changes nothing. If the page changed after a proposal was made, approval stops and asks whether to replace it
+- **AI tools can save to Munkymind:** a new MCP tool, `capture` (and `POST /capture`), saves an idea, decision, preference or fact while you talk. Every capture goes to Review. Text that looks like a secret or like instructions to an AI is held back, never queued; captures are rate-limited (10 a minute, 200 a day) and need a read-write key. `MM_CAPTURE=off` turns capture off
+- **"This looks like a change of mind":** a captured decision, preference or fact is compared with the most relevant pages in your library using your answer model. A contradiction is flagged in Review and told to the AI tool at once, so it can check with you. A failed check never blocks a capture. `MM_CAPTURE_CHECK=off` turns it off
+- `munkymind doctor` checks capture, uploads and the Review queue: proposals waiting more than 14 days, captures held back, and approved pages that aren't indexed (`munkymind review reindex`)
+
+### Changed
+- **Uploads wait in Review.** `POST /ingest/files` now queues each file as a proposal and returns `{"status": "queued", "proposals": [...]}`. Set `MM_REVIEW_UPLOADS=off` to index uploads at once, as before. Approved uploads are kept as files, so their full text survives a re-index. The notes-folder sync and `munkymind ingest` are unchanged
+- The viewer is no longer read-only: it can approve and reject in Review (with a read-write key). Login-link sessions stay read-only
+
+### Upgrading
+- No data migration: existing pages, the database and the vector store are untouched. The `review/` folder is created the first time something is proposed
+- Scripts that upload with `POST /ingest/files` and expect the file to be searchable at once: set `MM_REVIEW_UPLOADS=off`, or approve each proposal with `POST /review/{id}` `{"action": "approve"}`
 
 ## [0.3.0] — 2026-10-28
 

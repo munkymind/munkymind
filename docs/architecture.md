@@ -35,6 +35,7 @@ Munkymind is a self-hosted personal context library. This document describes the
 │   ├── api_key.hash     (bcrypt)                         │
 │   ├── context-repo/    (domain pages on disk)           │
 │   ├── chroma/          (vector store)                   │
+│   ├── review/          (proposals waiting for approval) │
 │   └── db/metadata.sqlite3  (pages, ingestions, auth_log)│
 └─────────────────────┬───────────────────────────────────┘
                       │
@@ -74,6 +75,26 @@ ChromaDB.upsert(collection=mm-{user_id}, ...)
   ↓
 SQLite.upsert_pages(user_id, pages)  ← metadata + provenance
 ```
+
+### Capture and Review
+
+Nothing an AI tool saves, and no uploaded file, reaches the library without the user's approval.
+
+```
+MCP capture / POST /capture / POST /ingest/files
+  ↓  validate, rate-limit, screen (secrets, injected instructions → quarantine)
+capture check (decisions, preferences, facts)
+  ↓  retrieve related excerpts → user's answer model → {point, previous, new, page}
+review/<id>.json  status=pending, base_version = hash of the page it would replace
+  ↓  viewer ✅ Review, POST /review/{id}, or munkymind review approve|reject
+approve: page version unchanged? (else 409 conflict; force replaces)
+  ↓  write context-repo/<domain>/<name>.md → index it (connector "review")
+reject: nothing changes
+```
+
+The notes folder is never written to (it is mounted read-only). Approved pages live in the
+user's own `context-repo/`, indexed like a second notes folder. Notes-folder sync and
+`munkymind ingest` don't go through Review: those are the user's own files.
 
 ### Query
 
@@ -163,7 +184,7 @@ Connectors are registered via Python entry points — no changes to core require
 
 ## MCP Server
 
-Exposes 5 tools via the MCP protocol:
+Exposes 6 tools via the MCP protocol:
 
 | Tool | Description |
 |------|-------------|
@@ -172,6 +193,7 @@ Exposes 5 tools via the MCP protocol:
 | `get_page` | Retrieve a specific page by path |
 | `search_pages` | Keyword search across page metadata |
 | `get_staleness_report` | Pages exceeding their staleness threshold |
+| `capture` | Save an idea, decision, preference or fact to the Review queue (needs a read-write key) |
 
 Supports stdio transport (Claude Desktop) and HTTP transport (Cursor, other HTTP clients).
 

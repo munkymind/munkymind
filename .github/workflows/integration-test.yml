@@ -26,7 +26,7 @@ jobs:
         run: |
           CHANGED=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
           echo "$CHANGED"
-          if echo "$CHANGED" | grep -qE '^(mm/|tests/fixtures/|docker-compose[^/]*\.yml$|Dockerfile$|requirements[^/]*\.txt$|pyproject\.toml$|uv\.lock$|\.github/workflows/integration-test\.yml$)'; then
+          if echo "$CHANGED" | grep -qE '^(mm/|tests/fixtures/|docker-compose[^/]*\.yml$|Dockerfile$|requirements[^/]*\.txt$|pyproject\.toml$|uv\.lock$|\.github/workflows/integration-test\.yml$|\.github/scripts/)'; then
             echo "app=true" >> "$GITHUB_OUTPUT"
           else
             echo "app=false" >> "$GITHUB_OUTPUT"
@@ -83,7 +83,7 @@ jobs:
           echo "✅ User created, API key captured (${KEY:0:12}...)."
 
       # ------------------------------------------------------------------ #
-      # Ingest small file (via HTTP /ingest/files — the real ingest path)
+      # Ingest small file (via HTTP /ingest/files, then approve it in the Review queue)
       # ------------------------------------------------------------------ #
       - name: Ingest small file
         id: ingest-small
@@ -99,7 +99,8 @@ jobs:
             -F "files=@/tmp/test-small.md" \
             http://localhost:8000/ingest/files)
           echo "Ingest response: $INGEST"
-          CHUNKS=$(echo "$INGEST" | python3 -c "import sys,json; print(json.load(sys.stdin).get('chunks_total', 0))")
+          # Uploads wait in the Review queue: approve each one, which writes and indexes it
+          CHUNKS=$(echo "$INGEST" | python3 .github/scripts/approve_uploads.py)
           if [ "$CHUNKS" -lt 1 ]; then
             echo "❌ Small file produced $CHUNKS chunks (expected ≥1)."
             exit 1
@@ -156,7 +157,7 @@ jobs:
             -F "files=@tests/fixtures/large-integration-test.md" \
             http://localhost:8000/ingest/files)
           echo "Ingest response: $INGEST"
-          CHUNKS=$(echo "$INGEST" | python3 -c "import sys,json; print(json.load(sys.stdin).get('chunks_total', 0))")
+          CHUNKS=$(echo "$INGEST" | python3 .github/scripts/approve_uploads.py)
           if [ "$CHUNKS" -lt 3 ]; then
             echo "❌ Large file produced $CHUNKS chunks (expected ≥3: one oversized section must be split)."
             exit 1

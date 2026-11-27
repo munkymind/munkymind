@@ -7,7 +7,7 @@ Munkymind sits between your notes and your AI tools. You feed it notes once; aft
 | Where | What it's for |
 |---|---|
 | **Your AI tools** (Claude Desktop, claude.ai, ChatGPT, Cursor) | The main event: ask questions that need your context |
-| **The viewer** at `http://localhost:8000/ui` | See what Munkymind knows, check freshness, peek at what your AI gets sent |
+| **The viewer** at `http://localhost:8000/ui` | See what Munkymind knows, check freshness, peek at what your AI gets sent, approve what your AI saved |
 | **The terminal** (`munkymind …`) | Feed it, check on it, script it |
 
 **The language you'll see:** each topic is a **brain** (Body Brain, Business Brain…), your notes are **brain food**, and your AI tools are the brains' **senses**: they take in what you tell them and use what the brains know. Freshness shows as each brain's **mood**.
@@ -48,6 +48,7 @@ Your AI calls Munkymind's tools by itself:
 | `get_page` | Reads one page in full |
 | `list_domains` | Lists your brains and how many pages each has |
 | `get_staleness_report` | Lists notes that are out of date |
+| `capture` | Saves something you said to your Review queue (see [Review queue](#review-queue)) |
 
 Answers cite the pages they used. If a note is stale, the answer says so.
 
@@ -66,6 +67,48 @@ munkymind domain add garden "Garden" --user <you> --icon 🌱 --brain-name "Gard
 munkymind status --user <you>            # how your brains are doing
 ```
 Prefer it without the jokes? Set `MM_VOICE=plain` in `.env` and restart.
+
+---
+
+## Review queue
+
+Your AI tools can save things to Munkymind, not only read from it. Nothing they save reaches your library until you approve it.
+
+### How it works
+1. **You say something worth keeping.** *"I've moved the Riverside 10k to 14 March."* Your AI tool calls `capture` (or ask it: *"save that to Munkymind"*).
+2. **Munkymind checks it.** For a decision, preference or fact, it looks at the most relevant pages in your library and asks your answer model whether this changes something they say. If it does, the AI tool hears it straight away: *"Heads up, this looks like a change of mind: your library says "6 December" (10k plan); this changes it to "14 March"."* It can ask you while you're still talking.
+3. **It waits in ✅ Review.** Open the viewer's Review tab (the number on it is how many are waiting). Each proposal shows the page it would add, where it came from, and a 🔄 flag for a change of mind.
+4. **You decide.** ✅ **Approve** writes the page and indexes it, so the next question finds it. ✕ **Reject** changes nothing.
+
+Approved pages are kept in Munkymind's own folder (`users/<you>/context-repo/<brain>/`), never in your notes folder. Approving a change of mind adds a page that says what it replaces; it doesn't edit your older note, so update that note yourself if it's one of yours.
+
+![A proposal in Review on a phone: the change of mind, the new page, Approve and Reject](screenshots/review/review-proposal-390.png)
+
+**From the terminal:**
+```bash
+munkymind review list -u <you>                  # what's waiting
+munkymind review show <id> -u <you>             # the change, and any change of mind
+munkymind review approve <id> -u <you>          # or: reject
+```
+In Docker, put `docker compose exec api` in front.
+
+**"This page changed after the proposal was made."** Two proposals for the same page, or an edit in between: the second one was written against an older version. Approve anyway to replace the page with it, or reject it.
+
+**Who can decide.** Approving and rejecting need your read-write API key. A login-link sign-in is read-only: it shows the queue, and the page tells you how to decide (sign in with your key, or use the terminal).
+
+### What goes through Review
+
+| Source | Through Review? |
+|---|---|
+| `capture` from an AI tool, `POST /capture` | Always |
+| Uploads (`POST /ingest/files`) | Yes by default; `MM_REVIEW_UPLOADS=off` indexes them at once |
+| Your notes folder (automatic sync, `munkymind ingest`) | No: they're your own files |
+
+### Guardrails and switches
+- Text that looks like a password, key or token, or like instructions to an AI, is held back and never queued. `munkymind doctor` tells you when something was held back.
+- 10 captures a minute and 200 a day, per AI tool.
+- Capturing needs a read-write key. A read-only key can still ask questions.
+- `MM_CAPTURE=off` refuses captures. `MM_CAPTURE_CHECK=off` skips the change-of-mind check (then nothing from your library is sent to your answer model when capturing).
 
 ---
 
@@ -121,6 +164,7 @@ Testing an early release? Try these, then [file a tester report](https://github.
 4. 💬 **Ask:** connect one AI tool and ask a cross-domain question. Was the answer right, and did it cite sources?
 5. 🔁 **Re-feed:** edit a note, re-ingest, and ask again. Did the answer change?
 6. 😂 **Voice:** did any message make you smile, or wince? Quote it.
+7. ✅ **Review:** tell your AI tool something that contradicts a note (*"I've moved the 10k to March"*). Did it warn you about the change of mind? Approve it in Review, then ask again: does the answer use the new value?
 
 ---
 
@@ -132,5 +176,7 @@ Testing an early release? Try these, then [file a tester report](https://github.
 | A brain is 😴 Starving | Its notes are past their freshness window: re-ingest the source, or raise that domain's `staleness_threshold_days` in your `config.yaml` |
 | The viewer says the brains don't recognise you | Paste the full `mm_sk_…` key. Lost it? `munkymind user rotate-key <you>` |
 | "All brains are on a smoke break" | The API isn't running: `docker compose up -d` |
+| Your AI tool says it saved something, but the answer hasn't changed | It's waiting in ✅ Review: approve it there, or `munkymind review list -u <you>` |
+| Review says the sign-in "can look but not decide" | You signed in with a login link (read-only). Lock, then sign in with your `mm_sk_…` key, or use `munkymind review approve` |
 
 More fixes are in the [quickstart's troubleshooting section](quickstart.md#troubleshooting).

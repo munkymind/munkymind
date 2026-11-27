@@ -1,11 +1,12 @@
 """MCP server for Munkymind.
 
-Exposes 5 tools:
+Exposes 6 tools:
   - query_context
   - list_domains
   - get_page
   - search_pages
   - get_staleness_report
+  - capture  (saves to the Review queue; nothing reaches the library until the user approves)
 
 Supports:
   stdio transport (default, for Claude Desktop)
@@ -281,6 +282,53 @@ def get_staleness_report(domain: Optional[str] = None) -> dict:
         json.dumps(report, indent=2, default=str),
         staleness_warnings=warnings,
     )
+
+
+@mcp.tool()
+def capture(
+    text: str,
+    kind: str = "fact",
+    source_client: str = "other",
+    title: Optional[str] = None,
+    domain: Optional[str] = None,
+) -> dict:
+    """Save something worth remembering about the user: an idea, decision, preference or fact.
+
+    Use it when the user tells you something they'd want their other AI tools to know later
+    (a plan, a choice, a change of mind), or asks you to remember it. One statement per call,
+    in the user's own terms, with a date when it matters ("From March 2027 I run on Sundays").
+
+    Nothing is written to the library: the capture waits in the user's Review queue until they
+    approve it. If it contradicts something already in the library, the reply says so; tell
+    the user and ask whether they meant to change it.
+
+    Args:
+        text: The statement to save (up to 4,000 characters).
+        kind: idea, decision, preference or fact (default fact).
+        source_client: A short name for your app, e.g. claude.ai, chatgpt, cursor.
+        title: Optional short title for the page.
+        domain: Optional domain ID (see list_domains); picked automatically when omitted.
+
+    Returns:
+        MCP tool result: queued (with any change of mind found), held back, or refused.
+    """
+    from mm.auth.keys import load_key_policy
+    from mm.review import capture as cap
+
+    store = _get_store()
+    try:
+        can_write = load_key_policy(store.user_dir).can_write
+    except Exception:  # noqa: BLE001 - an unreadable policy is refused, like the REST API does
+        can_write = False
+    if not can_write:
+        return _text("Not saved: this Munkymind user's API key is read-only, and capturing needs a "
+                     "read-write key (munkymind user rotate-key <name> --read-write).")
+    try:
+        result = cap.add(store, text, kind=kind, source_client=source_client,
+                         title=title or "", domain=domain or "")
+    except cap.CaptureError as exc:
+        return _text(f"Not saved: {exc}")
+    return {**_text(result["message"]), "capture": {k: v for k, v in result.items() if k != "message"}}
 
 
 # ------------------------------------------------------------------ #

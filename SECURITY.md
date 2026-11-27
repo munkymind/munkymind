@@ -40,7 +40,7 @@ Munkymind has two ways in, both tied to your `mm_sk_…` key.
 - `read_write` (the default): query, browse and ingest.
 - `read` (`--read-only`): query and browse only. `GET` routes, `POST /query` and `POST /preview` work; anything that can change the library (such as `POST /ingest/files`) returns **403**. The check is central: every non-GET route is treated as a write unless it is explicitly listed as read-only, and a test fails if a new route skips it.
 
-The MCP tools only read, so both scopes can use them.
+The MCP tools that read work with both scopes. `capture` (and approving or rejecting in the Review queue) needs a read-write key; a read-only key or a login-link browser session can look at the queue but not change it.
 
 **Expiry.** A key can expire (`--expires-in 30d`, `12h`, `8w`, or `--expires-at 2027-01-31`, meaning 00:00 UTC that day). An expired key gets **401** on the API and is refused by the connector login and on every MCP request, so a connector stops working when its key expires.
 
@@ -63,6 +63,7 @@ munkymind user revoke-key my-agent                            # revoke without a
 
 - **Prompt injection through your content.** Whatever you ingest is shown to an AI model. A document or third-party GitHub repo can contain hidden instructions ("ignore previous instructions…"). Munkymind fences retrieved text as data and tells its own answer model never to follow instructions inside it, and the MCP tools label returned text as user content. **No model is fully immune, so only ingest sources you trust**, and be careful ingesting repositories you don't control.
 - **Exposing it to the internet.** A Cloudflare tunnel or hosted deploy makes the MCP login page public. It still needs your key, but stop the tunnel when you're not using it, keep your key private, and rotate it (`munkymind user rotate-key`) if it may have leaked. Use a read-only key with an expiry wherever you can.
+- **What AI tools save.** The `capture` tool never writes to your library: every capture waits in the Review queue until you approve it. Before anything is queued, text that looks like a key, password or token, or like instructions to an AI ("ignore previous instructions…"), is held back in `users/<name>/review/quarantine.jsonl` with secrets redacted. Captures are rate-limited (10 a minute, 200 a day per user and client). The capture check sends the statement and a few related excerpts of your library to your configured answer model; set `MM_CAPTURE_CHECK=off` to stop that, or `MM_CAPTURE=off` to refuse captures altogether. Uploaded files also wait in Review unless `MM_REVIEW_UPLOADS=off`.
 - **Secrets in your notes.** Anything in your notes, including passwords or keys you've written down, is sent to your providers when ingested. Keep secrets out of the notes folder.
 - **Your API keys** live in `.env` (and `<DATA_ROOT>/.env` if you used the wizard). Don't commit `.env`; it's in `.gitignore`.
 

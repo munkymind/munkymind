@@ -113,8 +113,9 @@ def _verify_pkce(code_challenge: str, code_verifier: str) -> bool:
 def _verify_key(raw_key: str, data_root: Path, user_id: str) -> bool:
     """True if raw_key is user_id's current, unexpired key.
 
-    The MCP tools only read, so any scope is accepted here; expiry is checked
-    on every request because the OAuth access token is the key itself.
+    Any scope is accepted here: the tools that read work with a read-only key, and
+    `capture` checks the key's scope itself. Expiry is checked on every request because
+    the OAuth access token is the key itself.
     """
     from mm.auth.keys import check_key
 

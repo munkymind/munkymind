@@ -269,6 +269,70 @@ def check_claude_desktop(username: str) -> Check:
 # Runner
 # ------------------------------------------------------------------ #
 
+STALE_REVIEW_DAYS = 14
+
+
+def check_review(store) -> list[Check]:
+    """Capture, the capture check, uploads, and how the Review queue is doing."""
+    from mm.review import capture, check, queue
+
+    out = []
+    if capture.enabled():
+        out.append(Check(OK, "Capture on: AI tools can save to your Review queue"
+                             + (" (with the change-of-mind check)" if check.enabled() else "")))
+    else:
+        out.append(Check(SKIP, "Capture is off (MM_CAPTURE=off): AI tools can't save anything"))
+    if capture.enabled() and not check.enabled():
+        out.append(Check(SKIP, "Capture check is off (MM_CAPTURE_CHECK=off): changes of mind aren't flagged"))
+    out.append(Check(OK, "Uploads wait in Review" if queue.uploads_need_review()
+                     else "Uploads go straight into the library (MM_REVIEW_UPLOADS=off)"))
+
+    target = queue.review_dir(store) if queue.review_dir(store).exists() else store.user_dir
+    if target.exists() and not os.access(target, os.W_OK):
+        out.append(Check(FAIL, f"The Review queue can't be written to ({target})",
+                         "Give the app user the data folder: docker compose up -d (volume-init repairs it)"))
+        return out
+
+    n = queue.counts(store)
+    if not n["pending"]:
+        out.append(Check(OK, "Review queue: nothing waiting"))
+    else:
+        try:
+            oldest = dt.datetime.fromisoformat(n["oldest_pending"])
+            days = (dt.datetime.now(dt.UTC) - (oldest if oldest.tzinfo else oldest.replace(tzinfo=dt.UTC))).days
+        except (TypeError, ValueError):
+            days = 0
+        label = f"Review queue: {n['pending']} waiting for you"
+        fix = "Open Review in the viewer (/ui#/review), or: " + _cmd(f"munkymind review list -u {store.user_id}")
+        if days > STALE_REVIEW_DAYS:
+            out.append(Check(WARN, f"{label}, the oldest for {days} days", fix))
+        else:
+            out.append(Check(OK, label))
+
+    held = len(capture.quarantined(store))
+    if held:
+        out.append(Check(WARN, f"{held} capture{'s' if held != 1 else ''} held back as possible secrets "
+                               "or instructions (never queued)",
+                         f"Look at {queue.review_dir(store) / 'quarantine.jsonl'}; delete it once checked"))
+
+    approved = {str(p.resolve()) for p in store.context_dir.rglob("*.md")} if store.context_dir.is_dir() else set()
+    if approved:
+        indexed = set()
+        if store.db_path.exists():
+            con = sqlite3.connect(store.db_path)
+            try:
+                indexed = {str(Path(r[0]).resolve()) for r in con.execute(
+                    "SELECT raw_path FROM pages WHERE connector = 'review'") if r[0]}
+            finally:
+                con.close()
+        missing = len(approved - indexed)
+        if missing:
+            out.append(Check(WARN, f"{missing} approved page{'s are' if missing != 1 else ' is'} not indexed, "
+                                   "so questions can't find them",
+                             _cmd(f"munkymind review reindex -u {store.user_id}")))
+    return out
+
+
 def _local_env() -> dict:
     from mm.cli.main import DATA_ROOT
     env = {}
@@ -315,6 +379,7 @@ def run(data_root: Path, username: str) -> list[Check]:
     checks.append(check_api_key(store))
     checks += check_notes(cfg)
     checks += check_library(store)
+    checks += check_review(store)
     checks += check_providers(cfg)
     checks.append(check_claude_desktop(username))
     return checks

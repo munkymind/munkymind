@@ -259,46 +259,52 @@ class QueryEngine:
     # Internal LLM dispatch
     # ------------------------------------------------------------------ #
     def _call_llm(self, provider: str, model: str, user_message: str) -> str:
-        if provider == "anthropic":
-            import anthropic
+        return call_llm(provider, model, SYSTEM_PROMPT, user_message)
 
-            client = anthropic.Anthropic()
-            response = client.messages.create(
-                model=model,
-                max_tokens=1024,
-                system=SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": user_message}],
-            )
-            return response.content[0].text
 
-        elif provider == "openai":
-            import openai
+def call_llm(provider: str, model: str, system: str, user_message: str,
+             max_tokens: int = 1024, timeout: float | None = None) -> str:
+    """One chat turn with the user's configured model (Anthropic, OpenAI or Ollama)."""
+    if provider == "anthropic":
+        import anthropic
 
-            client = openai.OpenAI()
-            response = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_message},
-                ],
-            )
-            return response.choices[0].message.content
+        client = anthropic.Anthropic(**({"timeout": timeout} if timeout else {}))
+        response = client.messages.create(
+            model=model,
+            max_tokens=max_tokens,
+            system=system,
+            messages=[{"role": "user", "content": user_message}],
+        )
+        return response.content[0].text
 
-        elif provider == "ollama":
-            import requests
-            from mm.config.env import ollama_url
+    elif provider == "openai":
+        import openai
 
-            payload = {
-                "model": model,
-                "messages": [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_message},
-                ],
-                "stream": False,
-            }
-            resp = requests.post(f"{ollama_url()}/api/chat", json=payload, timeout=60)
-            resp.raise_for_status()
-            return resp.json()["message"]["content"]
+        client = openai.OpenAI(**({"timeout": timeout} if timeout else {}))
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user_message},
+            ],
+        )
+        return response.choices[0].message.content
 
-        else:
-            raise ValueError(f"Unsupported LLM provider: {provider}")
+    elif provider == "ollama":
+        import requests
+        from mm.config.env import ollama_url
+
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user_message},
+            ],
+            "stream": False,
+        }
+        resp = requests.post(f"{ollama_url()}/api/chat", json=payload, timeout=timeout or 60)
+        resp.raise_for_status()
+        return resp.json()["message"]["content"]
+
+    else:
+        raise ValueError(f"Unsupported LLM provider: {provider}")
