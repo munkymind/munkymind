@@ -162,6 +162,12 @@
     },
     "review.conflict": {
       "plain": "This page changed after the proposal was made. Approve anyway to replace it with this version, or reject it."
+    },
+    "review.batch_approved": {
+      "plain": "Approved {n}: they're in your library now."
+    },
+    "review.batch_held": {
+      "plain": "{n} set aside for a closer look: open each one to decide."
     }
   }
 }

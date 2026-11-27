@@ -294,6 +294,9 @@
     },
     "review.rejected": {
       "joke": "🙅 Spat out."
+    },
+    "review.batch_approved": {
+      "joke": "😋 Nom nom nom."
     }
   }
 }

@@ -501,3 +501,203 @@ def test_viewer_has_the_review_tab_and_its_messages():
     voice = c.get("/ui/voice.json").json()
     for key in ("review.intro", "review.empty", "review.readonly", "review.conflict", "review.approved"):
         assert voice[key]["plain"], key
+
+
+# ------------------------------------------------------------------ #
+# Approve the clean ones, the peek, "since you last looked", the home setting
+# ------------------------------------------------------------------ #
+
+def _at(store, p, when):
+    """Pin a proposal's created_at, so oldest-first is testable."""
+    rec = queue.get(store, p["id"])
+    rec["created_at"] = when
+    queue._save(store, rec)
+    return p["id"]
+
+
+@pytest.fixture()
+def six(store):
+    """6 waiting: 4 clean (one a second change to a page already in the batch), 2 flagged."""
+    def page(name, body, **kw):
+        return queue.propose(store, path=f"personal/{name}.md", domain="personal", title=name.title(),
+                             proposed=f"# {name.title()}\n\n{body}\n", origin="capture", **kw)
+
+    ids = [
+        _at(store, page("garden", "- Tomatoes in the back bed."), "2026-11-20T09:00:00+00:00"),
+        _at(store, page("reading", "Reading a fictional novel."), "2026-11-20T10:00:00+00:00"),
+        _at(store, page("garden", "Basil too."), "2026-11-20T11:00:00+00:00"),
+        _at(store, page("kettle", "Kettle descaled."), "2026-11-20T12:00:00+00:00"),
+        _at(store, page("bike", "Sold the bike.", flags={"changes": ["bike: kept → sold"]}),
+            "2026-11-20T13:00:00+00:00"),
+        _at(store, page("plants", "x", flags={"warnings": ["drops most of the page"]}),
+            "2026-11-20T08:00:00+00:00"),
+    ]
+    return ids
+
+
+def test_batch_plan_is_clean_only_oldest_first_and_sets_aside_a_second_change(store, six):
+    plan = queue.batch_plan(store)
+    assert plan["approve"] == [six[0], six[1], six[3]]
+    assert plan["needs_look"] == [{"id": six[2], "path": "personal/garden.md", "reason": queue.SAME_PAGE}]
+    assert not queue.is_clean(queue.get(store, six[4])) and not queue.is_clean(queue.get(store, six[5]))
+
+
+def test_batch_plan_sets_aside_a_page_changed_since_the_proposal(store, six):
+    (store.context_dir / "personal").mkdir(parents=True)
+    (store.context_dir / "personal" / "kettle.md").write_text("# Kettle\n\nEdited by hand.\n")
+    plan = queue.batch_plan(store)
+    assert six[3] not in plan["approve"]
+    assert {"id": six[3], "path": "personal/kettle.md", "reason": queue.PAGE_CHANGED} in plan["needs_look"]
+
+
+def test_approve_clean_oldest_first_conflicts_set_aside_flagged_skipped(store, six):
+    order = []
+
+    def index(s):
+        order.append(sorted(p.name for p in (s.context_dir / "personal").glob("*.md")))
+        return _no_index(s)
+
+    r = queue.approve_clean(store, list(reversed(six)) + ["20260101-000000-abcdef"], via="test", index=index)
+    assert [x["id"] for x in r["approved"]] == [six[0], six[1], six[3]]
+    assert order == [["garden.md"], ["garden.md", "reading.md"], ["garden.md", "kettle.md", "reading.md"]]
+    assert [x["id"] for x in r["needs_look"]] == [six[2]] and r["needs_look"][0]["reason"] == queue.SAME_PAGE
+    assert set(r["skipped"]) == {six[4], six[5], "20260101-000000-abcdef"}  # flagged or unknown
+    assert queue.get(store, six[0])["decided_via"] == "test"
+    for pid in (six[2], six[4], six[5]):
+        assert queue.get(store, pid)["status"] == "pending"
+    # The one set aside now conflicts with the page it was written against.
+    assert queue.batch_plan(store) == {"approve": [], "needs_look": [
+        {"id": six[2], "path": "personal/garden.md", "reason": queue.PAGE_CHANGED}]}
+    r2 = queue.approve_clean(store, [six[2]], index=_no_index)
+    assert r2["approved"] == [] and r2["needs_look"][0]["reason"] == queue.PAGE_CHANGED
+    assert queue.get(store, six[2])["status"] == "pending"
+    # Already decided: skipped, never re-approved.
+    assert queue.approve_clean(store, [six[0]], index=_no_index)["skipped"] == [six[0]]
+
+
+def test_peek_is_one_line_from_the_diff(store, six):
+    rows = {p["id"]: queue.summary(p) for p in queue.items(store, "pending")}
+    assert rows[six[0]]["peek"] == "+ Tomatoes in the back bed.  (+1 −0)"  # heading left out, bullet dropped
+    assert rows[six[1]]["peek"] == "+ Reading a fictional novel.  (+1 −0)"
+    long = {"current": "a\n", "proposed": "b" * 300 + "\n"}
+    line = queue.peek(long)
+    assert "\n" not in line and len(line.split("  (")[0]) == 110 and line.endswith("(+1 −1)")
+    assert queue.peek({"current": "same\n", "proposed": "---\nx: 1\n---\nsame\n"}) == ""
+    assert queue.peek({"current": "# T\n\ngone\n", "proposed": "# T\n"}) == "− gone  (+0 −1)"
+    assert queue.peek({"current": "", "proposed": "# Only a heading\n"}) == "+ # Only a heading  (+1 −0)"
+
+
+def test_batch_over_the_api_and_who_can_use_it(api):
+    from mm.auth import sessions
+
+    tc, make_user = api
+    key, s = make_user()
+    a = _at(s, _propose(s, path="health/a.md"), "2026-11-20T09:00:00+00:00")
+    b = _at(s, _propose(s, path="health/b.md"), "2026-11-20T10:00:00+00:00")
+    c = _at(s, _propose(s, path="health/a.md", text=PLAN + "\nMore.\n"), "2026-11-20T11:00:00+00:00")
+    w = _propose(s, path="health/w.md", flags={"warnings": ["looks odd"]})["id"]
+    listing = tc.get("/review", headers=key).json()
+    assert listing["batch"]["approve"] == [a, b] and [x["id"] for x in listing["batch"]["needs_look"]] == [c]
+    assert all("peek" in p for p in listing["proposals"])
+    assert "batch" not in tc.get("/review?status=approved", headers=key).json()
+
+    # Read-only keys and login-link sessions can see the plan but not approve.
+    session = {"X-API-Key": sessions.redeem_link(s.user_dir, sessions.create_link(s.user_dir))}
+    assert tc.get("/review", headers=session).json()["batch"]["approve"] == [a, b]
+    assert tc.post("/review/batch", json={"ids": [a, b]}, headers=session).status_code == 403
+    assert tc.post("/review/batch", json={"ids": [a, b]}).status_code == 401
+    assert tc.post("/review/batch", json={"ids": ["x"] * 201}, headers=key).status_code == 400
+    assert tc.post("/review/batch", json={"nope": 1}, headers=key).status_code == 422
+    assert queue.get(s, a)["status"] == "pending"
+
+    with patch("mm.review.queue.index_library", side_effect=_no_index):
+        r = tc.post("/review/batch", json={"ids": [c, w, b, a]}, headers=key)
+    body = r.json()
+    assert r.status_code == 200 and [x["id"] for x in body["approved"]] == [a, b]
+    assert [x["id"] for x in body["needs_look"]] == [c] and body["skipped"] == [w]
+    assert queue.get(s, a)["decided_via"] == "api (batch)"
+    assert tc.get("/review", headers=key).json()["pending"] == 2
+
+    ro = {"X-API-Key": issue_key(s.user_dir, SCOPE_READ)}  # replaces the key: now read-only
+    assert tc.post("/review/batch", json={"ids": [c]}, headers=ro).status_code == 403
+
+
+def test_since_keeps_only_what_was_decided_after_it(api):
+    tc, make_user = api
+    key, s = make_user()
+    old = _propose(s, path="health/old.md")
+    queue.decide(s, old["id"], "approve", index=_no_index)
+    rec = queue.get(s, old["id"])
+    rec["decided_at"] = "2026-11-01T08:00:00+00:00"
+    queue._save(s, rec)
+    new = _propose(s, path="health/new.md")
+    queue.decide(s, new["id"], "approve", index=_no_index)
+    _propose(s, path="health/waiting.md")
+
+    def ids(since):
+        r = tc.get("/review", params={"status": "approved", "since": since}, headers=key)
+        assert r.status_code == 200, r.text
+        return {p["id"] for p in r.json()["proposals"]}
+
+    assert ids("2026-10-31T00:00:00Z") == {old["id"], new["id"]}
+    assert ids("2026-11-02T00:00:00.000Z") == {new["id"]}
+    assert ids("2026-11-01T09:00:00+01:00") == {new["id"]}  # 08:00 UTC is not after 08:00 UTC
+    assert ids("2026-11-01T07:59:00") == {old["id"], new["id"]}  # no zone means UTC
+    assert ids("2999-01-01T00:00:00+00:00") == set()
+    assert tc.get("/review?status=approved&since=yesterday", headers=key).status_code == 400
+
+
+def test_cli_approve_clean(store, six, monkeypatch):
+    from mm.cli.main import app
+
+    monkeypatch.setattr("mm.cli.main.DATA_ROOT", store.user_dir.parent.parent)
+    monkeypatch.setattr("mm.review.queue.index_library", _no_index)
+    no = runner.invoke(app, ["review", "approve", "--clean", "-u", "sam"], input="n\n")
+    assert no.exit_code == 1 and "3 clean" in no.output and "set aside" in no.output
+    assert "2 flagged" in no.output and queue.get(store, six[0])["status"] == "pending"
+    yes = runner.invoke(app, ["review", "approve", "--clean", "-u", "sam"], input="y\n")
+    assert yes.exit_code == 0 and "Approved 3" in yes.output
+    assert queue.get(store, six[0])["decided_via"] == "cli (batch)"
+    again = runner.invoke(app, ["review", "approve", "--clean", "-u", "sam", "--yes"])
+    assert again.exit_code == 0 and "Nothing clean to approve" in again.output
+    assert runner.invoke(app, ["review", "approve", six[2], "--clean", "-u", "sam"]).exit_code == 2
+    assert runner.invoke(app, ["review", "approve", "-u", "sam"]).exit_code == 2
+
+
+def test_viewer_home_setting_is_off_by_default(monkeypatch):
+    from mm.api import server
+
+    c = TestClient(server.app)
+    monkeypatch.delenv("MM_UI_HOME", raising=False)
+    assert c.get("/ui/config.json").json() == {"home": "brains"}
+    monkeypatch.setenv("MM_UI_HOME", "Review-If-Pending")
+    assert c.get("/ui/config.json").json() == {"home": "review-if-pending"}
+    monkeypatch.setenv("MM_UI_HOME", "somewhere")
+    assert c.get("/ui/config.json").json() == {"home": "brains"}
+
+
+def test_doctor_reports_the_viewer_home(store, monkeypatch):
+    from mm.cli import doctor
+
+    monkeypatch.delenv("MM_UI_HOME", raising=False)
+    assert "MM_UI_HOME" not in " | ".join(c.label for c in doctor.check_review(store))
+    monkeypatch.setenv("MM_UI_HOME", "review-if-pending")
+    assert any(c.status == doctor.OK and "opens on Review" in c.label for c in doctor.check_review(store))
+    monkeypatch.setenv("MM_UI_HOME", "somewhere")
+    warn = [c for c in doctor.check_review(store) if c.status == doctor.WARN and "MM_UI_HOME" in c.label]
+    assert warn and warn[0].fix
+
+
+def test_viewer_has_batch_approve_tab_bar_and_since_strip():
+    from mm.api import server
+
+    page = TestClient(server.app).get("/ui").text
+    assert 'id: "approve-clean"' in page and 'api("/review/batch"' in page and "function confirmClean" in page
+    assert '!READ_ONLY() ? h("div", { class: "review-actions" }' in page  # read-only sign-ins get no button
+    assert 'id="more-tab"' in page and 'aria-controls="top-actions"' in page
+    assert "@media (max-width: 640px)" in page and "--tabbar: 50px" in page
+    assert 'CFG.home !== "review-if-pending"' in page and 'location.replace("#/review")' in page
+    assert 'getJSON("/ui/config.json")' in page
+    assert "try { SINCE = localStorage.getItem(SEEN_KEY); }" in page and "status=approved&since=" in page
+    voice = TestClient(server.app).get("/ui/voice.json").json()
+    assert voice["review.batch_approved"]["plain"] and voice["review.batch_held"]["plain"]

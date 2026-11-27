@@ -342,13 +342,49 @@ def capture(body: CaptureRequest, store: UserStore = Depends(get_user_store)):
         raise HTTPException(status_code=429 if isinstance(exc, cap.RateLimited) else 400, detail=str(exc))
 
 
+def _aware(iso: object) -> datetime.datetime | None:
+    """An ISO time as an aware datetime (no zone = UTC), or None."""
+    try:
+        t = datetime.datetime.fromisoformat(str(iso or "").strip())
+    except ValueError:
+        return None
+    return t if t.tzinfo else t.replace(tzinfo=datetime.UTC)
+
+
 @app.get("/review")
-async def review_list(status: str = "pending", store: UserStore = Depends(get_user_store)):
-    """Proposals with the given status (pending, approved, rejected, superseded; comma-separated)."""
+async def review_list(status: str = "pending", since: str = "",
+                      store: UserStore = Depends(get_user_store)):
+    """Proposals with the given status (pending, approved, rejected, superseded; comma-separated).
+    `since` (an ISO time) keeps only those decided after it. A pending list also carries `batch`:
+    what approving the clean ones would write, and what it would set aside for a look."""
     from mm.review import queue
 
-    return {"proposals": [queue.summary(d) for d in queue.items(store, status)],
-            **queue.counts(store)}
+    rows = queue.items(store, status)
+    if since:
+        cut = _aware(since)
+        if cut is None:
+            raise HTTPException(status_code=400, detail="since must be an ISO time, e.g. 2026-11-20T09:00:00Z")
+        rows = [d for d in rows if (_aware(d.get("decided_at")) or cut) > cut]
+    out = {"proposals": [queue.summary(d) for d in rows], **queue.counts(store)}
+    if status == "pending":
+        out["batch"] = queue.batch_plan(store, rows if not since else None)
+    return out
+
+
+class BatchApprove(BaseModel):
+    ids: list[str]
+
+
+@app.post("/review/batch")
+def review_batch(body: BatchApprove, store: UserStore = Depends(get_user_store)):
+    """Approve the listed proposals that are still clean (no flags), oldest first. A second change
+    to the same page, or a page-changed conflict, is set aside as needing a look; flagged ones are
+    skipped. Needs a read-write key."""
+    from mm.review import queue
+
+    if len(body.ids) > 200:
+        raise HTTPException(status_code=400, detail="Too many at once: send at most 200 ids")
+    return queue.approve_clean(store, body.ids, via="api (batch)")
 
 
 @app.get("/review/{pid}")
@@ -436,6 +472,22 @@ async def ui_session_end(api_key: Optional[str] = Depends(API_KEY_HEADER)):
             if user_dir.is_dir() and end_session(user_dir, api_key):
                 break
     return {"status": "signed_out"}
+
+
+UI_HOMES = ("brains", "review-if-pending")
+
+
+def ui_home() -> str:
+    """MM_UI_HOME: where the viewer opens. `review-if-pending` opens on Review when something is
+    waiting; anything else (the default) opens on Brains."""
+    v = os.environ.get("MM_UI_HOME", "").strip().lower()
+    return v if v in UI_HOMES else "brains"
+
+
+@app.get("/ui/config.json", include_in_schema=False)
+async def ui_config():
+    """Viewer settings the server owner chose (no secrets, no user data)."""
+    return {"home": ui_home()}
 
 
 @app.get("/ui/voice.json", include_in_schema=False)
