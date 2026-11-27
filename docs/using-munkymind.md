@@ -77,24 +77,52 @@ Your AI tools can save things to Munkymind, not only read from it. Nothing they 
 ### How it works
 1. **You say something worth keeping.** *"I've moved the Riverside 10k to 14 March."* Your AI tool calls `capture` (or ask it: *"save that to Munkymind"*).
 2. **Munkymind checks it.** For a decision, preference or fact, it looks at the most relevant pages in your library and asks your answer model whether this changes something they say. If it does, the AI tool hears it straight away: *"Heads up, this looks like a change of mind: your library says "6 December" (10k plan); this changes it to "14 March"."* It can ask you while you're still talking.
-3. **It waits in ✅ Review.** Open the viewer's Review tab (the number on it is how many are waiting). Each proposal shows the page it would add, where it came from, and a 🔄 flag for a change of mind.
+3. **It waits in ✅ Review.** Open the viewer's Review tab (the number on it is how many are waiting). Each row shows the page, where it came from, a one-line peek at the change (the first new line, and how many lines are added and removed), and a 🔄 flag for a change of mind.
 4. **You decide.** ✅ **Approve** writes the page and indexes it, so the next question finds it. ✕ **Reject** changes nothing.
 
 Approved pages are kept in Munkymind's own folder (`users/<you>/context-repo/<brain>/`), never in your notes folder. Approving a change of mind adds a page that says what it replaces; it doesn't edit your older note, so update that note yourself if it's one of yours.
 
 ![A proposal in Review on a phone: the change of mind, the new page, Approve and Reject](screenshots/review/review-proposal-390.png)
 
+### Approve the clean ones in one go
+A proposal is **clean** when it has no flag: no change of mind, no warning. When some are waiting, Review shows **✅ Approve N clean**. It opens a confirm sheet that lists each page and its peek; confirm, and they're written oldest first. Flagged proposals are never part of it: open each one and decide.
+
+Two cases are set aside as **👀 Needs a look** instead of being forced through, and the row says why:
+- **A second change to the same page.** Approving the first changes the page under the second, so the second gets a proper look afterwards.
+- **The page changed after the proposal was made** (the conflict below).
+
+After the batch, the viewer opens the oldest proposal still waiting.
+
+![Review on a phone: six waiting, four clean, with a peek on each row](screenshots/review/batch-review-390.png)
+![The confirm sheet: the clean pages, oldest first, and what was set aside](screenshots/review/batch-confirm-390.png)
+
+### Since you last looked
+Review, and the Brains home, show what was approved since you last opened the viewer in this browser, one line each; tap a line for the change. The time is kept in this browser only (nothing on the server), so another device has its own. If the browser blocks storage, the strip just doesn't show.
+
+![Since you last looked, above the Review list](screenshots/review/since-strip-390.png)
+
+### On a phone
+At phone width (640px and under) the tabs move to a bar at the bottom of the screen, with the Review count on it. **⋯ More** holds the theme switch, 🔒 Lock and any links the server adds. On a wider screen the tabs stay at the top.
+
+![The bottom tab bar and the More sheet](screenshots/review/more-sheet-390.png)
+
+### Open on Review when something is waiting
+By default the viewer opens on 🧠 Brains. A server owner can set `MM_UI_HOME=review-if-pending` (in `.env`, then `docker compose up -d`): opening the viewer, or coming back to it after 10 minutes or more, goes straight to Review when anything is waiting, and to Brains when nothing is. A link to a particular page still opens that page. It's off by default because Review is only useful to someone who can decide: a login-link sign-in can't, and the Review count already shows on the tab. `munkymind doctor` reports the setting.
+
 **From the terminal:**
 ```bash
 munkymind review list -u <you>                  # what's waiting
 munkymind review show <id> -u <you>             # the change, and any change of mind
 munkymind review approve <id> -u <you>          # or: reject
+munkymind review approve --clean -u <you>       # every clean one, oldest first, after a confirm (--yes skips it)
 ```
 In Docker, put `docker compose exec api` in front.
 
 **"This page changed after the proposal was made."** Two proposals for the same page, or an edit in between: the second one was written against an older version. Approve anyway to replace the page with it, or reject it.
 
-**Who can decide.** Approving and rejecting need your read-write API key. A login-link sign-in is read-only: it shows the queue, and the page tells you how to decide (sign in with your key, or use the terminal).
+**Who can decide.** Approving and rejecting, one at a time or the clean ones in one go, need your read-write API key. A read-only key or a login-link sign-in shows the queue (and which ones are clean) but has no approve buttons; the page tells you how to decide (sign in with your key, or use the terminal).
+
+**Over the API:** `GET /review` lists what's waiting; its `batch` field says which ids approving the clean ones would write (`approve`) and which it sets aside (`needs_look`, with a reason). `POST /review/batch` with `{"ids": [...]}` approves those that are still clean, oldest first, and returns `approved`, `needs_look` and `skipped` (flagged, already decided or unknown). `GET /review?status=approved&since=<ISO time>` lists what was approved after that time.
 
 ### What goes through Review
 

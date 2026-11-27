@@ -795,13 +795,56 @@ def _decide(pid: str, username: str, action: str, force: bool = False) -> None:
         typer.echo("✓ Rejected: nothing in your library changed.")
 
 
+def _approve_clean(username: str, yes: bool) -> None:
+    from rich.console import Console
+    from rich.markup import escape
+    from mm.review import queue
+
+    console = Console()
+    store = _open_store(username)
+    pending = queue.items(store, "pending")
+    plan = queue.batch_plan(store, pending)
+    by_id = {d["id"]: d for d in pending}
+    flagged = len(pending) - len(plan["approve"]) - len(plan["needs_look"])
+    if not plan["approve"]:
+        typer.echo("Nothing clean to approve." + (f" {len(pending)} waiting need a look: "
+                                                  f"munkymind review list -u {username}" if pending else ""))
+        return
+    console.print(f"[bold]{len(plan['approve'])} clean, oldest first:[/bold]", highlight=False)
+    for pid in plan["approve"]:
+        d = by_id[pid]
+        console.print(f"  {escape(d['path'])}  [dim]{escape(queue.peek(d))}[/dim]", highlight=False)
+    for x in plan["needs_look"]:
+        console.print(f"  [yellow]set aside: {escape(x['path'])} ({x['reason']})[/yellow]", highlight=False)
+    if flagged:
+        console.print(f"  [dim]{flagged} flagged: not included, decide them one by one[/dim]", highlight=False)
+    if not yes and not typer.confirm(f"Approve {len(plan['approve'])}?"):
+        typer.echo("Nothing approved.")
+        raise typer.Exit(1)
+    r = queue.approve_clean(store, plan["approve"], via="cli (batch)")
+    typer.echo(f"✓ Approved {len(r['approved'])}: in your library and indexed.")
+    for x in r["needs_look"]:
+        typer.echo(f"  Set aside: {x['path']} ({x['reason']}). munkymind review show {x['id']} -u {username}")
+
+
 @review_app.command('approve')
 def review_approve(
-    pid: str = typer.Argument(..., help='Proposal ID'),
+    pid: str = typer.Argument(None, help='Proposal ID (or use --clean)'),
     username: str = typer.Option(..., '--user', '-u', help='Username'),
     force: bool = typer.Option(False, '--force', help='Replace the page even if it changed after the proposal was made'),
+    clean: bool = typer.Option(False, '--clean', help='Approve every waiting proposal with no flags, oldest first'),
+    yes: bool = typer.Option(False, '--yes', '-y', help='With --clean: skip the confirmation'),
 ):
     """Write the proposed page to your library and index it."""
+    if clean:
+        if pid or force:
+            typer.echo("✗ --clean approves the clean ones in one go: leave out the ID and --force.", err=True)
+            raise typer.Exit(2)
+        _approve_clean(username, yes)
+        return
+    if not pid:
+        typer.echo("✗ Give a proposal ID (munkymind review list), or --clean.", err=True)
+        raise typer.Exit(2)
     _decide(pid, username, "approve", force)
 
 

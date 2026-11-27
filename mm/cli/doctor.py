@@ -286,6 +286,12 @@ def check_review(store) -> list[Check]:
         out.append(Check(SKIP, "Capture check is off (MM_CAPTURE_CHECK=off): changes of mind aren't flagged"))
     out.append(Check(OK, "Uploads wait in Review" if queue.uploads_need_review()
                      else "Uploads go straight into the library (MM_REVIEW_UPLOADS=off)"))
+    home = os.environ.get("MM_UI_HOME", "").strip().lower()
+    if home == "review-if-pending":
+        out.append(Check(OK, "The viewer opens on Review when something is waiting (MM_UI_HOME)"))
+    elif home and home != "brains":
+        out.append(Check(WARN, f"MM_UI_HOME={home!r} isn't a known setting: the viewer opens on Brains",
+                         "Set MM_UI_HOME=review-if-pending, or leave it empty"))
 
     target = queue.review_dir(store) if queue.review_dir(store).exists() else store.user_dir
     if target.exists() and not os.access(target, os.W_OK):

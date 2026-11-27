@@ -203,6 +203,29 @@ def counts(store: UserStore) -> dict[str, Any]:
             "oldest_pending": min((p.get("created_at") or "" for p in pending), default=None)}
 
 
+_BULLET = re.compile(r"^[-*•]\s+")
+
+
+def peek(d: dict, width: int = 110) -> str:
+    """One line of what a proposal changes, for a list row: the first added line (else the first
+    removed one) and how many lines are added and removed. Headings are left out when anything
+    else changed. Empty when the text doesn't change."""
+    lines = [ln for ln in diff(d) if ln["op"] in "+-" and ln["text"].strip()]
+    if not lines:
+        return ""
+    text_lines = [ln for ln in lines if not ln["text"].lstrip().startswith("#")]
+    counted = text_lines or lines  # headings count only when nothing else changed
+    added = sum(1 for ln in counted if ln["op"] == "+")
+    removed = len(counted) - added
+    op = "+" if added else "-"
+    text = next(ln["text"].strip() for ln in counted if ln["op"] == op)
+    op = "+" if op == "+" else "−"
+    line = f"{op} {_BULLET.sub('', text)}"
+    if len(line) > width:
+        line = line[:width - 1].rstrip() + "…"
+    return f"{line}  (+{added} −{removed})"
+
+
 def summary(d: dict) -> dict:
     """What a list shows: no page bodies."""
     return {k: d.get(k) for k in ("id", "status", "path", "domain", "title", "origin", "kind",
@@ -211,6 +234,7 @@ def summary(d: dict) -> dict:
         "flags": {k: v for k, v in (d.get("flags") or {}).items() if v},
         "changes": d.get("changes") or [],
         "is_new_page": not d.get("current"),
+        "peek": peek(d),
     }
 
 
@@ -320,6 +344,77 @@ def decide(store: UserStore, pid: str, action: str, *, force: bool = False, via:
         d["decided_via"] = via
         _save(store, d)
     return {"id": pid, "status": d["status"], **result}
+
+
+# ── approving the clean ones in one go ────────────────────────────────────────
+
+SAME_PAGE = "another change to this page comes first"
+PAGE_CHANGED = "the page changed after this was proposed"
+
+
+def is_clean(d: dict) -> bool:
+    """Pending with no flag of any kind (no change of mind, no warning): nothing to weigh up."""
+    return (d.get("status") == "pending" and not any((d.get("flags") or {}).values())
+            and not d.get("changes"))
+
+
+def _oldest_first(ds: list[dict]) -> list[dict]:
+    return sorted(ds, key=lambda d: (d.get("created_at") or "", d["id"]))
+
+
+def batch_plan(store: UserStore, pending: list[dict] | None = None) -> dict:
+    """What one "approve the clean ones" would write, oldest first, and which clean proposals it
+    sets aside as needing a look: a second proposal for a page already in the batch (approving
+    the first changes the page under it), or one whose page changed since it was made.
+    Flagged proposals are never part of it."""
+    ds = _oldest_first([d for d in (items(store, "pending") if pending is None else pending)
+                        if is_clean(d)])
+    approve: list[str] = []
+    needs_look: list[dict] = []
+    seen: set[str] = set()
+    for d in ds:
+        if d["path"] in seen:
+            needs_look.append({"id": d["id"], "path": d["path"], "reason": SAME_PAGE})
+        elif version_of(current_text(store, d["path"])) != (d.get("base_version") or ""):
+            needs_look.append({"id": d["id"], "path": d["path"], "reason": PAGE_CHANGED})
+        else:
+            approve.append(d["id"])
+        seen.add(d["path"])
+    return {"approve": approve, "needs_look": needs_look}
+
+
+def approve_clean(store: UserStore, ids: list[str], *, via: str = "api",
+                  index: Callable[[UserStore], dict] | None = None) -> dict:
+    """Approve the given proposals, oldest first, if they are still clean and pending.
+    Anything flagged, decided already or unknown is skipped. A second proposal for a page
+    already approved in this batch, or a page-changed conflict, is set aside, never forced."""
+    chosen, skipped = [], []
+    for pid in dict.fromkeys(ids or []):
+        try:
+            chosen.append(get(store, pid))
+        except ReviewError:
+            skipped.append(pid)
+    approved: list[dict] = []
+    needs_look: list[dict] = []
+    seen: set[str] = set()
+    for d in _oldest_first(chosen):
+        if not is_clean(d):
+            skipped.append(d["id"])
+            continue
+        if d["path"] in seen:
+            needs_look.append({"id": d["id"], "path": d["path"], "reason": SAME_PAGE})
+            continue
+        seen.add(d["path"])
+        try:
+            r = decide(store, d["id"], "approve", via=via, index=index)
+        except ReviewConflict:
+            needs_look.append({"id": d["id"], "path": d["path"], "reason": PAGE_CHANGED})
+            continue
+        except ReviewError as exc:  # decided meanwhile, or indexing failed (the write was undone)
+            needs_look.append({"id": d["id"], "path": d["path"], "reason": str(exc)})
+            continue
+        approved.append({"id": d["id"], "path": r.get("path") or d["path"]})
+    return {"approved": approved, "needs_look": needs_look, "skipped": skipped}
 
 
 # ── uploads ───────────────────────────────────────────────────────────────────
